@@ -39,16 +39,16 @@ export default async function ServiceDetailPage({ params }: Props) {
 
   return (
     <div className="bg-cream">
-      <article className="mx-auto w-full max-w-3xl py-14">
+      <article className="mx-auto w-full max-w-6xl px-6 py-16">
         <Link href="/services" className="text-sm font-semibold text-ocean hover:underline">
           ← All services
         </Link>
-        <h1 className="mt-4 text-3xl font-bold tracking-tight text-navy sm:text-4xl">
+        <h1 className="mt-4 max-w-3xl text-3xl font-bold tracking-tight text-navy sm:text-4xl">
           {s.headline}
         </h1>
-        <p className="mt-4 text-lg leading-relaxed text-charcoal/90">{s.authorityIntro}</p>
+        <p className="mt-4 max-w-3xl text-lg leading-relaxed text-charcoal/90">{s.authorityIntro}</p>
 
-        <section className="mt-10 rounded-3xl border border-navy/10 bg-white p-6 shadow-card">
+        <section className="mt-10 max-w-3xl rounded-xl border border-navy/10 bg-white p-6 shadow-md">
           <h2 className="text-lg font-bold text-navy">What&apos;s included</h2>
           <ul className="mt-3 list-inside list-disc space-y-2 text-charcoal/90">
             {s.included.map((line) => (
@@ -57,7 +57,7 @@ export default async function ServiceDetailPage({ params }: Props) {
           </ul>
         </section>
 
-        <section className="mt-8 rounded-3xl border border-navy/10 bg-sky/40 p-6">
+        <section className="mt-8 max-w-3xl rounded-xl border border-navy/10 bg-sky/40 p-6 shadow-md">
           <h2 className="text-lg font-bold text-navy">Who it&apos;s for</h2>
           <ul className="mt-3 list-inside list-disc space-y-2 text-charcoal/90">
             {s.whoItsFor.map((line) => (
@@ -66,7 +66,7 @@ export default async function ServiceDetailPage({ params }: Props) {
           </ul>
         </section>
 
-        <section className="mt-8 rounded-3xl border border-navy/10 bg-white p-6 shadow-card">
+        <section className="mt-8 max-w-3xl rounded-xl border border-navy/10 bg-white p-6 shadow-md">
           <h2 className="text-lg font-bold text-navy">Our process</h2>
           <ol className="mt-3 list-decimal space-y-2 pl-5 text-charcoal/90">
             {processSteps.map((line) => (
@@ -77,7 +77,7 @@ export default async function ServiceDetailPage({ params }: Props) {
 
         <section
           id="pricing"
-          className="mt-8 scroll-mt-28 rounded-3xl border border-navy/10 bg-sand/40 p-6"
+          className="mt-8 max-w-3xl scroll-mt-28 rounded-xl border border-navy/10 bg-sand/40 p-6 shadow-md"
         >
           <h2 className="text-lg font-bold text-navy">Starting pricing</h2>
           <p className="mt-3 text-charcoal/90">{s.startingPriceLabel}</p>
@@ -95,7 +95,7 @@ export default async function ServiceDetailPage({ params }: Props) {
           </a>
         </section>
 
-        <section className="mt-10">
+        <section className="mt-10 max-w-3xl">
           <h2 className="text-xl font-bold text-navy">Local service area</h2>
           <div className="mt-4 space-y-4 text-sm leading-relaxed text-charcoal/90 sm:text-base">
             {locationParagraphs.map((p) => (
@@ -104,7 +104,7 @@ export default async function ServiceDetailPage({ params }: Props) {
           </div>
         </section>
 
-        <section className="mt-10">
+        <section className="mt-10 max-w-3xl">
           <h2 className="text-xl font-bold text-navy">FAQ</h2>
           <dl className="mt-4 space-y-5">
             {s.faq.map((item) => (
@@ -116,7 +116,7 @@ export default async function ServiceDetailPage({ params }: Props) {
           </dl>
         </section>
 
-        <section className="mt-10 rounded-3xl border border-leaf/30 bg-white p-6 shadow-card">
+        <section className="mt-10 max-w-3xl rounded-xl border border-leaf/30 bg-white p-6 shadow-md">
           <h2 className="text-lg font-bold text-navy">Why choose {SITE_NAME}</h2>
           <ul className="mt-3 space-y-2 text-charcoal/90">
             {SERVICE_TRUST_BULLETS.map((b) => (
@@ -131,7 +131,7 @@ export default async function ServiceDetailPage({ params }: Props) {
         </section>
 
         {related.length ? (
-          <section className="mt-10">
+          <section className="mt-10 max-w-3xl">
             <h2 className="text-lg font-bold text-navy">Related services</h2>
             <ul className="mt-3 flex flex-wrap gap-3">
               {related.map((r) => (
@@ -148,7 +148,7 @@ export default async function ServiceDetailPage({ params }: Props) {
           </section>
         ) : null}
 
-        <div className="mt-12 rounded-3xl bg-navy p-8 text-center text-cream shadow-lift">
+        <div className="mt-12 max-w-3xl rounded-xl bg-navy p-8 text-center text-cream shadow-md">
           <p className="text-lg font-semibold">Book service or request pricing</p>
           <p className="mt-2 text-sm text-cream/85">
             Use our quick access page for quotes, scheduling, invoices, and reviews.
@@ -157,7 +157,7 @@ export default async function ServiceDetailPage({ params }: Props) {
             href={LINKR_URL}
             target="_blank"
             rel={linkrRel}
-            className="mt-6 inline-flex w-full items-center justify-center rounded-lg bg-white px-6 py-4 text-sm font-semibold text-navy no-underline hover:bg-sky sm:w-auto"
+            className="btn-inverse-lg mt-6 w-full text-base sm:w-auto"
           >
             Open quick access page
           </a>

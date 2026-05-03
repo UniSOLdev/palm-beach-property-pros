@@ -12,7 +12,7 @@ export function SiteFooter() {
       <div className="mx-auto max-w-6xl px-6 py-12">
         <div className="grid gap-10 lg:grid-cols-12">
           <div className="lg:col-span-4">
-            <div className="rounded-2xl bg-cream p-4 shadow-card">
+            <div className="inline-block rounded-xl bg-white p-3 shadow-md">
               <BrandLogo variant="footer" />
             </div>
             <p className="mt-4 text-sm leading-relaxed text-cream/85">

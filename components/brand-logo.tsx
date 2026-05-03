@@ -11,7 +11,7 @@ type BrandLogoProps = {
 };
 
 /**
- * Full lockup (mark + wordmark) from a single asset — height-constrained, width auto, object-contain.
+ * Full lockup — white mat behind asset removes baked-in edge; object-contain preserves aspect ratio.
  */
 export function BrandLogo({ variant = "header", className = "" }: BrandLogoProps) {
   const isHeader = variant === "header";
@@ -29,15 +29,28 @@ export function BrandLogo({ variant = "header", className = "" }: BrandLogoProps
       className={`inline-flex max-w-full shrink-0 items-center no-underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ocean ${className}`}
       aria-label="Palm Beach Property Pros home"
     >
-      <Image
-        src="/logo.png"
-        alt="Palm Beach Property Pros"
-        width={LOGO_WIDTH}
-        height={LOGO_HEIGHT}
-        priority={isHeader}
-        sizes={sizes}
-        className={`${dimensionClass} object-contain object-left`}
-      />
+      {isHeader ? (
+        <span className="inline-block rounded-md bg-white p-2 ring-0">
+          <Image
+            src="/logo.png"
+            alt="Palm Beach Property Pros"
+            width={LOGO_WIDTH}
+            height={LOGO_HEIGHT}
+            priority
+            sizes={sizes}
+            className={`${dimensionClass} object-contain object-left`}
+          />
+        </span>
+      ) : (
+        <Image
+          src="/logo.png"
+          alt="Palm Beach Property Pros"
+          width={LOGO_WIDTH}
+          height={LOGO_HEIGHT}
+          sizes={sizes}
+          className={`${dimensionClass} object-contain object-left`}
+        />
+      )}
     </Link>
   );
 }

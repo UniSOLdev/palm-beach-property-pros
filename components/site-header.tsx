@@ -16,7 +16,7 @@ export function SiteHeader() {
   const [open, setOpen] = useState(false);
 
   return (
-    <header className="sticky top-0 z-40 border-b border-navy/10 bg-cream/95 shadow-sm backdrop-blur-md">
+    <header className="sticky top-0 z-40 border-b border-navy/10 bg-cream/95 shadow-md backdrop-blur-md">
       <nav
         className="mx-auto flex w-full max-w-6xl items-center justify-between gap-4 px-6 py-4"
         aria-label="Primary"
@@ -46,7 +46,7 @@ export function SiteHeader() {
           </a>
           <button
             type="button"
-            className="inline-flex h-11 w-11 items-center justify-center rounded-lg border border-navy/15 text-navy md:hidden"
+            className="inline-flex h-11 w-11 items-center justify-center rounded-xl border border-navy/15 text-navy shadow-sm md:hidden"
             aria-expanded={open}
             aria-controls="mobile-nav"
             onClick={() => setOpen((v) => !v)}

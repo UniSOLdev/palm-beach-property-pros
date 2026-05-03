@@ -48,8 +48,8 @@ const bundles = [
 export default function PricingPage() {
   return (
     <div className="bg-cream">
-      <section className="mx-auto w-full max-w-3xl py-14">
-        <p className="text-sm font-semibold uppercase tracking-wide text-ocean">Pricing</p>
+      <section className="mx-auto max-w-6xl px-6 py-16">
+        <p className="text-xs font-semibold uppercase tracking-widest text-ocean">Pricing</p>
         <h1 className="mt-2 text-3xl font-bold tracking-tight text-navy sm:text-4xl">
           Service Pricing – {SITE_NAME}
         </h1>
@@ -59,7 +59,7 @@ export default function PricingPage() {
         </p>
 
         <h2 className="mt-12 text-xl font-bold text-navy">Starting price overview</h2>
-        <div className="mt-4 overflow-hidden rounded-3xl border border-navy/10 bg-white shadow-card">
+        <div className="mt-4 overflow-hidden rounded-xl border border-navy/10 bg-white shadow-md">
           <table className="w-full text-left text-sm">
             <thead className="bg-sky/60 text-navy">
               <tr>
@@ -90,7 +90,7 @@ export default function PricingPage() {
           {bundles.map((b) => (
             <li
               key={b.name}
-              className="rounded-3xl border border-navy/10 bg-white p-5 text-sm text-charcoal/90 shadow-card"
+              className="rounded-xl border border-navy/10 bg-white p-5 text-sm leading-relaxed text-charcoal/90 shadow-md"
             >
               <span className="font-semibold text-navy">{b.name}</span>
               <span className="mt-1 block">{b.detail}</span>
@@ -115,7 +115,7 @@ export default function PricingPage() {
           </p>
         </div>
 
-        <div className="mt-12 rounded-3xl bg-navy p-8 text-center text-cream shadow-lift">
+        <div className="mt-12 rounded-xl bg-navy p-8 text-center text-cream shadow-md">
           <p className="text-lg font-semibold">Request your written estimate</p>
           <p className="mt-2 text-sm text-cream/85">
             Open quick access to send photos, select services, and receive pricing.
@@ -124,7 +124,7 @@ export default function PricingPage() {
             href={LINKR_URL}
             target="_blank"
             rel={linkrRel}
-            className="mt-6 inline-flex w-full items-center justify-center rounded-lg bg-white px-6 py-4 text-sm font-semibold text-navy no-underline hover:bg-sky sm:w-auto"
+            className="btn-inverse-lg mt-6 w-full text-base sm:w-auto"
           >
             Open quick access page
           </a>

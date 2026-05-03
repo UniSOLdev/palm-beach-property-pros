@@ -12,7 +12,7 @@ const bullets = SERVICE_CITIES.filter((c) => !c.toLowerCase().startsWith("and ne
 export default function ServiceAreaPage() {
   return (
     <div className="bg-cream">
-      <section className="mx-auto w-full max-w-3xl py-14">
+      <section className="mx-auto max-w-6xl px-6 py-16">
         <p className="text-sm font-semibold uppercase tracking-wide text-ocean">Service area</p>
         <h1 className="mt-2 text-3xl font-bold tracking-tight text-navy sm:text-4xl">
           Service Area – Palm Beach County
@@ -27,7 +27,7 @@ export default function ServiceAreaPage() {
           {bullets.map((city) => (
             <li
               key={city}
-              className="rounded-2xl border border-navy/10 bg-white px-4 py-3 text-sm font-medium text-navy shadow-card"
+              className="rounded-xl border border-navy/10 bg-white px-4 py-3 text-sm font-medium text-navy shadow-md"
             >
               {city}
             </li>

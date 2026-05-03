@@ -30,7 +30,7 @@ export function QuoteForm() {
   return (
     <form
       onSubmit={onSubmit}
-      className="space-y-5 rounded-3xl border border-navy/10 bg-white p-6 shadow-card sm:p-8"
+      className="space-y-5 rounded-xl border border-navy/10 bg-white p-6 shadow-md sm:p-8"
     >
       <p className="text-sm text-charcoal/85">
         Use the fields below to organize what you will send, then continue to quick access—photos,

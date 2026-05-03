@@ -7,7 +7,7 @@
     scroll-behavior: smooth;
   }
   body {
-    @apply bg-cream text-charcoal antialiased;
+    @apply bg-cream font-sans text-charcoal antialiased;
   }
   ::selection {
     @apply bg-sky text-navy;
@@ -22,15 +22,25 @@
 
 @layer components {
   .btn-primary {
-    @apply inline-flex items-center justify-center rounded-lg bg-navy px-6 py-3 text-center text-sm font-semibold text-white no-underline shadow-card transition hover:bg-ocean;
+    @apply inline-flex items-center justify-center rounded-xl bg-navy px-6 py-3 text-center text-sm font-semibold text-white no-underline shadow-md transition duration-200 ease-out hover:bg-ocean hover:shadow-lg active:scale-[0.98];
   }
   .btn-primary-lg {
-    @apply inline-flex items-center justify-center rounded-lg bg-navy px-8 py-4 text-center text-base font-semibold text-white no-underline shadow-lift transition hover:bg-ocean;
+    @apply inline-flex items-center justify-center rounded-xl bg-navy px-8 py-4 text-center text-base font-semibold text-white no-underline shadow-md transition duration-200 ease-out hover:bg-ocean hover:shadow-lg hover:scale-[1.02] active:scale-[0.98];
+  }
+  /** Hero primary — largest touch target, strongest lift */
+  .btn-primary-hero {
+    @apply inline-flex items-center justify-center rounded-xl bg-navy px-10 py-4 text-center text-lg font-semibold text-white no-underline shadow-md transition duration-200 ease-out hover:bg-ocean hover:shadow-xl hover:scale-[1.02] active:scale-[0.98] md:px-12;
   }
   .btn-secondary {
-    @apply inline-flex items-center justify-center rounded-lg border border-navy/25 bg-white px-6 py-3 text-center text-sm font-semibold text-navy no-underline transition hover:bg-sand/50;
+    @apply inline-flex items-center justify-center rounded-xl border border-navy/20 bg-white px-6 py-3 text-center text-sm font-semibold text-navy no-underline shadow-sm transition duration-200 hover:border-navy/30 hover:bg-sky/30 hover:shadow-md active:scale-[0.98];
   }
   .btn-secondary-lg {
-    @apply inline-flex items-center justify-center rounded-lg border border-navy/20 bg-white px-8 py-4 text-center text-base font-semibold text-navy no-underline transition hover:bg-sand/50;
+    @apply inline-flex items-center justify-center rounded-xl border border-navy/20 bg-white px-8 py-4 text-center text-base font-semibold text-navy no-underline shadow-sm transition duration-200 hover:border-navy/30 hover:bg-neutral-50 hover:shadow-md hover:scale-[1.01] active:scale-[0.98];
+  }
+  .btn-inverse-lg {
+    @apply inline-flex items-center justify-center rounded-xl bg-white px-10 py-4 text-center text-lg font-semibold text-navy no-underline shadow-md transition duration-200 ease-out hover:bg-sky hover:shadow-lg hover:scale-[1.02] active:scale-[0.98];
+  }
+  .btn-outline-light {
+    @apply inline-flex items-center justify-center rounded-xl border border-white/55 bg-transparent px-8 py-4 text-center text-base font-semibold text-white no-underline transition duration-200 hover:bg-white/10;
   }
 }

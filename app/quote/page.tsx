@@ -12,7 +12,7 @@ export const metadata: Metadata = {
 export default function QuotePage() {
   return (
     <div className="bg-cream">
-      <section className="mx-auto w-full max-w-3xl py-14">
+      <section className="mx-auto max-w-6xl px-6 py-16">
         <p className="text-sm font-semibold uppercase tracking-wide text-ocean">Quote</p>
         <h1 className="mt-2 text-3xl font-bold tracking-tight text-navy sm:text-4xl">
           Request Your Free Quote

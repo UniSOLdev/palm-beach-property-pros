@@ -89,23 +89,27 @@ const whoWeWorkWith = [
 export default function HomePage() {
   return (
     <>
-      <section className="relative overflow-hidden bg-gradient-to-b from-sky/50 via-cream to-cream">
-        <div className="mx-auto max-w-6xl px-6 pb-16 pt-12 sm:pb-20 sm:pt-16">
-          <p className="text-sm font-semibold uppercase tracking-wide text-ocean">
+      <section className="relative overflow-hidden bg-gradient-to-b from-white via-neutral-50/90 to-cream py-20 pt-16 md:pt-20">
+        <div
+          className="pointer-events-none absolute -left-24 top-0 h-[28rem] w-[28rem] rounded-full bg-sky/25 blur-3xl md:left-1/2 md:-translate-x-1/2"
+          aria-hidden
+        />
+        <div className="relative mx-auto max-w-6xl px-6 pb-12">
+          <p className="text-xs font-semibold uppercase tracking-widest text-ocean">
             Palm Beach County
           </p>
-          <h1 className="mt-4 max-w-4xl text-4xl font-bold tracking-tight text-navy md:text-5xl md:leading-[1.1]">
+          <h1 className="mt-5 max-w-4xl text-4xl font-bold tracking-tight text-navy md:text-5xl lg:text-6xl lg:leading-[1.08]">
             <span className="block">Professional Property Cleaning &amp; Maintenance</span>
-            <span className="mt-2 block text-3xl font-semibold text-navy md:text-4xl">
+            <span className="mt-3 block text-3xl font-bold tracking-tight text-navy md:text-4xl lg:text-5xl">
               Serving Palm Beach County
             </span>
           </h1>
-          <p className="mt-6 max-w-2xl text-lg leading-relaxed text-charcoal/80 sm:text-xl">
+          <p className="mt-10 max-w-2xl text-lg leading-relaxed text-charcoal/80 sm:text-xl">
             Window cleaning, pressure washing, detailing, and full-service property care —
             residential &amp; commercial. Licensed. Insured. Local.
           </p>
-          <div className="mt-10 flex max-w-xl flex-col gap-4 sm:flex-row sm:flex-wrap">
-            <a href={LINKR_URL} target="_blank" rel={linkrRel} className="btn-primary-lg">
+          <div className="mt-10 flex max-w-2xl flex-col gap-4 sm:flex-row sm:flex-wrap">
+            <a href={LINKR_URL} target="_blank" rel={linkrRel} className="btn-primary-hero">
               Get a Fast Photo Quote
             </a>
             <a href={PHONE_TEL} className="btn-secondary-lg">
@@ -113,7 +117,7 @@ export default function HomePage() {
             </a>
             <Link
               href="/services"
-              className="btn-secondary-lg border-navy/15 bg-cream hover:bg-sand/50"
+              className="btn-secondary-lg border-navy/15 bg-cream/80 hover:bg-sand/60"
             >
               View Services
             </Link>
@@ -121,29 +125,29 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="border-y border-navy/10 bg-white py-8">
+      <section className="border-y border-navy/10 bg-gradient-to-r from-sky/25 via-white to-sky/20 py-10">
         <div className="mx-auto max-w-6xl px-6">
-          <ul className="flex flex-col items-center justify-between gap-4 text-sm font-medium text-charcoal sm:flex-row sm:flex-wrap sm:gap-x-8 sm:gap-y-3">
-            <li className="flex items-center gap-2">
-              <span className="text-leaf" aria-hidden>
+          <ul className="flex flex-col items-stretch justify-between gap-6 text-sm font-medium tracking-wide text-charcoal sm:flex-row sm:flex-wrap sm:items-center sm:justify-between sm:gap-x-10">
+            <li className="flex items-center gap-3">
+              <span className="text-lg text-leaf" aria-hidden>
                 ✔
               </span>
               Licensed &amp; Insured
             </li>
-            <li className="flex items-center gap-2">
-              <span className="text-leaf" aria-hidden>
+            <li className="flex items-center gap-3">
+              <span className="text-lg text-leaf" aria-hidden>
                 ✔
               </span>
               Local Palm Beach County Team
             </li>
-            <li className="flex items-center gap-2">
-              <span className="text-leaf" aria-hidden>
+            <li className="flex items-center gap-3">
+              <span className="text-lg text-leaf" aria-hidden>
                 ✔
               </span>
               Photo-Based Estimates
             </li>
-            <li className="flex items-center gap-2">
-              <span className="text-leaf" aria-hidden>
+            <li className="flex items-center gap-3">
+              <span className="text-lg text-leaf" aria-hidden>
                 ✔
               </span>
               Residential &amp; Commercial
@@ -152,9 +156,9 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="bg-cream py-16 sm:py-20">
+      <section className="bg-cream py-16">
         <div className="mx-auto max-w-6xl px-6">
-          <h2 className="text-2xl font-semibold tracking-tight text-navy md:text-3xl">
+          <h2 className="text-2xl font-bold tracking-tight text-navy md:text-3xl">
             Book, Pay, or Leave a Review — All in One Place
           </h2>
           <p className="mt-4 max-w-2xl text-lg leading-relaxed text-charcoal/80">
@@ -167,9 +171,9 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="bg-sand/50 py-16 sm:py-20">
+      <section className="bg-sand/50 py-16">
         <div className="mx-auto max-w-6xl px-6">
-          <h2 className="text-2xl font-semibold tracking-tight text-navy md:text-3xl">
+          <h2 className="text-2xl font-bold tracking-tight text-navy md:text-3xl">
             Service Pricing Overview
           </h2>
           <p className="mt-4 max-w-2xl text-lg leading-relaxed text-charcoal/80">
@@ -179,11 +183,14 @@ export default function HomePage() {
             {pricingCards.map((card) => (
               <article
                 key={card.title}
-                className="flex flex-col rounded-3xl border border-navy/10 bg-white p-6 shadow-card"
+                className="flex h-full flex-col rounded-xl border border-navy/10 bg-white p-6 shadow-md transition duration-300 hover:-translate-y-0.5 hover:shadow-lg"
               >
-                <h3 className="text-lg font-semibold text-navy">{card.title}</h3>
-                <p className="mt-2 text-sm font-semibold text-ocean">{card.price}</p>
-                <ul className="mt-4 flex-1 space-y-2 text-sm text-charcoal/90">
+                <h3 className="text-sm font-semibold uppercase tracking-wide text-charcoal/70">
+                  {card.title}
+                </h3>
+                <p className="mt-2 text-2xl font-bold tracking-tight text-navy">{card.price}</p>
+                <div className="my-4 border-t border-navy/10" aria-hidden />
+                <ul className="flex-1 space-y-2 text-sm leading-relaxed text-charcoal/90">
                   {card.bullets.map((b) => (
                     <li key={b} className="flex gap-2">
                       <span className="text-ocean" aria-hidden>
@@ -197,7 +204,7 @@ export default function HomePage() {
                   href={LINKR_URL}
                   target="_blank"
                   rel={linkrRel}
-                  className="btn-primary mt-6 w-full sm:w-auto"
+                  className="btn-primary mt-6 w-full"
                 >
                   Get Quote
                 </a>
@@ -214,41 +221,37 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="bg-cream py-16 sm:py-20">
+      <section className="bg-neutral-50 py-16">
         <div className="mx-auto max-w-6xl px-6">
           <div className="max-w-2xl">
-            <h2 className="text-2xl font-semibold tracking-tight text-navy md:text-3xl">
-              Core services
-            </h2>
+            <h2 className="text-2xl font-bold tracking-tight text-navy md:text-3xl">Core services</h2>
             <p className="mt-4 text-lg leading-relaxed text-charcoal/80">
               Benefit-driven programs for homeowners, Airbnb hosts, property managers, HOAs,
               dealerships, storefronts, and small businesses.
             </p>
           </div>
-          <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {SERVICES.map((s) => (
               <article
                 key={s.slug}
-                className="flex flex-col rounded-3xl border border-navy/10 bg-white p-6 shadow-card"
+                className="flex h-full flex-col rounded-xl border border-navy/10 bg-white p-6 shadow-md transition duration-200 hover:shadow-lg"
               >
-                <h3 className="text-lg font-semibold text-navy">{s.name}</h3>
-                <p className="mt-2 flex-1 text-sm leading-relaxed text-charcoal/90">
-                  {s.shortDescription}
-                </p>
-                <div className="mt-4 flex flex-wrap gap-3">
+                <h3 className="text-lg font-bold text-navy">{s.name}</h3>
+                <p className="mt-3 flex-1 text-sm leading-relaxed text-charcoal/90">{s.shortDescription}</p>
+                <div className="mt-6 flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:gap-3">
                   <Link
                     href={`/services/${s.slug}`}
-                    className="text-sm font-semibold text-ocean no-underline hover:underline"
+                    className="btn-secondary flex-1 py-2.5 text-center text-sm"
                   >
-                    Service details →
+                    Service details
                   </Link>
                   <a
                     href={LINKR_URL}
                     target="_blank"
                     rel={linkrRel}
-                    className="text-sm font-semibold text-navy no-underline hover:underline"
+                    className="btn-primary flex-1 py-2.5 text-center text-sm"
                   >
-                    Get Quote →
+                    Get quote
                   </a>
                 </div>
               </article>
@@ -257,23 +260,28 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="bg-white py-16 sm:py-20">
+      <section className="bg-white py-16">
         <div className="mx-auto max-w-6xl px-6">
-          <h2 className="text-2xl font-semibold tracking-tight text-navy md:text-3xl">
+          <h2 className="text-2xl font-bold tracking-tight text-navy md:text-3xl">
             Real Results in Palm Beach County
           </h2>
           <p className="mt-4 max-w-2xl text-lg leading-relaxed text-charcoal/80">
             Representative project photography is added as we document new work. Each gallery slot
             below is reserved for a labeled before/after pair.
           </p>
-          <ul className="mt-10 grid gap-5 sm:grid-cols-2">
+          <p className="mt-2 text-sm font-medium text-charcoal/70">
+            Documented results across Palm Beach County properties.
+          </p>
+          <ul className="mt-10 grid gap-6 sm:grid-cols-2">
             {beforeAfterPlaceholders.map((item) => (
               <li
                 key={item.label}
-                className="flex flex-col overflow-hidden rounded-3xl border border-navy/10 bg-sky/30 shadow-card"
+                className="group flex flex-col overflow-hidden rounded-xl border border-navy/10 bg-white shadow-md transition duration-300 hover:shadow-lg"
               >
-                <div className="aspect-[4/3] w-full bg-gradient-to-br from-sky/60 to-sand/40" />
-                <p className="border-t border-navy/10 bg-white px-4 py-3 text-center text-sm font-medium text-navy">
+                <div className="relative aspect-[4/3] w-full overflow-hidden bg-gradient-to-br from-sky/50 to-sand/40 transition duration-500 ease-out group-hover:scale-[1.03]">
+                  <span className="sr-only">Photo placeholder</span>
+                </div>
+                <p className="border-t border-navy/10 bg-cream/50 px-4 py-3 text-center text-sm font-semibold text-navy">
                   {item.label}
                 </p>
               </li>
@@ -282,18 +290,19 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="bg-sand/40 py-16 sm:py-20">
+      <section className="bg-sand/40 py-16">
         <div className="mx-auto max-w-6xl px-6">
-          <h2 className="text-2xl font-semibold tracking-tight text-navy md:text-3xl">
-            Who We Work With
-          </h2>
+          <h2 className="text-2xl font-bold tracking-tight text-navy md:text-3xl">Who We Work With</h2>
           <ul className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {whoWeWorkWith.map((label) => (
               <li
                 key={label}
-                className="flex items-center gap-3 rounded-2xl border border-navy/10 bg-white px-5 py-4 text-sm font-semibold text-navy shadow-card"
+                className="flex items-center gap-3 rounded-xl border border-navy/10 bg-white px-5 py-4 text-sm font-semibold text-navy shadow-md"
               >
-                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-sky text-ocean" aria-hidden>
+                <span
+                  className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-sky text-ocean"
+                  aria-hidden
+                >
                   ✓
                 </span>
                 {label}
@@ -303,9 +312,9 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="bg-white py-16 sm:py-20">
+      <section className="bg-white py-16">
         <div className="mx-auto max-w-6xl px-6">
-          <h2 className="text-2xl font-semibold tracking-tight text-navy md:text-3xl">
+          <h2 className="text-2xl font-bold tracking-tight text-navy md:text-3xl">
             Professional Cleaning Services in Palm Beach County
           </h2>
           <div className="mt-6 max-w-3xl space-y-4 text-charcoal/90">
@@ -330,9 +339,9 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="bg-sand/50 py-16 sm:py-20">
+      <section className="bg-sand/50 py-16">
         <div className="mx-auto max-w-6xl px-6">
-          <h2 className="text-2xl font-semibold tracking-tight text-navy md:text-3xl">
+          <h2 className="text-2xl font-bold tracking-tight text-navy md:text-3xl">
             Featured packages
           </h2>
           <p className="mt-4 max-w-2xl text-lg leading-relaxed text-charcoal/80">
@@ -343,7 +352,7 @@ export default function HomePage() {
             {packages.map((p) => (
               <article
                 key={p.name}
-                className="rounded-3xl border border-navy/10 bg-white p-6 shadow-card"
+                className="rounded-xl border border-navy/10 bg-white p-6 shadow-md"
               >
                 <h3 className="text-lg font-semibold text-navy">{p.name}</h3>
                 <p className="mt-2 text-sm text-charcoal/90">{p.blurb}</p>
@@ -358,9 +367,9 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="bg-cream py-16 sm:py-20">
+      <section className="bg-cream py-16">
         <div className="mx-auto max-w-6xl px-6">
-          <h2 className="text-2xl font-semibold tracking-tight text-navy md:text-3xl">
+          <h2 className="text-2xl font-bold tracking-tight text-navy md:text-3xl">
             Why Choose Palm Beach Property Pros?
           </h2>
           <ul className="mt-8 grid gap-5 sm:grid-cols-2">
@@ -373,7 +382,7 @@ export default function HomePage() {
             ].map((item) => (
               <li
                 key={item}
-                className="rounded-2xl border border-leaf/25 bg-white p-5 text-sm font-medium text-charcoal shadow-card"
+                className="rounded-xl border border-leaf/25 bg-white p-5 text-sm font-medium text-charcoal shadow-md"
               >
                 <span className="mr-2 text-leaf" aria-hidden>
                   •
@@ -385,9 +394,9 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="bg-sky/40 py-16 sm:py-20">
+      <section className="bg-sky/40 py-16">
         <div className="mx-auto max-w-6xl px-6">
-          <h2 className="text-2xl font-semibold tracking-tight text-navy md:text-3xl">
+          <h2 className="text-2xl font-bold tracking-tight text-navy md:text-3xl">
             How it works
           </h2>
           <ol className="mt-10 grid gap-6 md:grid-cols-4">
@@ -399,7 +408,7 @@ export default function HomePage() {
             ].map((step, i) => (
               <li
                 key={step}
-                className="rounded-3xl border border-navy/10 bg-white p-6 text-center shadow-card"
+                className="rounded-xl border border-navy/10 bg-white p-6 text-center shadow-md"
               >
                 <span className="text-sm font-bold text-ocean">Step {i + 1}</span>
                 <p className="mt-2 font-semibold text-navy">{step}</p>
@@ -409,9 +418,9 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="bg-white py-16 sm:py-20">
+      <section className="bg-white py-16">
         <div className="mx-auto max-w-6xl px-6">
-          <h2 className="text-2xl font-semibold tracking-tight text-navy md:text-3xl">
+          <h2 className="text-2xl font-bold tracking-tight text-navy md:text-3xl">
             Service area
           </h2>
           <p className="mt-4 text-sm font-semibold uppercase tracking-wide text-ocean">Serving</p>
@@ -437,9 +446,9 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="bg-cream py-16 sm:py-20">
+      <section className="bg-cream py-16">
         <div className="mx-auto max-w-6xl px-6">
-          <h2 className="text-2xl font-semibold tracking-tight text-navy md:text-3xl">
+          <h2 className="text-2xl font-bold tracking-tight text-navy md:text-3xl">
             Results documentation
           </h2>
           <p className="mt-4 max-w-3xl text-charcoal/90">
@@ -464,7 +473,7 @@ export default function HomePage() {
             ].map((card) => (
               <li
                 key={card.title}
-                className="rounded-3xl border border-navy/10 bg-white p-6 text-sm text-charcoal/90 shadow-card"
+                className="rounded-xl border border-navy/10 bg-white p-6 text-sm text-charcoal/90 shadow-md"
               >
                 <h3 className="text-base font-semibold text-navy">{card.title}</h3>
                 <p className="mt-2">{card.body}</p>
@@ -474,9 +483,9 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="bg-sand/40 py-16 sm:py-20">
+      <section className="bg-sand/40 py-16">
         <div className="mx-auto max-w-6xl px-6">
-          <h2 className="text-2xl font-semibold tracking-tight text-navy md:text-3xl">
+          <h2 className="text-2xl font-bold tracking-tight text-navy md:text-3xl">
             Client experience standards
           </h2>
           <p className="mt-4 max-w-3xl text-charcoal/90">
@@ -493,7 +502,7 @@ export default function HomePage() {
             ].map((line) => (
               <li
                 key={line}
-                className="rounded-2xl border border-navy/10 bg-white p-5 text-sm font-medium text-charcoal shadow-card"
+                className="rounded-xl border border-navy/10 bg-white p-5 text-sm font-medium text-charcoal shadow-md"
               >
                 {line}
               </li>
@@ -505,10 +514,10 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="bg-cream py-16 sm:py-20">
+      <section className="bg-cream py-16">
         <div className="mx-auto max-w-6xl px-6">
-          <div className="rounded-3xl border border-ocean/20 bg-sky/50 p-8 sm:p-10">
-            <h2 className="text-2xl font-semibold tracking-tight text-navy md:text-3xl">
+          <div className="rounded-xl border border-ocean/20 bg-sky/50 p-8 sm:p-10">
+            <h2 className="text-2xl font-bold tracking-tight text-navy md:text-3xl">
               Text photos for a faster quote
             </h2>
             <p className="mt-4 max-w-2xl text-charcoal/90">
@@ -522,9 +531,9 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="bg-white py-16 sm:py-20">
-        <div className="mx-auto max-w-3xl px-6">
-          <h2 className="text-2xl font-semibold tracking-tight text-navy md:text-3xl">FAQ</h2>
+      <section className="bg-white py-16">
+        <div className="mx-auto max-w-6xl px-6">
+          <h2 className="text-2xl font-bold tracking-tight text-navy md:text-3xl">FAQ</h2>
           <div className="mt-8">
             <FaqAccordion items={FAQ_ITEMS} />
           </div>
@@ -532,28 +541,22 @@ export default function HomePage() {
       </section>
 
       <section className="bg-navy py-20 text-cream">
-        <div className="mx-auto max-w-4xl px-6 text-center">
-          <h2 className="text-2xl font-semibold tracking-tight text-cream sm:text-3xl">
-            Ready to Schedule?
-          </h2>
-          <p className="mx-auto mt-4 max-w-2xl text-lg text-cream/85">
-            Send photos for the fastest estimate or book directly through our secure access page.
-          </p>
-          <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row sm:gap-5">
-            <a
-              href={LINKR_URL}
-              target="_blank"
-              rel={linkrRel}
-              className="inline-flex items-center justify-center rounded-lg bg-white px-8 py-4 text-base font-semibold text-navy no-underline shadow-lift transition hover:bg-sky"
-            >
-              Get a Free Quote
-            </a>
-            <a
-              href={PHONE_TEL}
-              className="inline-flex items-center justify-center rounded-lg border border-white/50 px-8 py-4 text-base font-semibold text-white no-underline transition hover:bg-white/10"
-            >
-              Call Now
-            </a>
+        <div className="mx-auto max-w-6xl px-6">
+          <div className="mx-auto max-w-4xl rounded-xl bg-white/[0.06] p-10 text-center shadow-md ring-1 ring-white/10 md:p-14">
+            <h2 className="text-3xl font-bold tracking-tight text-cream sm:text-4xl">
+              Ready to Schedule Your Service?
+            </h2>
+            <p className="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-cream/85">
+              Send photos for the fastest estimate or book directly through our secure access page.
+            </p>
+            <div className="mt-12 flex flex-col items-center justify-center gap-4 sm:flex-row sm:gap-5">
+              <a href={LINKR_URL} target="_blank" rel={linkrRel} className="btn-inverse-lg">
+                Get a Free Quote
+              </a>
+              <a href={PHONE_TEL} className="btn-outline-light">
+                Call Now
+              </a>
+            </div>
           </div>
         </div>
       </section>

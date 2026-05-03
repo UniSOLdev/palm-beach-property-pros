@@ -1,0 +1,36 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+  body {
+    @apply bg-cream text-charcoal antialiased;
+  }
+  ::selection {
+    @apply bg-sky text-navy;
+  }
+}
+
+@layer utilities {
+  .pb-safe {
+    padding-bottom: env(safe-area-inset-bottom, 0);
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply inline-flex items-center justify-center rounded-lg bg-navy px-6 py-3 text-center text-sm font-semibold text-white no-underline shadow-card transition hover:bg-ocean;
+  }
+  .btn-primary-lg {
+    @apply inline-flex items-center justify-center rounded-lg bg-navy px-8 py-4 text-center text-base font-semibold text-white no-underline shadow-lift transition hover:bg-ocean;
+  }
+  .btn-secondary {
+    @apply inline-flex items-center justify-center rounded-lg border border-navy/25 bg-white px-6 py-3 text-center text-sm font-semibold text-navy no-underline transition hover:bg-sand/50;
+  }
+  .btn-secondary-lg {
+    @apply inline-flex items-center justify-center rounded-lg border border-navy/20 bg-white px-8 py-4 text-center text-base font-semibold text-navy no-underline transition hover:bg-sand/50;
+  }
+}

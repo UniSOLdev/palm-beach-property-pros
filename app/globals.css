@@ -18,29 +18,51 @@
   .pb-safe {
     padding-bottom: env(safe-area-inset-bottom, 0);
   }
+
+  /** Subtle section entrance (respects reduced motion). */
+  .section-soft-in {
+    animation: section-soft-in 0.85s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .section-soft-in {
+    animation: none;
+  }
+}
+
+@keyframes section-soft-in {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @layer components {
   .btn-primary {
-    @apply inline-flex items-center justify-center rounded-xl bg-navy px-6 py-3 text-center text-sm font-semibold text-white no-underline shadow-md transition duration-200 ease-out hover:bg-ocean hover:shadow-lg active:scale-[0.98];
+    @apply inline-flex items-center justify-center rounded-xl bg-navy px-6 py-3 text-center text-sm font-semibold text-white no-underline shadow-md transition duration-300 ease-out hover:bg-ocean hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98];
   }
   .btn-primary-lg {
-    @apply inline-flex items-center justify-center rounded-xl bg-navy px-8 py-4 text-center text-base font-semibold text-white no-underline shadow-md transition duration-200 ease-out hover:bg-ocean hover:shadow-lg hover:scale-[1.02] active:scale-[0.98];
+    @apply inline-flex items-center justify-center rounded-xl bg-navy px-8 py-4 text-center text-base font-semibold text-white no-underline shadow-md transition duration-300 ease-out hover:bg-ocean hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98];
   }
-  /** Hero primary — largest touch target, strongest lift */
+  /** Hero primary — premium weight, solid ocean-navy depth */
   .btn-primary-hero {
-    @apply inline-flex items-center justify-center rounded-xl bg-navy px-10 py-4 text-center text-lg font-semibold text-white no-underline shadow-md transition duration-200 ease-out hover:bg-ocean hover:shadow-xl hover:scale-[1.02] active:scale-[0.98] md:px-12;
+    @apply inline-flex items-center justify-center rounded-2xl bg-gradient-to-br from-navy to-ocean px-10 py-4 text-center text-lg font-semibold text-white no-underline shadow-lg shadow-navy/25 ring-1 ring-white/10 transition duration-300 ease-out hover:from-ocean hover:to-navy hover:shadow-xl hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98] md:px-12;
   }
   .btn-secondary {
-    @apply inline-flex items-center justify-center rounded-xl border border-navy/20 bg-white px-6 py-3 text-center text-sm font-semibold text-navy no-underline shadow-sm transition duration-200 hover:border-navy/30 hover:bg-sky/30 hover:shadow-md active:scale-[0.98];
+    @apply inline-flex items-center justify-center rounded-xl border border-navy/20 bg-white px-6 py-3 text-center text-sm font-semibold text-navy no-underline shadow-sm transition duration-300 hover:border-ocean/40 hover:bg-sky/40 hover:shadow-md hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98];
   }
   .btn-secondary-lg {
-    @apply inline-flex items-center justify-center rounded-xl border border-navy/20 bg-white px-8 py-4 text-center text-base font-semibold text-navy no-underline shadow-sm transition duration-200 hover:border-navy/30 hover:bg-neutral-50 hover:shadow-md hover:scale-[1.01] active:scale-[0.98];
+    @apply inline-flex items-center justify-center rounded-2xl border-2 border-navy/25 bg-white/90 px-8 py-4 text-center text-base font-semibold text-navy no-underline shadow-sm backdrop-blur-sm transition duration-300 hover:border-ocean/50 hover:bg-white hover:shadow-md hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98];
   }
   .btn-inverse-lg {
-    @apply inline-flex items-center justify-center rounded-xl bg-white px-10 py-4 text-center text-lg font-semibold text-navy no-underline shadow-md transition duration-200 ease-out hover:bg-sky hover:shadow-lg hover:scale-[1.02] active:scale-[0.98];
+    @apply inline-flex items-center justify-center rounded-2xl bg-white px-10 py-4 text-center text-lg font-semibold text-navy no-underline shadow-lg transition duration-300 ease-out hover:bg-sky hover:shadow-xl hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98];
   }
   .btn-outline-light {
-    @apply inline-flex items-center justify-center rounded-xl border border-white/55 bg-transparent px-8 py-4 text-center text-base font-semibold text-white no-underline transition duration-200 hover:bg-white/10;
+    @apply inline-flex items-center justify-center rounded-2xl border-2 border-white/60 bg-transparent px-8 py-4 text-center text-base font-semibold text-white no-underline transition duration-300 hover:border-white hover:bg-white/10 hover:-translate-y-0.5 active:translate-y-0;
   }
 }

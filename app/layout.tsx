@@ -41,7 +41,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       <body className={`${sans.className} min-h-screen antialiased`}>
         <LocalBusinessJsonLd />
         <SiteHeader />
-        <main className="mx-auto w-full max-w-6xl px-6 pb-28 pt-6 md:pb-10">{children}</main>
+        <main className="mx-auto w-full max-w-6xl px-6 pb-32 pt-8 md:pb-14 md:pt-10">{children}</main>
         <SiteFooter />
         <MobileCtaBar />
       </body>

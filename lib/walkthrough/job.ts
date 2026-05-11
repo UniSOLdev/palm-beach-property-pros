@@ -167,10 +167,10 @@ function normalizePhoto(photo: WalkthroughPhoto): WalkthroughPhoto {
 }
 
 function normalizeCondition(condition: unknown): Condition {
-  if (condition === "Moderate") {
-    return "Medium";
+  if (condition === "Medium") {
+    return "Moderate";
   }
-  if (condition === "Medium" || condition === "Heavy" || condition === "Light") {
+  if (condition === "Moderate" || condition === "Heavy" || condition === "Light") {
     return condition;
   }
   return "Light";

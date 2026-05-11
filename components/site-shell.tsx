@@ -8,9 +8,9 @@ import { SiteHeader } from "@/components/site-header";
 
 export function SiteShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
-  const isInternalWalkthrough = pathname === "/walkthrough";
+  const isInternalRoute = pathname === "/walkthrough" || pathname === "/ops";
 
-  if (isInternalWalkthrough) {
+  if (isInternalRoute) {
     return <main className="min-h-screen">{children}</main>;
   }
 

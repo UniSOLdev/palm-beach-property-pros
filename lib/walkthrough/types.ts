@@ -1,6 +1,6 @@
 export type CleaningType = "Move-Out" | "Listing Prep" | "Maintenance" | "Deep Clean";
 export type Occupancy = "Occupied" | "Empty";
-export type Condition = "Light" | "Medium" | "Heavy";
+export type Condition = "Light" | "Moderate" | "Heavy";
 export type LaborComplexity = "Standard" | "Elevated" | "Estate";
 export type Turnaround = "Flexible" | "Standard" | "Quick Turnaround";
 export type PricingConfidence = "High" | "Medium" | "Low";

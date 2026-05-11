@@ -265,7 +265,7 @@ function getBadges({
     badges.push("Delicate Surfaces");
   }
   if (/(marble|onyx|travertine|limestone|high-end|designer)/i.test(notes)) {
-    badges.push("Marble/High-End Finish");
+    badges.push("Marble/High-End Finishes");
   }
   if (/(construction|renovation|drywall|paint dust|post-construction)/i.test(notes)) {
     badges.push("Construction Dust");

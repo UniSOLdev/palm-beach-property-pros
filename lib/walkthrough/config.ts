@@ -13,7 +13,7 @@ export const CLEANING_TYPES = ["Move-Out", "Listing Prep", "Maintenance", "Deep 
 
 export const OCCUPANCY_OPTIONS = ["Occupied", "Empty"] as const;
 
-export const CONDITION_OPTIONS = ["Light", "Medium", "Heavy"] as const;
+export const CONDITION_OPTIONS = ["Light", "Moderate", "Heavy"] as const;
 
 export const LABOR_COMPLEXITY_OPTIONS: readonly LaborComplexity[] = [
   "Standard",
@@ -188,7 +188,7 @@ export const WALKTHROUGH_PRICING_CONFIG: PricingConfig = {
   occupiedMultiplier: 1.1,
   conditionAdjustments: {
     Light: { low: 0, high: 0, laborHours: 0 },
-    Medium: { low: 25, high: 55, laborHours: 0.25 },
+    Moderate: { low: 25, high: 55, laborHours: 0.25 },
     Heavy: { low: 65, high: 125, laborHours: 0.35 },
   } satisfies Record<Condition, PricingConfig["conditionAdjustments"][Condition]>,
   needsAddOnAdjustment: { low: 20, high: 45, laborHours: 0.15 },

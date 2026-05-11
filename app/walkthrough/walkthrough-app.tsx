@@ -2,134 +2,30 @@
 
 import { FormEvent, useMemo, useState } from "react";
 import type { ReactNode } from "react";
-
-type CleaningType = "Move-Out" | "Listing Prep" | "Maintenance" | "Deep Clean";
-type Occupancy = "Occupied" | "Empty";
-type Condition = "Light" | "Moderate" | "Heavy";
-
-type PropertyIntake = {
-  clientName: string;
-  address: string;
-  phone: string;
-  email: string;
-  squareFootage: string;
-  propertyType: string;
-  occupancy: Occupancy;
-  serviceType: CleaningType;
-  notes: string;
-};
-
-type ChecklistItem = {
-  condition: Condition;
-  notes: string;
-  needsAddOn: boolean;
-  photoNames: string[];
-};
-
-const cleaningTypes = ["Move-Out", "Listing Prep", "Maintenance", "Deep Clean"] as const;
-const occupancyOptions = ["Occupied", "Empty"] as const;
-const conditionOptions = ["Light", "Moderate", "Heavy"] as const;
-
-const propertyTypes = [
-  "Single-family estate",
-  "Condo",
-  "Townhome",
-  "Luxury listing",
-  "Seasonal residence",
-  "Short-term rental",
-  "Commercial suite",
-] as const;
-
-const checklistSections = [
-  { id: "kitchen", label: "Kitchen", prompt: "Counters, sink, backsplash, fixtures, baseboards" },
-  { id: "bathrooms", label: "Bathrooms", prompt: "Glass, tile, grout, fixtures, vanities" },
-  { id: "bedrooms", label: "Bedrooms", prompt: "Closets, fans, dust, trim, surfaces" },
-  { id: "livingAreas", label: "Living Areas", prompt: "Dust, shelving, high-touch details, staging" },
-  { id: "floors", label: "Floors", prompt: "Hard floors, carpet, transitions, edges" },
-  { id: "windows", label: "Windows", prompt: "Interior glass, tracks, sills, screens" },
-  { id: "walls", label: "Walls", prompt: "Scuffs, handprints, marks, touch-up areas" },
-  { id: "cabinets", label: "Cabinets", prompt: "Faces, pulls, shelves, interiors" },
-  { id: "appliances", label: "Appliances", prompt: "Oven, fridge, dishwasher, washer/dryer" },
-  { id: "exterior", label: "Exterior Notes", prompt: "Entry, patio, driveway, trash area, access" },
-] as const;
-
-type SectionId = (typeof checklistSections)[number]["id"];
-type ChecklistState = Record<SectionId, ChecklistItem>;
-
-const addOnServices = [
-  {
-    id: "interiorWindows",
-    label: "Interior Windows",
-    range: "$99 - $275",
-    min: 99,
-    max: 275,
-    hours: 1.5,
-    detail: "Interior panes, sills, and touch-point glass.",
-  },
-  {
-    id: "carpetExtraction",
-    label: "Carpet Extraction",
-    range: "$175 - $450",
-    min: 175,
-    max: 450,
-    hours: 3,
-    detail: "Targeted extraction for bedrooms, stairs, and traffic lanes.",
-  },
-  {
-    id: "wallScuffCleanup",
-    label: "Wall/Scuff Cleanup",
-    range: "$95 - $325",
-    min: 95,
-    max: 325,
-    hours: 1.75,
-    detail: "Visible scuff reduction in halls, entries, and living areas.",
-  },
-  {
-    id: "cabinetInterior",
-    label: "Cabinet Interior Detailing",
-    range: "$125 - $375",
-    min: 125,
-    max: 375,
-    hours: 2.25,
-    detail: "Interior wipe-downs, crumbs, residue, and shelf edges.",
-  },
-  {
-    id: "pressureWashing",
-    label: "Pressure Washing",
-    range: "$150 - $650",
-    min: 150,
-    max: 650,
-    hours: 3.5,
-    detail: "Driveway, entry, patio, or walkways scoped by surface.",
-  },
-  {
-    id: "applianceDeepClean",
-    label: "Appliance Deep Clean",
-    range: "$125 - $425",
-    min: 125,
-    max: 425,
-    hours: 2.5,
-    detail: "Oven, fridge, washer/dryer, and stainless detail work.",
-  },
-  {
-    id: "odorTreatment",
-    label: "Odor Treatment",
-    range: "$95 - $300",
-    min: 95,
-    max: 300,
-    hours: 1.5,
-    detail: "Deodorizing treatment for smoke, pets, or vacancy odors.",
-  },
-] as const;
-
-type AddOnId = (typeof addOnServices)[number]["id"];
-
-const pricingProfiles: Record<CleaningType, { rateLow: number; rateHigh: number; minimum: number }> = {
-  "Move-Out": { rateLow: 0.18, rateHigh: 0.26, minimum: 325 },
-  "Listing Prep": { rateLow: 0.2, rateHigh: 0.3, minimum: 375 },
-  Maintenance: { rateLow: 0.12, rateHigh: 0.18, minimum: 185 },
-  "Deep Clean": { rateLow: 0.24, rateHigh: 0.36, minimum: 425 },
-};
+import {
+  ADD_ON_SERVICES,
+  CLEANING_TYPES,
+  CONDITION_OPTIONS,
+  OCCUPANCY_OPTIONS,
+  PROPERTY_TYPES,
+  WALKTHROUGH_SECTIONS,
+} from "@/lib/walkthrough/config";
+import { createPhotoAssets, createWalkthroughJob, touchJob } from "@/lib/walkthrough/job";
+import { calculateWalkthroughQuote, getSelectedAddOns } from "@/lib/walkthrough/quote-engine";
+import { generateClientScope } from "@/lib/walkthrough/scope";
+import type {
+  AddOnId,
+  ChecklistItem,
+  CleaningType,
+  Condition,
+  PhotoScope,
+  PropertyIntake,
+  PropertyType,
+  QuoteResult,
+  WalkthroughJob,
+  WalkthroughPhoto,
+  WalkthroughSectionId,
+} from "@/lib/walkthrough/types";
 
 const steps = [
   { id: "intake", label: "Intake" },
@@ -138,28 +34,6 @@ const steps = [
   { id: "quote", label: "Quote" },
   { id: "scope", label: "Scope" },
 ] as const;
-
-const initialChecklist = checklistSections.reduce((acc, section) => {
-  acc[section.id] = {
-    condition: "Light",
-    notes: "",
-    needsAddOn: false,
-    photoNames: [],
-  };
-  return acc;
-}, {} as ChecklistState);
-
-const initialProperty: PropertyIntake = {
-  clientName: "",
-  address: "",
-  phone: "",
-  email: "",
-  squareFootage: "",
-  propertyType: "Luxury listing",
-  occupancy: "Empty",
-  serviceType: "Listing Prep",
-  notes: "",
-};
 
 const inputClass =
   "mt-2 w-full rounded-2xl border border-white/10 bg-white/[0.06] px-4 py-3 text-base text-white outline-none transition placeholder:text-white/35 focus:border-sky-300/60 focus:bg-white/[0.09] focus:ring-4 focus:ring-sky-400/10";
@@ -170,77 +44,21 @@ export function WalkthroughApp() {
   const [unlocked, setUnlocked] = useState(false);
   const [password, setPassword] = useState("");
   const [accessError, setAccessError] = useState("");
-  const [property, setProperty] = useState<PropertyIntake>(initialProperty);
-  const [propertyPhotoNames, setPropertyPhotoNames] = useState<string[]>([]);
-  const [checklist, setChecklist] = useState<ChecklistState>(initialChecklist);
-  const [selectedAddOns, setSelectedAddOns] = useState<AddOnId[]>([]);
+  const [job, setJob] = useState<WalkthroughJob>(() => createWalkthroughJob());
   const [scopeCopied, setScopeCopied] = useState(false);
 
+  const { property, checklist } = job;
+  const selectedAddOns = job.selectedAddOnIds;
   const selectedAddOnSet = useMemo(() => new Set(selectedAddOns), [selectedAddOns]);
   const selectedAddOnDetails = useMemo(
-    () => addOnServices.filter((service) => selectedAddOnSet.has(service.id)),
-    [selectedAddOnSet],
+    () => getSelectedAddOns(job.selectedAddOnIds),
+    [job.selectedAddOnIds],
   );
+  const photoCount = countJobPhotos(job);
 
-  const quote = useMemo(() => {
-    const squareFootage = parseNumber(property.squareFootage);
-    const profile = pricingProfiles[property.serviceType];
-    const hasSquareFootage = squareFootage > 0;
-    const baseline = hasSquareFootage ? squareFootage : profile.minimum / profile.rateLow;
-    const occupiedMultiplier = property.occupancy === "Occupied" ? 1.1 : 1;
+  const quote = useMemo(() => calculateWalkthroughQuote(job), [job]);
 
-    const checklistItems = Object.values(checklist);
-    const moderateCount = checklistItems.filter((item) => item.condition === "Moderate").length;
-    const heavyCount = checklistItems.filter((item) => item.condition === "Heavy").length;
-    const addOnFlagCount = checklistItems.filter((item) => item.needsAddOn).length;
-
-    const conditionLow = moderateCount * 25 + heavyCount * 65 + addOnFlagCount * 20;
-    const conditionHigh = moderateCount * 55 + heavyCount * 125 + addOnFlagCount * 45;
-
-    const baseLow = Math.max(profile.minimum, baseline * profile.rateLow) * occupiedMultiplier + conditionLow;
-    const baseHigh =
-      Math.max(profile.minimum + 75, baseline * profile.rateHigh) * occupiedMultiplier + conditionHigh;
-
-    const addOnLow = selectedAddOnDetails.reduce((total, item) => total + item.min, 0);
-    const addOnHigh = selectedAddOnDetails.reduce((total, item) => total + item.max, 0);
-    const addOnHours = selectedAddOnDetails.reduce((total, item) => total + item.hours, 0);
-    const totalHigh = baseHigh + addOnHigh;
-    const laborHours = roundHalf(Math.max(2, baseHigh / 85 + addOnHours + heavyCount * 0.35));
-    const crewSize = laborHours >= 12 ? 4 : laborHours >= 8 ? 3 : laborHours >= 4.5 ? 2 : 1;
-
-    return {
-      baseLow,
-      baseHigh,
-      addOnLow,
-      addOnHigh,
-      totalLow: baseLow + addOnLow,
-      totalHigh,
-      laborHours,
-      crewSize,
-      heavyCount,
-      addOnFlagCount,
-      luxuryRecommended:
-        selectedAddOnDetails.length >= 4 ||
-        (selectedAddOnDetails.length >= 3 && heavyCount >= 2) ||
-        addOnFlagCount >= 5,
-    };
-  }, [checklist, property.occupancy, property.serviceType, property.squareFootage, selectedAddOnDetails]);
-
-  const clientScope = useMemo(() => {
-    const serviceLabel = property.serviceType.toLowerCase();
-    const propertyLabel = property.propertyType ? ` for this ${property.propertyType.toLowerCase()}` : "";
-    const selectedLabels = selectedAddOnDetails.map((item) => item.label);
-    const addOnSentence =
-      selectedLabels.length > 0
-        ? ` Selected add-on services include ${formatList(selectedLabels).toLowerCase()}.`
-        : "";
-    const conditionSentence =
-      quote.heavyCount > 0 || quote.addOnFlagCount > 0
-        ? " PBPP will prioritize the noted walkthrough areas and confirm any specialty work before service begins."
-        : "";
-
-    return `For the agreed service, PBPP will provide full ${serviceLabel} cleaning${propertyLabel}, including bathrooms, kitchen, floors, visible dust removal, and final touch-up cleaning throughout the property.${addOnSentence}${conditionSentence}`;
-  }, [property.propertyType, property.serviceType, quote.addOnFlagCount, quote.heavyCount, selectedAddOnDetails]);
+  const clientScope = useMemo(() => generateClientScope(job, quote), [job, quote]);
 
   function handleAccessSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -253,23 +71,46 @@ export function WalkthroughApp() {
   }
 
   function updateProperty<K extends keyof PropertyIntake>(field: K, value: PropertyIntake[K]) {
-    setProperty((current) => ({ ...current, [field]: value }));
-  }
-
-  function updateChecklist(sectionId: SectionId, update: Partial<ChecklistItem>) {
-    setChecklist((current) => ({
+    updateJob((current) => ({
       ...current,
-      [sectionId]: {
-        ...current[sectionId],
-        ...update,
+      property: {
+        ...current.property,
+        [field]: value,
       },
     }));
   }
 
+  function updateChecklist(sectionId: WalkthroughSectionId, update: Partial<ChecklistItem>) {
+    updateJob((current) => ({
+      ...current,
+      checklist: {
+        ...current.checklist,
+        [sectionId]: {
+          ...current.checklist[sectionId],
+          ...update,
+        },
+      },
+    }));
+  }
+
+  function updatePropertyPhotos(photos: WalkthroughPhoto[]) {
+    updateJob((current) => ({
+      ...current,
+      propertyPhotos: photos,
+    }));
+  }
+
   function toggleAddOn(addOnId: AddOnId) {
-    setSelectedAddOns((current) =>
-      current.includes(addOnId) ? current.filter((id) => id !== addOnId) : [...current, addOnId],
-    );
+    updateJob((current) => ({
+      ...current,
+      selectedAddOnIds: current.selectedAddOnIds.includes(addOnId)
+        ? current.selectedAddOnIds.filter((id) => id !== addOnId)
+        : [...current.selectedAddOnIds, addOnId],
+    }));
+  }
+
+  function updateJob(updater: (current: WalkthroughJob) => WalkthroughJob) {
+    setJob((current) => touchJob(updater(current)));
   }
 
   async function copyScope() {
@@ -336,7 +177,7 @@ export function WalkthroughApp() {
           <div className="flex items-center justify-between gap-4">
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.28em] text-sky-200/70">
-                PBPP Field Ops
+                PBPP Operations OS
               </p>
               <h1 className="mt-1 text-2xl font-semibold tracking-tight sm:text-4xl">
                 Walkthrough + Quote Builder
@@ -357,6 +198,17 @@ export function WalkthroughApp() {
               </a>
             ))}
           </nav>
+          <div className="mt-3 grid grid-cols-3 gap-2 text-center text-[0.68rem] font-semibold uppercase tracking-[0.14em] text-white/45 sm:max-w-xl">
+            <div className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-2">
+              Job model v{job.version}
+            </div>
+            <div className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-2">
+              {photoCount} photos
+            </div>
+            <div className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-2">
+              AI-ready
+            </div>
+          </div>
         </header>
 
         <div className="mt-5 grid gap-5 lg:grid-cols-[minmax(0,1fr)_360px] lg:items-start">
@@ -425,10 +277,12 @@ export function WalkthroughApp() {
                 <Field label="Property Type">
                   <select
                     value={property.propertyType}
-                    onChange={(event) => updateProperty("propertyType", event.target.value)}
+                    onChange={(event) =>
+                      updateProperty("propertyType", event.target.value as PropertyType)
+                    }
                     className={selectClass}
                   >
-                    {propertyTypes.map((type) => (
+                    {PROPERTY_TYPES.map((type) => (
                       <option key={type} value={type} className="bg-[#0a0d13]">
                         {type}
                       </option>
@@ -437,7 +291,7 @@ export function WalkthroughApp() {
                 </Field>
                 <Field label="Occupied or Empty">
                   <SegmentedControl
-                    options={occupancyOptions}
+                    options={OCCUPANCY_OPTIONS}
                     value={property.occupancy}
                     onChange={(value) => updateProperty("occupancy", value)}
                   />
@@ -446,7 +300,7 @@ export function WalkthroughApp() {
 
               <Field label="Service Type">
                 <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-                  {cleaningTypes.map((type) => (
+                  {CLEANING_TYPES.map((type) => (
                     <button
                       key={type}
                       type="button"
@@ -476,8 +330,9 @@ export function WalkthroughApp() {
               <PhotoUploader
                 id="property-photos"
                 label="Upload property photos"
-                names={propertyPhotoNames}
-                onChange={setPropertyPhotoNames}
+                scope="property"
+                photos={job.propertyPhotos}
+                onChange={updatePropertyPhotos}
               />
             </SectionCard>
 
@@ -488,7 +343,7 @@ export function WalkthroughApp() {
               description="Record condition, notes, photos, and whether each area needs a specialty add-on."
             >
               <div className="grid gap-3">
-                {checklistSections.map((section) => {
+                {WALKTHROUGH_SECTIONS.map((section) => {
                   const item = checklist[section.id];
                   return (
                     <article
@@ -516,7 +371,7 @@ export function WalkthroughApp() {
                             }
                             className={selectClass}
                           >
-                            {conditionOptions.map((condition) => (
+                            {CONDITION_OPTIONS.map((condition) => (
                               <option key={condition} value={condition} className="bg-[#0a0d13]">
                                 {condition}
                               </option>
@@ -538,9 +393,10 @@ export function WalkthroughApp() {
                         <PhotoUploader
                           id={`photo-${section.id}`}
                           label={`Add ${section.label.toLowerCase()} photos`}
-                          names={item.photoNames}
+                          scope={section.id}
+                          photos={item.photos}
                           compact
-                          onChange={(names) => updateChecklist(section.id, { photoNames: names })}
+                          onChange={(photos) => updateChecklist(section.id, { photos })}
                         />
                       </div>
                     </article>
@@ -556,7 +412,7 @@ export function WalkthroughApp() {
               description="Tap specialty services as the walkthrough reveals scope. Pricing flows into the live estimate."
             >
               <div className="grid gap-3 sm:grid-cols-2">
-                {addOnServices.map((service) => {
+                {ADD_ON_SERVICES.map((service) => {
                   const selected = selectedAddOnSet.has(service.id);
                   return (
                     <button
@@ -585,7 +441,9 @@ export function WalkthroughApp() {
                           {selected ? "On" : "+"}
                         </span>
                       </div>
-                      <p className="mt-4 text-sm font-semibold text-sky-100">{service.range}</p>
+                      <p className="mt-4 text-sm font-semibold text-sky-100">
+                        {formatRange(service.pricing.min, service.pricing.max)}
+                      </p>
                     </button>
                   );
                 })}
@@ -625,11 +483,16 @@ export function WalkthroughApp() {
             </SectionCard>
           </div>
 
-          <aside id="quote" className="lg:sticky lg:top-6">
+          <aside id="quote" className="space-y-4 lg:sticky lg:top-6">
             <QuoteCard
               quote={quote}
               serviceType={property.serviceType}
               selectedAddOnCount={selectedAddOnDetails.length}
+            />
+            <AiReadinessCard
+              photoCount={photoCount}
+              sectionCount={WALKTHROUGH_SECTIONS.length}
+              addOnCount={ADD_ON_SERVICES.length}
             />
           </aside>
         </div>
@@ -753,14 +616,16 @@ function Toggle({
 function PhotoUploader({
   id,
   label,
-  names,
+  scope,
+  photos,
   onChange,
   compact = false,
 }: {
   id: string;
   label: string;
-  names: string[];
-  onChange: (names: string[]) => void;
+  scope: PhotoScope;
+  photos: WalkthroughPhoto[];
+  onChange: (photos: WalkthroughPhoto[]) => void;
   compact?: boolean;
 }) {
   return (
@@ -776,13 +641,13 @@ function PhotoUploader({
         capture="environment"
         multiple
         className="sr-only"
-        onChange={(event) => onChange(getFileNames(event.target.files))}
+        onChange={(event) => onChange([...photos, ...createPhotoAssets(event.target.files, scope)])}
       />
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <p className="text-sm font-semibold text-white/80">{label}</p>
           <p className="mt-1 text-xs text-white/40">
-            Use camera or photo library. Files are not uploaded yet.
+            Stored as structured photo records for future AI analysis.
           </p>
         </div>
         <label
@@ -792,18 +657,57 @@ function PhotoUploader({
           Choose photos
         </label>
       </div>
-      {names.length > 0 ? (
+      {photos.length > 0 ? (
         <ul className="mt-3 flex flex-wrap gap-2">
-          {names.map((name, index) => (
+          {photos.map((photo) => (
             <li
-              key={`${name}-${index}`}
+              key={photo.id}
               className="max-w-full truncate rounded-full border border-white/10 bg-black/25 px-3 py-1 text-xs text-white/55"
             >
-              {name}
+              {photo.name} - {formatFileSize(photo.size)}
             </li>
           ))}
         </ul>
       ) : null}
+    </div>
+  );
+}
+
+function AiReadinessCard({
+  photoCount,
+  sectionCount,
+  addOnCount,
+}: {
+  photoCount: number;
+  sectionCount: number;
+  addOnCount: number;
+}) {
+  return (
+    <section className="rounded-[2rem] border border-white/10 bg-black/25 p-5 backdrop-blur-xl">
+      <p className="text-xs font-semibold uppercase tracking-[0.24em] text-sky-200/60">
+        Future AI layer
+      </p>
+      <h2 className="mt-2 text-lg font-semibold tracking-tight">Operations OS foundation</h2>
+      <p className="mt-2 text-xs leading-5 text-white/45">
+        This job is structured for later OpenAI Vision analysis, quote recommendations, scope
+        generation, invoice drafting, and photo-based labor estimation.
+      </p>
+      <div className="mt-4 grid grid-cols-3 gap-2 text-center">
+        <MetricPill label="Photos" value={photoCount.toString()} />
+        <MetricPill label="Sections" value={sectionCount.toString()} />
+        <MetricPill label="Add-ons" value={addOnCount.toString()} />
+      </div>
+    </section>
+  );
+}
+
+function MetricPill({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-2xl border border-white/10 bg-white/[0.04] px-3 py-3">
+      <p className="text-base font-semibold text-white">{value}</p>
+      <p className="mt-1 text-[0.65rem] font-semibold uppercase tracking-[0.14em] text-white/35">
+        {label}
+      </p>
     </div>
   );
 }
@@ -813,17 +717,7 @@ function QuoteCard({
   serviceType,
   selectedAddOnCount,
 }: {
-  quote: {
-    baseLow: number;
-    baseHigh: number;
-    addOnLow: number;
-    addOnHigh: number;
-    totalLow: number;
-    totalHigh: number;
-    laborHours: number;
-    crewSize: number;
-    luxuryRecommended: boolean;
-  };
+  quote: QuoteResult;
   serviceType: CleaningType;
   selectedAddOnCount: number;
 }) {
@@ -872,22 +766,6 @@ function QuoteRow({ label, value }: { label: string; value: string }) {
   );
 }
 
-function getFileNames(files: FileList | null) {
-  if (!files) {
-    return [];
-  }
-  return Array.from(files).map((file) => file.name);
-}
-
-function parseNumber(value: string) {
-  const parsed = Number(value.replace(/,/g, ""));
-  return Number.isFinite(parsed) ? parsed : 0;
-}
-
-function roundHalf(value: number) {
-  return Math.ceil(value * 2) / 2;
-}
-
 function roundMoney(value: number) {
   return Math.round(value / 5) * 5;
 }
@@ -907,15 +785,17 @@ function formatRange(low: number, high: number) {
   return `${formatCurrency(low)} - ${formatCurrency(high)}`;
 }
 
-function formatList(items: string[]) {
-  if (items.length === 0) {
-    return "";
+function countJobPhotos(job: WalkthroughJob) {
+  return (
+    job.propertyPhotos.length +
+    Object.values(job.checklist).reduce((total, item) => total + item.photos.length, 0)
+  );
+}
+
+function formatFileSize(size: number) {
+  if (size < 1024 * 1024) {
+    return `${Math.max(1, Math.round(size / 1024))} KB`;
   }
-  if (items.length === 1) {
-    return items[0];
-  }
-  if (items.length === 2) {
-    return `${items[0]} and ${items[1]}`;
-  }
-  return `${items.slice(0, -1).join(", ")}, and ${items[items.length - 1]}`;
+
+  return `${(size / (1024 * 1024)).toFixed(1)} MB`;
 }

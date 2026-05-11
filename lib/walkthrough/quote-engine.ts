@@ -23,6 +23,9 @@ export function calculateWalkthroughQuote(
   const moderateCount = checklistItems.filter((item) => item.condition === "Moderate").length;
   const heavyCount = checklistItems.filter((item) => item.condition === "Heavy").length;
   const addOnFlagCount = checklistItems.filter((item) => item.needsAddOn).length;
+  const roomHours = getRoomLaborHours(job, config);
+  const complexityMultiplier = config.laborComplexityMultipliers[job.property.laborComplexity];
+  const turnaroundMultiplier = config.turnaroundMultipliers[job.property.turnaround];
 
   const conditionLow = checklistItems.reduce(
     (total, item) => total + config.conditionAdjustments[item.condition].low,
@@ -47,14 +50,24 @@ export function calculateWalkthroughQuote(
   const addOnHours = selectedAddOns.reduce((total, item) => total + item.pricing.estimatedHours, 0);
 
   const baseLow =
-    Math.max(profile.minimum, baseline * profile.rateLow) * occupiedMultiplier + conditionLow + flaggedLow;
+    (Math.max(profile.minimum, baseline * profile.rateLow) * occupiedMultiplier + conditionLow + flaggedLow) *
+    complexityMultiplier;
   const baseHigh =
-    Math.max(profile.minimum + 75, baseline * profile.rateHigh) * occupiedMultiplier +
-    conditionHigh +
-    flaggedHigh;
+    (Math.max(profile.minimum + 75, baseline * profile.rateHigh) * occupiedMultiplier +
+      conditionHigh +
+      flaggedHigh) *
+    complexityMultiplier *
+    turnaroundMultiplier;
 
   const formulaLaborHours = roundHalf(
-    Math.max(2, baseHigh / profile.targetHourlyRate + addOnHours + conditionLaborHours + flaggedLaborHours),
+    Math.max(
+      2,
+      baseHigh / profile.targetHourlyRate +
+        addOnHours +
+        conditionLaborHours +
+        flaggedLaborHours +
+        roomHours,
+    ),
   );
   const laborHours = aiSignals?.estimatedLaborHours
     ? roundHalf(Math.max(formulaLaborHours, aiSignals.estimatedLaborHours))
@@ -63,6 +76,31 @@ export function calculateWalkthroughQuote(
     ? Math.max(getCrewSize(laborHours, config), aiSignals.recommendedCrewSize)
     : getCrewSize(laborHours, config);
   const suggestedAddOnIds = getSuggestedAddOnIds(job.selectedAddOnIds, aiSignals?.suggestedAddOnIds);
+  const difficultyRating = getDifficultyRating({
+    laborHours,
+    heavyCount,
+    addOnFlagCount,
+    complexity: job.property.laborComplexity,
+  });
+  const pricingConfidence = getPricingConfidence({
+    hasSquareFootage,
+    photoCount: getPhotoCount(job),
+    completedSectionCount: checklistItems.filter((item) => item.completed).length,
+    selectedAddOnCount: selectedAddOns.length,
+  });
+  const badges = getBadges({
+    luxuryRecommended: isLuxuryPrepRecommended({
+      selectedAddOnCount: selectedAddOns.length,
+      heavyCount,
+      addOnFlagCount,
+      luxuryScaleScore: aiSignals?.luxuryScaleScore,
+      config,
+    }),
+    heavyCount,
+    addOnFlagCount,
+    turnaround: job.property.turnaround,
+    laborHours,
+  });
 
   return {
     baseLow,
@@ -73,14 +111,20 @@ export function calculateWalkthroughQuote(
     totalHigh: baseHigh + addOnHigh,
     laborHours,
     crewSize,
+    estimatedDuration: getEstimatedDuration(laborHours, crewSize),
+    pricingConfidence,
+    difficultyRating,
     heavyCount,
     addOnFlagCount,
-    luxuryRecommended: isLuxuryPrepRecommended({
-      selectedAddOnCount: selectedAddOns.length,
-      heavyCount,
+    luxuryRecommended: badges.includes("Luxury Listing Prep Recommended"),
+    badges,
+    internalNotes: getInternalNotes({
+      pricingConfidence,
+      difficultyRating,
       addOnFlagCount,
-      luxuryScaleScore: aiSignals?.luxuryScaleScore,
-      config,
+      selectedAddOnCount: selectedAddOns.length,
+      photoCount: getPhotoCount(job),
+      turnaround: job.property.turnaround,
     }),
     aiAssisted: Boolean(aiSignals),
     suggestedAddOnIds,
@@ -106,6 +150,146 @@ export function roundHalf(value: number) {
 
 function getCrewSize(laborHours: number, config: PricingConfig) {
   return config.crewThresholds.find((threshold) => laborHours >= threshold.minHours)?.crewSize ?? 1;
+}
+
+function getRoomLaborHours(job: WalkthroughJob, config: PricingConfig) {
+  const counts = job.property.roomCounts;
+
+  return (
+    parseNumber(counts.bedrooms) * config.roomAdjustments.bedroomHours +
+    parseNumber(counts.bathrooms) * config.roomAdjustments.bathroomHours +
+    Math.max(1, parseNumber(counts.kitchens)) * config.roomAdjustments.kitchenHours +
+    parseNumber(counts.livingAreas) * config.roomAdjustments.livingAreaHours +
+    parseNumber(counts.levels) * config.roomAdjustments.levelHours
+  );
+}
+
+function getPhotoCount(job: WalkthroughJob) {
+  return (
+    job.propertyPhotos.length +
+    Object.values(job.checklist).reduce((total, item) => total + item.photos.length, 0)
+  );
+}
+
+function getEstimatedDuration(laborHours: number, crewSize: number) {
+  const siteHours = roundHalf(laborHours / Math.max(1, crewSize));
+  const low = Math.max(1.5, siteHours - 0.5);
+  const high = siteHours + 0.75;
+
+  return `${low.toFixed(1)}-${high.toFixed(1)} hrs on-site`;
+}
+
+function getPricingConfidence({
+  hasSquareFootage,
+  photoCount,
+  completedSectionCount,
+  selectedAddOnCount,
+}: {
+  hasSquareFootage: boolean;
+  photoCount: number;
+  completedSectionCount: number;
+  selectedAddOnCount: number;
+}) {
+  const score =
+    (hasSquareFootage ? 2 : 0) +
+    Math.min(3, Math.floor(photoCount / 3)) +
+    Math.min(3, Math.floor(completedSectionCount / 3)) +
+    (selectedAddOnCount > 0 ? 1 : 0);
+
+  if (score >= 7) {
+    return "High";
+  }
+  if (score >= 4) {
+    return "Medium";
+  }
+  return "Low";
+}
+
+function getDifficultyRating({
+  laborHours,
+  heavyCount,
+  addOnFlagCount,
+  complexity,
+}: {
+  laborHours: number;
+  heavyCount: number;
+  addOnFlagCount: number;
+  complexity: WalkthroughJob["property"]["laborComplexity"];
+}) {
+  if (complexity === "Estate" || laborHours >= 12) {
+    return "Estate";
+  }
+  if (heavyCount >= 4 || laborHours >= 9) {
+    return "Heavy";
+  }
+  if (complexity === "Elevated" || addOnFlagCount >= 3 || laborHours >= 6) {
+    return "Elevated";
+  }
+  if (laborHours >= 3.5) {
+    return "Standard";
+  }
+  return "Light";
+}
+
+function getBadges({
+  luxuryRecommended,
+  heavyCount,
+  addOnFlagCount,
+  turnaround,
+  laborHours,
+}: {
+  luxuryRecommended: boolean;
+  heavyCount: number;
+  addOnFlagCount: number;
+  turnaround: WalkthroughJob["property"]["turnaround"];
+  laborHours: number;
+}) {
+  const badges: string[] = [];
+
+  if (luxuryRecommended) {
+    badges.push("Luxury Listing Prep Recommended");
+  }
+  if (heavyCount >= 3 || addOnFlagCount >= 4 || laborHours >= 9) {
+    badges.push("Heavy Detail Load");
+  }
+  if (turnaround === "Quick Turnaround") {
+    badges.push("Quick Turnaround");
+  }
+
+  return badges;
+}
+
+function getInternalNotes({
+  pricingConfidence,
+  difficultyRating,
+  addOnFlagCount,
+  selectedAddOnCount,
+  photoCount,
+  turnaround,
+}: {
+  pricingConfidence: string;
+  difficultyRating: string;
+  addOnFlagCount: number;
+  selectedAddOnCount: number;
+  photoCount: number;
+  turnaround: string;
+}) {
+  const notes = [
+    `${pricingConfidence} pricing confidence based on current walkthrough data.`,
+    `${difficultyRating} difficulty load; confirm crew lead and equipment before dispatch.`,
+  ];
+
+  if (addOnFlagCount > selectedAddOnCount) {
+    notes.push("Some sections are flagged for add-ons that are not selected yet.");
+  }
+  if (photoCount < 6) {
+    notes.push("Capture more room photos before final pricing if the property is large or occupied.");
+  }
+  if (turnaround === "Quick Turnaround") {
+    notes.push("Quick turnaround may require tighter arrival staging and a larger crew.");
+  }
+
+  return notes;
 }
 
 function getSuggestedAddOnIds(selectedAddOnIds: readonly AddOnId[], suggestedAddOnIds?: readonly AddOnId[]) {

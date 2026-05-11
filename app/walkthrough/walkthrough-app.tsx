@@ -1,16 +1,26 @@
 "use client";
 
-import { FormEvent, useMemo, useState } from "react";
+import Image from "next/image";
+import { FormEvent, useEffect, useMemo, useState } from "react";
 import type { ReactNode } from "react";
 import {
   ADD_ON_SERVICES,
   CLEANING_TYPES,
   CONDITION_OPTIONS,
+  LABOR_COMPLEXITY_OPTIONS,
   OCCUPANCY_OPTIONS,
   PROPERTY_TYPES,
+  TURNAROUND_OPTIONS,
   WALKTHROUGH_SECTIONS,
 } from "@/lib/walkthrough/config";
-import { createPhotoAssets, createWalkthroughJob, touchJob } from "@/lib/walkthrough/job";
+import { generatePropertyInsights } from "@/lib/walkthrough/insights";
+import type { PropertyInsights } from "@/lib/walkthrough/insights";
+import {
+  createPhotoAssets,
+  createWalkthroughJob,
+  normalizeWalkthroughJob,
+  touchJob,
+} from "@/lib/walkthrough/job";
 import { calculateWalkthroughQuote, getSelectedAddOns } from "@/lib/walkthrough/quote-engine";
 import { generateClientScope } from "@/lib/walkthrough/scope";
 import type {
@@ -39,12 +49,15 @@ const inputClass =
   "mt-2 w-full rounded-2xl border border-white/10 bg-white/[0.06] px-4 py-3 text-base text-white outline-none transition placeholder:text-white/35 focus:border-sky-300/60 focus:bg-white/[0.09] focus:ring-4 focus:ring-sky-400/10";
 
 const selectClass = `${inputClass} appearance-none`;
+const storageKey = "pbpp.walkthrough.currentJob.v1";
 
 export function WalkthroughApp() {
   const [unlocked, setUnlocked] = useState(false);
   const [password, setPassword] = useState("");
   const [accessError, setAccessError] = useState("");
-  const [job, setJob] = useState<WalkthroughJob>(() => createWalkthroughJob());
+  const [job, setJob] = useState<WalkthroughJob>(() => loadStoredJob());
+  const [saveStatus, setSaveStatus] = useState("Autosaved locally");
+  const [collapsedSections, setCollapsedSections] = useState<Record<string, boolean>>({});
   const [scopeCopied, setScopeCopied] = useState(false);
 
   const { property, checklist } = job;
@@ -55,10 +68,28 @@ export function WalkthroughApp() {
     [job.selectedAddOnIds],
   );
   const photoCount = countJobPhotos(job);
+  const completedSectionCount = WALKTHROUGH_SECTIONS.filter(
+    (section) => checklist[section.id].completed,
+  ).length;
+  const progressPercent = Math.round((completedSectionCount / WALKTHROUGH_SECTIONS.length) * 100);
 
   const quote = useMemo(() => calculateWalkthroughQuote(job), [job]);
 
   const clientScope = useMemo(() => generateClientScope(job, quote), [job, quote]);
+  const insights = useMemo(() => generatePropertyInsights(job, quote), [job, quote]);
+
+  useEffect(() => {
+    const timeout = window.setTimeout(() => {
+      try {
+        window.localStorage.setItem(storageKey, JSON.stringify(job));
+        setSaveStatus("Saved locally");
+      } catch {
+        setSaveStatus("Autosave limited");
+      }
+    }, 250);
+
+    return () => window.clearTimeout(timeout);
+  }, [job]);
 
   function handleAccessSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -93,11 +124,37 @@ export function WalkthroughApp() {
     }));
   }
 
+  function toggleSectionComplete(sectionId: WalkthroughSectionId) {
+    updateChecklist(sectionId, { completed: !job.checklist[sectionId].completed });
+  }
+
+  function toggleSectionCollapse(sectionId: WalkthroughSectionId) {
+    setCollapsedSections((current) => ({
+      ...current,
+      [sectionId]: !current[sectionId],
+    }));
+  }
+
   function updatePropertyPhotos(photos: WalkthroughPhoto[]) {
     updateJob((current) => ({
       ...current,
       propertyPhotos: photos,
     }));
+  }
+
+  function removePropertyPhoto(photoId: string) {
+    updatePropertyPhotos(job.propertyPhotos.filter((photo) => photo.id !== photoId));
+  }
+
+  function updateSectionPhotos(sectionId: WalkthroughSectionId, photos: WalkthroughPhoto[]) {
+    updateChecklist(sectionId, { photos });
+  }
+
+  function removeSectionPhoto(sectionId: WalkthroughSectionId, photoId: string) {
+    updateSectionPhotos(
+      sectionId,
+      job.checklist[sectionId].photos.filter((photo) => photo.id !== photoId),
+    );
   }
 
   function toggleAddOn(addOnId: AddOnId) {
@@ -187,14 +244,49 @@ export function WalkthroughApp() {
               Internal tool
             </div>
           </div>
-          <nav className="mt-4 flex gap-2 overflow-x-auto pb-1" aria-label="Walkthrough steps">
-            {steps.map((step, index) => (
+          <div className="mt-4">
+            <div className="mb-2 flex items-center justify-between text-xs text-white/45">
+              <span>{completedSectionCount}/{WALKTHROUGH_SECTIONS.length} sections complete</span>
+              <span>{saveStatus}</span>
+            </div>
+            <div className="h-1.5 overflow-hidden rounded-full bg-white/10">
+              <div
+                className="h-full rounded-full bg-gradient-to-r from-sky-200 via-white to-emerald-200 transition-all duration-500"
+                style={{ width: `${progressPercent}%` }}
+              />
+            </div>
+          </div>
+          <nav className="mt-4 flex gap-2 overflow-x-auto pb-1" aria-label="Quick jump navigation">
+            <a
+              href="#intake"
+              className="shrink-0 rounded-full border border-white/10 bg-white/[0.06] px-4 py-2 text-xs font-semibold text-white/70 no-underline transition hover:border-sky-300/40 hover:text-white"
+            >
+              Intake
+            </a>
+            {WALKTHROUGH_SECTIONS.map((section) => {
+              const complete = checklist[section.id].completed;
+              return (
+                <a
+                  key={section.id}
+                  href={`#section-${section.id}`}
+                  className={`shrink-0 rounded-full border px-4 py-2 text-xs font-semibold no-underline transition ${
+                    complete
+                      ? "border-emerald-200/30 bg-emerald-200/12 text-emerald-100"
+                      : "border-white/10 bg-white/[0.06] text-white/70 hover:border-sky-300/40 hover:text-white"
+                  }`}
+                >
+                  {complete ? "Done " : ""}
+                  {section.label}
+                </a>
+              );
+            })}
+            {steps.slice(2).map((step) => (
               <a
                 key={step.id}
                 href={`#${step.id}`}
                 className="shrink-0 rounded-full border border-white/10 bg-white/[0.06] px-4 py-2 text-xs font-semibold text-white/70 no-underline transition hover:border-sky-300/40 hover:text-white"
               >
-                {index + 1}. {step.label}
+                {step.label}
               </a>
             ))}
           </nav>
@@ -298,6 +390,96 @@ export function WalkthroughApp() {
                 </Field>
               </div>
 
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
+                <Field label="Beds">
+                  <input
+                    value={property.roomCounts.bedrooms}
+                    onChange={(event) =>
+                      updateProperty("roomCounts", {
+                        ...property.roomCounts,
+                        bedrooms: event.target.value,
+                      })
+                    }
+                    className={inputClass}
+                    placeholder="4"
+                    inputMode="numeric"
+                  />
+                </Field>
+                <Field label="Baths">
+                  <input
+                    value={property.roomCounts.bathrooms}
+                    onChange={(event) =>
+                      updateProperty("roomCounts", {
+                        ...property.roomCounts,
+                        bathrooms: event.target.value,
+                      })
+                    }
+                    className={inputClass}
+                    placeholder="3.5"
+                    inputMode="decimal"
+                  />
+                </Field>
+                <Field label="Kitchens">
+                  <input
+                    value={property.roomCounts.kitchens}
+                    onChange={(event) =>
+                      updateProperty("roomCounts", {
+                        ...property.roomCounts,
+                        kitchens: event.target.value,
+                      })
+                    }
+                    className={inputClass}
+                    placeholder="1"
+                    inputMode="numeric"
+                  />
+                </Field>
+                <Field label="Living">
+                  <input
+                    value={property.roomCounts.livingAreas}
+                    onChange={(event) =>
+                      updateProperty("roomCounts", {
+                        ...property.roomCounts,
+                        livingAreas: event.target.value,
+                      })
+                    }
+                    className={inputClass}
+                    placeholder="2"
+                    inputMode="numeric"
+                  />
+                </Field>
+                <Field label="Levels">
+                  <input
+                    value={property.roomCounts.levels}
+                    onChange={(event) =>
+                      updateProperty("roomCounts", {
+                        ...property.roomCounts,
+                        levels: event.target.value,
+                      })
+                    }
+                    className={inputClass}
+                    placeholder="1"
+                    inputMode="numeric"
+                  />
+                </Field>
+              </div>
+
+              <div className="grid gap-4 sm:grid-cols-2">
+                <Field label="Labor Complexity">
+                  <SegmentedControl
+                    options={LABOR_COMPLEXITY_OPTIONS}
+                    value={property.laborComplexity}
+                    onChange={(value) => updateProperty("laborComplexity", value)}
+                  />
+                </Field>
+                <Field label="Turnaround">
+                  <SegmentedControl
+                    options={TURNAROUND_OPTIONS}
+                    value={property.turnaround}
+                    onChange={(value) => updateProperty("turnaround", value)}
+                  />
+                </Field>
+              </div>
+
               <Field label="Service Type">
                 <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
                   {CLEANING_TYPES.map((type) => (
@@ -333,6 +515,7 @@ export function WalkthroughApp() {
                 scope="property"
                 photos={job.propertyPhotos}
                 onChange={updatePropertyPhotos}
+                onRemove={removePropertyPhoto}
               />
             </SectionCard>
 
@@ -345,60 +528,100 @@ export function WalkthroughApp() {
               <div className="grid gap-3">
                 {WALKTHROUGH_SECTIONS.map((section) => {
                   const item = checklist[section.id];
+                  const collapsed = collapsedSections[section.id] ?? item.completed;
                   return (
                     <article
+                      id={`section-${section.id}`}
                       key={section.id}
-                      className="rounded-[1.5rem] border border-white/10 bg-black/20 p-4"
+                      className={`scroll-mt-40 rounded-[1.5rem] border p-4 transition ${
+                        item.completed
+                          ? "border-emerald-200/25 bg-emerald-200/[0.07]"
+                          : "border-white/10 bg-black/20"
+                      }`}
                     >
-                      <div className="flex items-start justify-between gap-4">
-                        <div>
-                          <h3 className="text-base font-semibold">{section.label}</h3>
+                      <div className="flex items-start justify-between gap-3">
+                        <button
+                          type="button"
+                          onClick={() => toggleSectionCollapse(section.id)}
+                          className="min-h-12 flex-1 text-left"
+                          aria-expanded={!collapsed}
+                        >
+                          <div className="flex items-center gap-2">
+                            <span
+                              className={`h-2.5 w-2.5 rounded-full ${
+                                item.completed ? "bg-emerald-200" : "bg-white/25"
+                              }`}
+                            />
+                            <h3 className="text-base font-semibold">{section.label}</h3>
+                          </div>
                           <p className="mt-1 text-xs leading-5 text-white/45">{section.prompt}</p>
-                        </div>
-                        <Toggle
-                          checked={item.needsAddOn}
-                          label="Needs Add-On Service"
-                          onChange={(checked) => updateChecklist(section.id, { needsAddOn: checked })}
-                        />
-                      </div>
-                      <div className="mt-4 grid gap-3 sm:grid-cols-[180px_minmax(0,1fr)]">
-                        <label className="block text-xs font-semibold uppercase tracking-[0.18em] text-white/45">
-                          Condition
-                          <select
-                            value={item.condition}
-                            onChange={(event) =>
-                              updateChecklist(section.id, { condition: event.target.value as Condition })
-                            }
-                            className={selectClass}
-                          >
-                            {CONDITION_OPTIONS.map((condition) => (
-                              <option key={condition} value={condition} className="bg-[#0a0d13]">
-                                {condition}
-                              </option>
-                            ))}
-                          </select>
-                        </label>
-                        <label className="block text-xs font-semibold uppercase tracking-[0.18em] text-white/45">
-                          Notes
-                          <textarea
-                            value={item.notes}
-                            onChange={(event) => updateChecklist(section.id, { notes: event.target.value })}
-                            className={inputClass}
-                            rows={2}
-                            placeholder={`Notes for ${section.label.toLowerCase()}`}
+                        </button>
+                        <div className="flex shrink-0 flex-col items-end gap-2">
+                          <Toggle
+                            checked={item.needsAddOn}
+                            label="Needs Add-On Service"
+                            onChange={(checked) => updateChecklist(section.id, { needsAddOn: checked })}
                           />
-                        </label>
+                          <button
+                            type="button"
+                            onClick={() => toggleSectionComplete(section.id)}
+                            className={`rounded-full border px-3 py-2 text-[0.68rem] font-bold uppercase tracking-[0.12em] transition ${
+                              item.completed
+                                ? "border-emerald-200/40 bg-emerald-200/15 text-emerald-100"
+                                : "border-white/10 bg-white/[0.05] text-white/55"
+                            }`}
+                          >
+                            {item.completed ? "Complete" : "Mark done"}
+                          </button>
+                        </div>
                       </div>
-                      <div className="mt-3">
-                        <PhotoUploader
-                          id={`photo-${section.id}`}
-                          label={`Add ${section.label.toLowerCase()} photos`}
-                          scope={section.id}
-                          photos={item.photos}
-                          compact
-                          onChange={(photos) => updateChecklist(section.id, { photos })}
-                        />
-                      </div>
+                      {!collapsed ? (
+                        <div className="mt-4">
+                          <div className="grid gap-3 sm:grid-cols-[180px_minmax(0,1fr)]">
+                            <label className="block text-xs font-semibold uppercase tracking-[0.18em] text-white/45">
+                              Condition
+                              <select
+                                value={item.condition}
+                                onChange={(event) =>
+                                  updateChecklist(section.id, {
+                                    condition: event.target.value as Condition,
+                                  })
+                                }
+                                className={selectClass}
+                              >
+                                {CONDITION_OPTIONS.map((condition) => (
+                                  <option key={condition} value={condition} className="bg-[#0a0d13]">
+                                    {condition}
+                                  </option>
+                                ))}
+                              </select>
+                            </label>
+                            <label className="block text-xs font-semibold uppercase tracking-[0.18em] text-white/45">
+                              Notes
+                              <textarea
+                                value={item.notes}
+                                onChange={(event) =>
+                                  updateChecklist(section.id, { notes: event.target.value })
+                                }
+                                className={inputClass}
+                                rows={2}
+                                placeholder={`Notes for ${section.label.toLowerCase()}`}
+                              />
+                            </label>
+                          </div>
+                          <div className="mt-3">
+                            <PhotoUploader
+                              id={`photo-${section.id}`}
+                              label={`Add ${section.label.toLowerCase()} photos`}
+                              scope={section.id}
+                              photos={item.photos}
+                              compact
+                              onChange={(photos) => updateSectionPhotos(section.id, photos)}
+                              onRemove={(photoId) => removeSectionPhoto(section.id, photoId)}
+                            />
+                          </div>
+                        </div>
+                      ) : null}
                     </article>
                   );
                 })}
@@ -459,7 +682,13 @@ export function WalkthroughApp() {
               <div className="rounded-[1.5rem] border border-white/10 bg-black/25 p-4">
                 <p className="text-sm leading-7 text-white/78">{clientScope}</p>
               </div>
-              <div className="grid gap-3 sm:grid-cols-3">
+              <div className="grid gap-3 sm:grid-cols-4">
+                <button
+                  type="button"
+                  className="rounded-2xl border border-sky-200/20 bg-sky-200/10 px-4 py-3 text-sm font-semibold text-sky-50"
+                >
+                  Generate Client Scope
+                </button>
                 <button
                   type="button"
                   onClick={copyScope}
@@ -471,13 +700,13 @@ export function WalkthroughApp() {
                   type="button"
                   className="rounded-2xl border border-white/10 bg-white/[0.05] px-4 py-3 text-sm font-semibold text-white/55"
                 >
-                  Export PDF soon
+                  Generate Invoice
                 </button>
                 <button
                   type="button"
                   className="rounded-2xl border border-white/10 bg-white/[0.05] px-4 py-3 text-sm font-semibold text-white/55"
                 >
-                  Send estimate soon
+                  Export PDF
                 </button>
               </div>
             </SectionCard>
@@ -489,6 +718,7 @@ export function WalkthroughApp() {
               serviceType={property.serviceType}
               selectedAddOnCount={selectedAddOnDetails.length}
             />
+            <PropertyInsightsCard insights={insights} />
             <AiReadinessCard
               photoCount={photoCount}
               sectionCount={WALKTHROUGH_SECTIONS.length}
@@ -498,11 +728,14 @@ export function WalkthroughApp() {
         </div>
       </div>
 
-      <div className="fixed inset-x-0 bottom-0 z-40 border-t border-white/10 bg-[#050609]/90 px-4 pb-safe pt-3 backdrop-blur-2xl lg:hidden">
+      <div className="fixed inset-x-0 bottom-0 z-40 border-t border-white/10 bg-[#050609]/92 px-4 pb-safe pt-3 shadow-[0_-20px_70px_rgba(0,0,0,0.45)] backdrop-blur-2xl lg:hidden">
         <div className="mx-auto flex max-w-2xl items-center justify-between gap-3 pb-3">
           <div>
-            <p className="text-xs text-white/45">Estimated total</p>
+            <p className="text-xs text-white/45">
+              {quote.difficultyRating} - {quote.pricingConfidence} confidence
+            </p>
             <p className="text-lg font-semibold">{formatRange(quote.totalLow, quote.totalHigh)}</p>
+            <p className="text-xs text-white/40">{quote.estimatedDuration}</p>
           </div>
           <a
             href="#scope"
@@ -563,7 +796,11 @@ function SegmentedControl<T extends string>({
   onChange: (value: T) => void;
 }) {
   return (
-    <div className="mt-2 grid grid-cols-2 rounded-2xl border border-white/10 bg-white/[0.04] p-1">
+    <div
+      className={`mt-2 grid rounded-2xl border border-white/10 bg-white/[0.04] p-1 ${
+        options.length === 3 ? "grid-cols-3" : "grid-cols-2"
+      }`}
+    >
       {options.map((option) => (
         <button
           key={option}
@@ -619,6 +856,7 @@ function PhotoUploader({
   scope,
   photos,
   onChange,
+  onRemove,
   compact = false,
 }: {
   id: string;
@@ -626,8 +864,14 @@ function PhotoUploader({
   scope: PhotoScope;
   photos: WalkthroughPhoto[];
   onChange: (photos: WalkthroughPhoto[]) => void;
+  onRemove: (photoId: string) => void;
   compact?: boolean;
 }) {
+  async function handleFiles(files: FileList | null) {
+    const nextPhotos = await createPhotoAssets(files, scope);
+    onChange([...photos, ...nextPhotos]);
+  }
+
   return (
     <div
       className={`rounded-[1.25rem] border border-dashed border-white/14 bg-white/[0.035] ${
@@ -638,16 +882,23 @@ function PhotoUploader({
         id={id}
         type="file"
         accept="image/*"
-        capture="environment"
         multiple
         className="sr-only"
-        onChange={(event) => onChange([...photos, ...createPhotoAssets(event.target.files, scope)])}
+        onChange={(event) => {
+          void handleFiles(event.target.files);
+          event.target.value = "";
+        }}
       />
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <p className="text-sm font-semibold text-white/80">{label}</p>
+          <p className="text-sm font-semibold text-white/80">
+            {label}{" "}
+            <span className="text-xs font-medium text-white/35">
+              ({photos.length} {photos.length === 1 ? "image" : "images"})
+            </span>
+          </p>
           <p className="mt-1 text-xs text-white/40">
-            Stored as structured photo records for future AI analysis.
+            Choose from camera roll or take photos. Stored as AI-ready image records.
           </p>
         </div>
         <label
@@ -658,13 +909,38 @@ function PhotoUploader({
         </label>
       </div>
       {photos.length > 0 ? (
-        <ul className="mt-3 flex flex-wrap gap-2">
+        <ul className="mt-3 grid grid-cols-3 gap-2 sm:grid-cols-4">
           {photos.map((photo) => (
             <li
               key={photo.id}
-              className="max-w-full truncate rounded-full border border-white/10 bg-black/25 px-3 py-1 text-xs text-white/55"
+              className="group relative aspect-square overflow-hidden rounded-2xl bg-black/30"
             >
-              {photo.name} - {formatFileSize(photo.size)}
+              {photo.previewUrl ? (
+                <Image
+                  src={photo.previewUrl}
+                  alt={photo.name}
+                  fill
+                  sizes="120px"
+                  className="object-cover opacity-95 transition duration-300 group-hover:scale-105 group-hover:opacity-100"
+                  unoptimized
+                />
+              ) : (
+                <div className="flex h-full items-center justify-center bg-white/[0.06] text-xs text-white/35">
+                  Image
+                </div>
+              )}
+              <button
+                type="button"
+                onClick={() => onRemove(photo.id)}
+                className="absolute right-1.5 top-1.5 flex h-7 w-7 items-center justify-center rounded-full bg-black/70 text-sm font-semibold text-white backdrop-blur transition hover:bg-red-500"
+                aria-label={`Remove ${photo.name}`}
+              >
+                x
+              </button>
+              <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/75 to-transparent p-2">
+                <p className="truncate text-[0.65rem] font-medium text-white">{photo.name}</p>
+                <p className="text-[0.6rem] text-white/55">{formatFileSize(photo.size)}</p>
+              </div>
             </li>
           ))}
         </ul>
@@ -712,6 +988,43 @@ function MetricPill({ label, value }: { label: string; value: string }) {
   );
 }
 
+function PropertyInsightsCard({ insights }: { insights: PropertyInsights }) {
+  return (
+    <section className="rounded-[2rem] border border-white/10 bg-white/[0.055] p-5 shadow-[0_24px_80px_rgba(0,0,0,0.24)] backdrop-blur-xl">
+      <p className="text-xs font-semibold uppercase tracking-[0.24em] text-sky-200/60">
+        Property intelligence
+      </p>
+      <h2 className="mt-2 text-xl font-semibold tracking-tight">{insights.jobDifficulty}</h2>
+      <div className="mt-4 space-y-4">
+        <InsightList title="Likely supplies" items={insights.supplyRequirements} />
+        <InsightList title="Arrival setup" items={insights.arrivalSetup} />
+        <div className="rounded-2xl border border-white/10 bg-black/20 p-3">
+          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-white/35">
+            Crew configuration
+          </p>
+          <p className="mt-2 text-sm leading-5 text-white/70">{insights.crewConfiguration}</p>
+          <p className="mt-2 text-sm font-semibold text-sky-100">{insights.timeOnSite}</p>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function InsightList({ title, items }: { title: string; items: string[] }) {
+  return (
+    <div>
+      <p className="text-xs font-semibold uppercase tracking-[0.16em] text-white/35">{title}</p>
+      <ul className="mt-2 space-y-2">
+        {items.map((item) => (
+          <li key={item} className="rounded-2xl border border-white/10 bg-black/20 p-3 text-xs leading-5 text-white/62">
+            {item}
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
 function QuoteCard({
   quote,
   serviceType,
@@ -729,18 +1042,32 @@ function QuoteCard({
           <h2 className="mt-2 text-2xl font-semibold tracking-tight">Quote summary</h2>
           <p className="mt-2 text-sm text-white/45">{serviceType} estimate</p>
         </div>
-        {quote.luxuryRecommended ? (
-          <span className="rounded-full border border-amber-200/30 bg-amber-200/12 px-3 py-2 text-right text-[0.65rem] font-bold uppercase tracking-[0.16em] text-amber-100">
-            Luxury Listing Prep Recommended
-          </span>
-        ) : null}
+        <span className="rounded-full border border-white/10 bg-white/[0.06] px-3 py-2 text-right text-[0.65rem] font-bold uppercase tracking-[0.16em] text-white/55">
+          {quote.pricingConfidence} confidence
+        </span>
       </div>
 
+      {quote.badges.length > 0 ? (
+        <div className="mt-4 flex flex-wrap gap-2">
+          {quote.badges.map((badge) => (
+            <span
+              key={badge}
+              className="rounded-full border border-amber-200/30 bg-amber-200/12 px-3 py-2 text-[0.65rem] font-bold uppercase tracking-[0.14em] text-amber-100"
+            >
+              {badge}
+            </span>
+          ))}
+        </div>
+      ) : null}
+
       <div className="mt-6 space-y-3">
+        <QuoteRow label="Base Scope" value={serviceType} />
         <QuoteRow label="Base Cleaning Price" value={formatRange(quote.baseLow, quote.baseHigh)} />
         <QuoteRow label={`Add-On Totals (${selectedAddOnCount})`} value={formatRange(quote.addOnLow, quote.addOnHigh)} />
         <QuoteRow label="Estimated Labor Hours" value={`${quote.laborHours.toFixed(1)} hrs`} />
         <QuoteRow label="Suggested Crew Size" value={`${quote.crewSize} ${quote.crewSize === 1 ? "person" : "people"}`} />
+        <QuoteRow label="Estimated Duration" value={quote.estimatedDuration} />
+        <QuoteRow label="Difficulty" value={quote.difficultyRating} />
       </div>
 
       <div className="mt-5 rounded-[1.5rem] border border-sky-200/20 bg-sky-200/10 p-4">
@@ -752,6 +1079,29 @@ function QuoteCard({
           Internal estimate only. Confirm access, exact scope, supply needs, and crew availability
           before sending final pricing.
         </p>
+      </div>
+      <div className="mt-4 rounded-[1.5rem] border border-white/10 bg-black/25 p-4">
+        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-white/35">
+          Internal notes
+        </p>
+        <ul className="mt-3 space-y-2">
+          {quote.internalNotes.map((note) => (
+            <li key={note} className="text-xs leading-5 text-white/55">
+              {note}
+            </li>
+          ))}
+        </ul>
+      </div>
+      <div className="mt-4 grid grid-cols-2 gap-2">
+        {["Generate Client Scope", "Copy Scope", "Generate Invoice", "Export PDF"].map((action) => (
+          <a
+            key={action}
+            href={action === "Generate Client Scope" || action === "Copy Scope" ? "#scope" : "#quote"}
+            className="rounded-2xl border border-white/10 bg-white/[0.05] px-3 py-3 text-center text-xs font-semibold text-white/65 no-underline transition hover:border-white/25 hover:text-white"
+          >
+            {action}
+          </a>
+        ))}
       </div>
     </section>
   );
@@ -790,6 +1140,19 @@ function countJobPhotos(job: WalkthroughJob) {
     job.propertyPhotos.length +
     Object.values(job.checklist).reduce((total, item) => total + item.photos.length, 0)
   );
+}
+
+function loadStoredJob() {
+  if (typeof window === "undefined") {
+    return createWalkthroughJob();
+  }
+
+  try {
+    const stored = window.localStorage.getItem(storageKey);
+    return stored ? normalizeWalkthroughJob(JSON.parse(stored)) : createWalkthroughJob();
+  } catch {
+    return createWalkthroughJob();
+  }
 }
 
 function formatFileSize(size: number) {

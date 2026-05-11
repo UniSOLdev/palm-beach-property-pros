@@ -6,21 +6,26 @@ export function generateClientScope(job: WalkthroughJob, quote: QuoteResult, aiS
     return aiSignals.scopeSummary;
   }
 
-  const serviceLabel = job.property.serviceType.toLowerCase();
+  const serviceLabel = getServiceLabel(job.property.serviceType);
   const propertyLabel = job.property.propertyType
-    ? ` for this ${job.property.propertyType.toLowerCase()}`
+    ? ` at the ${job.property.propertyType.toLowerCase()}`
     : "";
   const selectedLabels = getSelectedAddOns(job.selectedAddOnIds).map((item) => item.label);
   const addOnSentence =
     selectedLabels.length > 0
-      ? ` Selected add-on services include ${formatList(selectedLabels).toLowerCase()}.`
+      ? ` Approved enhancements include ${formatList(selectedLabels).toLowerCase()}.`
       : "";
+  const recommendationSentence = quote.luxuryRecommended
+    ? " PBPP recommends a luxury listing-prep finish for presentation-sensitive areas and final owner or agent review."
+    : "";
   const conditionSentence =
     quote.heavyCount > 0 || quote.addOnFlagCount > 0
-      ? " PBPP will prioritize the noted walkthrough areas and confirm any specialty work before service begins."
+      ? " Areas noted during the walkthrough will receive priority detailing; specialty work outside the agreed scope will be confirmed before completion."
       : "";
+  const disclaimer =
+    " Final pricing assumes normal access, available utilities, and no concealed damage, excessive debris, or hazardous materials.";
 
-  return `For the agreed service, PBPP will provide full ${serviceLabel} cleaning${propertyLabel}, including bathrooms, kitchen, floors, visible dust removal, and final touch-up cleaning throughout the property.${addOnSentence}${conditionSentence}`;
+  return `PBPP will prepare the property with a ${serviceLabel}${propertyLabel}, focused on kitchen and bath detailing, floor presentation, visible dust removal, touch-point cleaning, and a final walkthrough-ready finish.${addOnSentence}${recommendationSentence}${conditionSentence}${disclaimer}`;
 }
 
 export function formatList(items: string[]) {
@@ -34,4 +39,17 @@ export function formatList(items: string[]) {
     return `${items[0]} and ${items[1]}`;
   }
   return `${items.slice(0, -1).join(", ")}, and ${items[items.length - 1]}`;
+}
+
+function getServiceLabel(serviceType: WalkthroughJob["property"]["serviceType"]) {
+  switch (serviceType) {
+    case "Move-Out":
+      return "move-out cleaning scope";
+    case "Listing Prep":
+      return "luxury listing-prep cleaning scope";
+    case "Maintenance":
+      return "property maintenance cleaning scope";
+    case "Deep Clean":
+      return "deep-detail cleaning scope";
+  }
 }

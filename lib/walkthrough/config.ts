@@ -2,8 +2,10 @@ import type {
   AddOnServiceConfig,
   CleaningType,
   Condition,
+  LaborComplexity,
   PricingConfig,
   PropertyType,
+  Turnaround,
   WalkthroughSectionId,
 } from "@/lib/walkthrough/types";
 
@@ -12,6 +14,18 @@ export const CLEANING_TYPES = ["Move-Out", "Listing Prep", "Maintenance", "Deep 
 export const OCCUPANCY_OPTIONS = ["Occupied", "Empty"] as const;
 
 export const CONDITION_OPTIONS = ["Light", "Moderate", "Heavy"] as const;
+
+export const LABOR_COMPLEXITY_OPTIONS: readonly LaborComplexity[] = [
+  "Standard",
+  "Elevated",
+  "Estate",
+] as const;
+
+export const TURNAROUND_OPTIONS: readonly Turnaround[] = [
+  "Flexible",
+  "Standard",
+  "Quick Turnaround",
+] as const;
 
 export const PROPERTY_TYPES: readonly PropertyType[] = [
   "Single-family estate",
@@ -178,6 +192,23 @@ export const WALKTHROUGH_PRICING_CONFIG: PricingConfig = {
     Heavy: { low: 65, high: 125, laborHours: 0.35 },
   } satisfies Record<Condition, PricingConfig["conditionAdjustments"][Condition]>,
   needsAddOnAdjustment: { low: 20, high: 45, laborHours: 0.15 },
+  roomAdjustments: {
+    bedroomHours: 0.45,
+    bathroomHours: 0.75,
+    kitchenHours: 0.9,
+    livingAreaHours: 0.4,
+    levelHours: 0.25,
+  },
+  laborComplexityMultipliers: {
+    Standard: 1,
+    Elevated: 1.12,
+    Estate: 1.25,
+  } satisfies Record<LaborComplexity, number>,
+  turnaroundMultipliers: {
+    Flexible: 1,
+    Standard: 1.04,
+    "Quick Turnaround": 1.12,
+  } satisfies Record<Turnaround, number>,
   crewThresholds: [
     { minHours: 12, crewSize: 4 },
     { minHours: 8, crewSize: 3 },

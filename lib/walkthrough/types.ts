@@ -1,6 +1,10 @@
 export type CleaningType = "Move-Out" | "Listing Prep" | "Maintenance" | "Deep Clean";
 export type Occupancy = "Occupied" | "Empty";
 export type Condition = "Light" | "Moderate" | "Heavy";
+export type LaborComplexity = "Standard" | "Elevated" | "Estate";
+export type Turnaround = "Flexible" | "Standard" | "Quick Turnaround";
+export type PricingConfidence = "High" | "Medium" | "Low";
+export type DifficultyRating = "Light" | "Standard" | "Elevated" | "Heavy" | "Estate";
 
 export type PropertyType =
   | "Single-family estate"
@@ -42,6 +46,7 @@ export type WalkthroughPhoto = {
   scope: PhotoScope;
   size: number;
   type: string;
+  previewUrl?: string;
   capturedAt: string;
   source: "camera-or-library";
   analysisStatus: PhotoAnalysisStatus;
@@ -59,6 +64,15 @@ export type PropertyIntake = {
   propertyType: PropertyType;
   occupancy: Occupancy;
   serviceType: CleaningType;
+  roomCounts: {
+    bedrooms: string;
+    bathrooms: string;
+    kitchens: string;
+    livingAreas: string;
+    levels: string;
+  };
+  laborComplexity: LaborComplexity;
+  turnaround: Turnaround;
   notes: string;
 };
 
@@ -66,6 +80,7 @@ export type ChecklistItem = {
   condition: Condition;
   notes: string;
   needsAddOn: boolean;
+  completed: boolean;
   photos: WalkthroughPhoto[];
 };
 
@@ -112,6 +127,15 @@ export type PricingConfig = {
   occupiedMultiplier: number;
   conditionAdjustments: Record<Condition, { low: number; high: number; laborHours: number }>;
   needsAddOnAdjustment: { low: number; high: number; laborHours: number };
+  roomAdjustments: {
+    bedroomHours: number;
+    bathroomHours: number;
+    kitchenHours: number;
+    livingAreaHours: number;
+    levelHours: number;
+  };
+  laborComplexityMultipliers: Record<LaborComplexity, number>;
+  turnaroundMultipliers: Record<Turnaround, number>;
   crewThresholds: Array<{ minHours: number; crewSize: number }>;
   luxuryRecommendation: {
     addOnCount: number;
@@ -139,9 +163,14 @@ export type QuoteResult = {
   totalHigh: number;
   laborHours: number;
   crewSize: number;
+  estimatedDuration: string;
+  pricingConfidence: PricingConfidence;
+  difficultyRating: DifficultyRating;
   heavyCount: number;
   addOnFlagCount: number;
   luxuryRecommended: boolean;
+  badges: string[];
+  internalNotes: string[];
   aiAssisted: boolean;
   suggestedAddOnIds: AddOnId[];
 };

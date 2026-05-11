@@ -1,0 +1,187 @@
+import { WALKTHROUGH_SECTIONS } from "@/lib/walkthrough/config";
+import type {
+  ChecklistState,
+  Condition,
+  PhotoScope,
+  PhotoTag,
+  PropertyIntake,
+  VoiceMemo,
+  WalkthroughJob,
+  WalkthroughPhoto,
+  WalkthroughSectionId,
+} from "@/lib/walkthrough/types";
+
+export const initialProperty: PropertyIntake = {
+  clientName: "",
+  address: "",
+  phone: "",
+  email: "",
+  squareFootage: "",
+  propertyType: "Luxury listing",
+  occupancy: "Empty",
+  serviceType: "Listing Prep",
+  roomCounts: {
+    bedrooms: "",
+    bathrooms: "",
+    kitchens: "1",
+    livingAreas: "",
+    levels: "",
+  },
+  laborComplexity: "Elevated",
+  turnaround: "Standard",
+  notes: "",
+};
+
+export function createInitialChecklist(): ChecklistState {
+  return WALKTHROUGH_SECTIONS.reduce((acc, section) => {
+    acc[section.id] = {
+      condition: "Light",
+      notes: "",
+      needsAddOn: false,
+      completed: false,
+    };
+    return acc;
+  }, {} as ChecklistState);
+}
+
+export function createWalkthroughJob(now = new Date()): WalkthroughJob {
+  const timestamp = now.toISOString();
+
+  return {
+    id: createLocalId("job"),
+    version: 1,
+    status: "draft",
+    createdAt: timestamp,
+    updatedAt: timestamp,
+    property: initialProperty,
+    propertyPhotos: [],
+    checklist: createInitialChecklist(),
+    selectedAddOnIds: [],
+    estimateViewMode: "internal",
+  };
+}
+
+export async function createPhotoAssets(
+  files: FileList | null,
+  scope: PhotoScope,
+): Promise<WalkthroughPhoto[]> {
+  if (!files) {
+    return [];
+  }
+
+  return Promise.all(
+    Array.from(files).map(async (file) => ({
+      id: createLocalId("photo"),
+      name: file.name,
+      scope,
+      size: file.size,
+      type: file.type || "image/*",
+      previewUrl: await readFileAsDataUrl(file),
+      tags: [],
+      capturedAt: new Date().toISOString(),
+      source: "camera-or-library" as const,
+      uploadStatus: "ready" as const,
+      analysisStatus: "not-ready" as const,
+    })),
+  );
+}
+
+export function touchJob(job: WalkthroughJob): WalkthroughJob {
+  return {
+    ...job,
+    updatedAt: new Date().toISOString(),
+  };
+}
+
+export function normalizeWalkthroughJob(value: unknown): WalkthroughJob {
+  const fallback = createWalkthroughJob();
+
+  if (!value || typeof value !== "object") {
+    return fallback;
+  }
+
+  const incoming = value as Partial<WalkthroughJob>;
+  const property = {
+    ...fallback.property,
+    ...(incoming.property ?? {}),
+    roomCounts: {
+      ...fallback.property.roomCounts,
+      ...(incoming.property?.roomCounts ?? {}),
+    },
+  };
+  const checklist = createInitialChecklist();
+
+  for (const section of WALKTHROUGH_SECTIONS) {
+    const incomingItem = incoming.checklist?.[section.id];
+    checklist[section.id] = {
+      ...checklist[section.id],
+      ...(incomingItem ?? {}),
+      condition: normalizeCondition(incomingItem?.condition),
+      completed: Boolean(incomingItem?.completed),
+      voiceMemo: incomingItem?.voiceMemo,
+    };
+  }
+
+  return {
+    ...fallback,
+    ...incoming,
+    version: 1,
+    property,
+    propertyPhotos: (incoming.propertyPhotos ?? []).map(normalizePhoto),
+    checklist,
+    selectedAddOnIds: incoming.selectedAddOnIds ?? [],
+    estimateViewMode: incoming.estimateViewMode ?? "internal",
+  };
+}
+
+export function createVoiceMemo(sectionId: WalkthroughSectionId): VoiceMemo {
+  const section = WALKTHROUGH_SECTIONS.find((item) => item.id === sectionId);
+
+  return {
+    id: createLocalId("voice"),
+    label: `${section?.label ?? "Section"} voice memo`,
+    recordedAt: new Date().toISOString(),
+    durationLabel: "0:24",
+    status: "placeholder",
+  };
+}
+
+export function getTaggedPhotoCount(photos: readonly WalkthroughPhoto[], tag: PhotoTag) {
+  return photos.filter((photo) => photo.tags.includes(tag)).length;
+}
+
+function createLocalId(prefix: string) {
+  if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
+    return `${prefix}_${crypto.randomUUID()}`;
+  }
+
+  return `${prefix}_${Date.now()}_${Math.random().toString(36).slice(2)}`;
+}
+
+function normalizePhoto(photo: WalkthroughPhoto): WalkthroughPhoto {
+  return {
+    ...photo,
+    tags: photo.tags ?? [],
+    uploadStatus: photo.uploadStatus ?? "ready",
+  };
+}
+
+function normalizeCondition(condition: unknown): Condition {
+  if (condition === "Medium") {
+    return "Moderate";
+  }
+  if (condition === "Moderate" || condition === "Heavy" || condition === "Light") {
+    return condition;
+  }
+  return "Light";
+}
+
+function readFileAsDataUrl(file: File): Promise<string> {
+  return new Promise((resolve) => {
+    const reader = new FileReader();
+
+    reader.onload = () => resolve(String(reader.result ?? ""));
+    reader.onerror = () => resolve("");
+    reader.readAsDataURL(file);
+  });
+}

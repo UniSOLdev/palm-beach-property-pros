@@ -20,7 +20,6 @@ export function calculateWalkthroughQuote(
   const baseline = hasSquareFootage ? squareFootage : profile.minimum / profile.rateLow;
   const occupiedMultiplier = job.property.occupancy === "Occupied" ? config.occupiedMultiplier : 1;
   const checklistItems = Object.values(job.checklist);
-  const moderateCount = checklistItems.filter((item) => item.condition === "Moderate").length;
   const heavyCount = checklistItems.filter((item) => item.condition === "Heavy").length;
   const addOnFlagCount = checklistItems.filter((item) => item.needsAddOn).length;
   const roomHours = getRoomLaborHours(job, config);
@@ -100,6 +99,8 @@ export function calculateWalkthroughQuote(
     addOnFlagCount,
     turnaround: job.property.turnaround,
     laborHours,
+    job,
+    suggestedBadges: aiSignals?.suggestedBadges,
   });
 
   return {
@@ -116,7 +117,7 @@ export function calculateWalkthroughQuote(
     difficultyRating,
     heavyCount,
     addOnFlagCount,
-    luxuryRecommended: badges.includes("Luxury Listing Prep Recommended"),
+    luxuryRecommended: badges.includes("Luxury Listing Prep"),
     badges,
     internalNotes: getInternalNotes({
       pricingConfidence,
@@ -165,10 +166,7 @@ function getRoomLaborHours(job: WalkthroughJob, config: PricingConfig) {
 }
 
 function getPhotoCount(job: WalkthroughJob) {
-  return (
-    job.propertyPhotos.length +
-    Object.values(job.checklist).reduce((total, item) => total + item.photos.length, 0)
-  );
+  return job.propertyPhotos.length;
 }
 
 function getEstimatedDuration(laborHours: number, crewSize: number) {
@@ -237,26 +235,49 @@ function getBadges({
   addOnFlagCount,
   turnaround,
   laborHours,
+  job,
+  suggestedBadges,
 }: {
   luxuryRecommended: boolean;
   heavyCount: number;
   addOnFlagCount: number;
   turnaround: WalkthroughJob["property"]["turnaround"];
   laborHours: number;
+  job: WalkthroughJob;
+  suggestedBadges?: string[];
 }) {
   const badges: string[] = [];
+  const notes = getSearchableJobText(job);
 
   if (luxuryRecommended) {
-    badges.push("Luxury Listing Prep Recommended");
+    badges.push("Luxury Listing Prep");
   }
   if (heavyCount >= 3 || addOnFlagCount >= 4 || laborHours >= 9) {
     badges.push("Heavy Detail Load");
   }
+  if (job.property.serviceType === "Listing Prep") {
+    badges.push("Realtor Sensitive");
+  }
   if (turnaround === "Quick Turnaround") {
     badges.push("Quick Turnaround");
   }
+  if (/(delicate|antique|lacquer|stone|wood|finish)/i.test(notes)) {
+    badges.push("Delicate Surfaces");
+  }
+  if (/(marble|onyx|travertine|limestone|high-end|designer)/i.test(notes)) {
+    badges.push("Marble/High-End Finish");
+  }
+  if (/(construction|renovation|drywall|paint dust|post-construction)/i.test(notes)) {
+    badges.push("Construction Dust");
+  }
+  if (/(pet|hair|fur|dog|cat)/i.test(notes)) {
+    badges.push("Pet Hair Heavy");
+  }
+  for (const badge of suggestedBadges ?? []) {
+    badges.push(badge);
+  }
 
-  return badges;
+  return Array.from(new Set(badges));
 }
 
 function getInternalNotes({
@@ -322,4 +343,13 @@ function isLuxuryPrepRecommended({
     addOnFlagCount >= thresholds.flaggedSectionCount ||
     (luxuryScaleScore ?? 0) >= thresholds.luxuryScaleScore
   );
+}
+
+function getSearchableJobText(job: WalkthroughJob) {
+  return [
+    job.property.notes,
+    job.property.propertyType,
+    ...Object.values(job.checklist).map((item) => item.notes),
+    ...job.propertyPhotos.flatMap((photo) => [photo.name, ...photo.tags]),
+  ].join(" ");
 }

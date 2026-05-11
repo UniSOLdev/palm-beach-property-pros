@@ -1,10 +1,11 @@
 export type CleaningType = "Move-Out" | "Listing Prep" | "Maintenance" | "Deep Clean";
 export type Occupancy = "Occupied" | "Empty";
-export type Condition = "Light" | "Moderate" | "Heavy";
+export type Condition = "Light" | "Medium" | "Heavy";
 export type LaborComplexity = "Standard" | "Elevated" | "Estate";
 export type Turnaround = "Flexible" | "Standard" | "Quick Turnaround";
 export type PricingConfidence = "High" | "Medium" | "Low";
 export type DifficultyRating = "Light" | "Standard" | "Elevated" | "Heavy" | "Estate";
+export type EstimateViewMode = "internal" | "client";
 
 export type PropertyType =
   | "Single-family estate"
@@ -37,6 +38,7 @@ export type AddOnId =
   | "odorTreatment";
 
 export type PhotoScope = "property" | WalkthroughSectionId;
+export type PhotoTag = WalkthroughSectionId | "other";
 
 export type PhotoAnalysisStatus = "not-ready" | "queued" | "analyzed" | "needs-review";
 
@@ -47,8 +49,10 @@ export type WalkthroughPhoto = {
   size: number;
   type: string;
   previewUrl?: string;
+  tags: PhotoTag[];
   capturedAt: string;
   source: "camera-or-library";
+  uploadStatus: "ready" | "processing" | "error";
   analysisStatus: PhotoAnalysisStatus;
   storageKey?: string;
   aiSummary?: string;
@@ -81,7 +85,16 @@ export type ChecklistItem = {
   notes: string;
   needsAddOn: boolean;
   completed: boolean;
-  photos: WalkthroughPhoto[];
+  voiceMemo?: VoiceMemo;
+};
+
+export type VoiceMemo = {
+  id: string;
+  label: string;
+  recordedAt: string;
+  durationLabel: string;
+  status: "placeholder" | "recorded" | "transcribed";
+  transcript?: string;
 };
 
 export type ChecklistState = Record<WalkthroughSectionId, ChecklistItem>;
@@ -96,6 +109,7 @@ export type WalkthroughJob = {
   propertyPhotos: WalkthroughPhoto[];
   checklist: ChecklistState;
   selectedAddOnIds: AddOnId[];
+  estimateViewMode: EstimateViewMode;
 };
 
 export type AddOnPricing = {
@@ -150,6 +164,7 @@ export type AiQuoteSignals = {
   recommendedCrewSize?: number;
   estimatedLaborHours?: number;
   suggestedAddOnIds?: AddOnId[];
+  suggestedBadges?: string[];
   scopeSummary?: string;
   invoiceLineItems?: Array<{ label: string; amount: number }>;
 };

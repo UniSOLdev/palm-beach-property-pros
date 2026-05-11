@@ -1,10 +1,14 @@
 import { WALKTHROUGH_SECTIONS } from "@/lib/walkthrough/config";
 import type {
   ChecklistState,
+  Condition,
   PhotoScope,
+  PhotoTag,
   PropertyIntake,
+  VoiceMemo,
   WalkthroughJob,
   WalkthroughPhoto,
+  WalkthroughSectionId,
 } from "@/lib/walkthrough/types";
 
 export const initialProperty: PropertyIntake = {
@@ -16,15 +20,15 @@ export const initialProperty: PropertyIntake = {
   propertyType: "Luxury listing",
   occupancy: "Empty",
   serviceType: "Listing Prep",
-    roomCounts: {
-      bedrooms: "",
-      bathrooms: "",
-      kitchens: "1",
-      livingAreas: "",
-      levels: "",
-    },
-    laborComplexity: "Elevated",
-    turnaround: "Standard",
+  roomCounts: {
+    bedrooms: "",
+    bathrooms: "",
+    kitchens: "1",
+    livingAreas: "",
+    levels: "",
+  },
+  laborComplexity: "Elevated",
+  turnaround: "Standard",
   notes: "",
 };
 
@@ -35,7 +39,6 @@ export function createInitialChecklist(): ChecklistState {
       notes: "",
       needsAddOn: false,
       completed: false,
-      photos: [],
     };
     return acc;
   }, {} as ChecklistState);
@@ -54,6 +57,7 @@ export function createWalkthroughJob(now = new Date()): WalkthroughJob {
     propertyPhotos: [],
     checklist: createInitialChecklist(),
     selectedAddOnIds: [],
+    estimateViewMode: "internal",
   };
 }
 
@@ -73,8 +77,10 @@ export async function createPhotoAssets(
       size: file.size,
       type: file.type || "image/*",
       previewUrl: await readFileAsDataUrl(file),
+      tags: [],
       capturedAt: new Date().toISOString(),
       source: "camera-or-library" as const,
+      uploadStatus: "ready" as const,
       analysisStatus: "not-ready" as const,
     })),
   );
@@ -106,11 +112,13 @@ export function normalizeWalkthroughJob(value: unknown): WalkthroughJob {
   const checklist = createInitialChecklist();
 
   for (const section of WALKTHROUGH_SECTIONS) {
+    const incomingItem = incoming.checklist?.[section.id];
     checklist[section.id] = {
       ...checklist[section.id],
-      ...(incoming.checklist?.[section.id] ?? {}),
-      photos: incoming.checklist?.[section.id]?.photos ?? [],
-      completed: Boolean(incoming.checklist?.[section.id]?.completed),
+      ...(incomingItem ?? {}),
+      condition: normalizeCondition(incomingItem?.condition),
+      completed: Boolean(incomingItem?.completed),
+      voiceMemo: incomingItem?.voiceMemo,
     };
   }
 
@@ -119,10 +127,27 @@ export function normalizeWalkthroughJob(value: unknown): WalkthroughJob {
     ...incoming,
     version: 1,
     property,
-    propertyPhotos: incoming.propertyPhotos ?? [],
+    propertyPhotos: (incoming.propertyPhotos ?? []).map(normalizePhoto),
     checklist,
     selectedAddOnIds: incoming.selectedAddOnIds ?? [],
+    estimateViewMode: incoming.estimateViewMode ?? "internal",
   };
+}
+
+export function createVoiceMemo(sectionId: WalkthroughSectionId): VoiceMemo {
+  const section = WALKTHROUGH_SECTIONS.find((item) => item.id === sectionId);
+
+  return {
+    id: createLocalId("voice"),
+    label: `${section?.label ?? "Section"} voice memo`,
+    recordedAt: new Date().toISOString(),
+    durationLabel: "0:24",
+    status: "placeholder",
+  };
+}
+
+export function getTaggedPhotoCount(photos: readonly WalkthroughPhoto[], tag: PhotoTag) {
+  return photos.filter((photo) => photo.tags.includes(tag)).length;
 }
 
 function createLocalId(prefix: string) {
@@ -131,6 +156,24 @@ function createLocalId(prefix: string) {
   }
 
   return `${prefix}_${Date.now()}_${Math.random().toString(36).slice(2)}`;
+}
+
+function normalizePhoto(photo: WalkthroughPhoto): WalkthroughPhoto {
+  return {
+    ...photo,
+    tags: photo.tags ?? [],
+    uploadStatus: photo.uploadStatus ?? "ready",
+  };
+}
+
+function normalizeCondition(condition: unknown): Condition {
+  if (condition === "Moderate") {
+    return "Medium";
+  }
+  if (condition === "Medium" || condition === "Heavy" || condition === "Light") {
+    return condition;
+  }
+  return "Light";
 }
 
 function readFileAsDataUrl(file: File): Promise<string> {

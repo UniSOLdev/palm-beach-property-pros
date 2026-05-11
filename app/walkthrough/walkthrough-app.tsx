@@ -18,6 +18,8 @@ import type { PropertyInsights } from "@/lib/walkthrough/insights";
 import {
   createPhotoAssets,
   createWalkthroughJob,
+  createVoiceMemo,
+  getTaggedPhotoCount,
   normalizeWalkthroughJob,
   touchJob,
 } from "@/lib/walkthrough/job";
@@ -27,8 +29,8 @@ import type {
   AddOnId,
   ChecklistItem,
   CleaningType,
-  Condition,
-  PhotoScope,
+  EstimateViewMode,
+  PhotoTag,
   PropertyIntake,
   PropertyType,
   QuoteResult,
@@ -39,7 +41,8 @@ import type {
 
 const steps = [
   { id: "intake", label: "Intake" },
-  { id: "checklist", label: "Checklist" },
+  { id: "photos", label: "Photos" },
+  { id: "condition-pass", label: "Condition" },
   { id: "addons", label: "Add-ons" },
   { id: "quote", label: "Quote" },
   { id: "scope", label: "Scope" },
@@ -58,6 +61,8 @@ export function WalkthroughApp() {
   const [job, setJob] = useState<WalkthroughJob>(() => loadStoredJob());
   const [saveStatus, setSaveStatus] = useState("Autosaved locally");
   const [collapsedSections, setCollapsedSections] = useState<Record<string, boolean>>({});
+  const [expandedPhoto, setExpandedPhoto] = useState<WalkthroughPhoto | null>(null);
+  const [photoUploadStatus, setPhotoUploadStatus] = useState<"idle" | "processing" | "ready">("idle");
   const [scopeCopied, setScopeCopied] = useState(false);
 
   const { property, checklist } = job;
@@ -77,6 +82,7 @@ export function WalkthroughApp() {
 
   const clientScope = useMemo(() => generateClientScope(job, quote), [job, quote]);
   const insights = useMemo(() => generatePropertyInsights(job, quote), [job, quote]);
+  const selectedViewMode = job.estimateViewMode;
 
   useEffect(() => {
     const timeout = window.setTimeout(() => {
@@ -84,7 +90,12 @@ export function WalkthroughApp() {
         window.localStorage.setItem(storageKey, JSON.stringify(job));
         setSaveStatus("Saved locally");
       } catch {
-        setSaveStatus("Autosave limited");
+        try {
+          window.localStorage.setItem(storageKey, JSON.stringify(stripPhotoPreviews(job)));
+          setSaveStatus("Saved metadata");
+        } catch {
+          setSaveStatus("Autosave limited");
+        }
       }
     }, 250);
 
@@ -146,15 +157,44 @@ export function WalkthroughApp() {
     updatePropertyPhotos(job.propertyPhotos.filter((photo) => photo.id !== photoId));
   }
 
-  function updateSectionPhotos(sectionId: WalkthroughSectionId, photos: WalkthroughPhoto[]) {
-    updateChecklist(sectionId, { photos });
+  async function addBulkPhotos(files: FileList | null) {
+    setPhotoUploadStatus("processing");
+    const nextPhotos = await createPhotoAssets(files, "property");
+    updatePropertyPhotos([...job.propertyPhotos, ...nextPhotos]);
+    setPhotoUploadStatus("ready");
+    window.setTimeout(() => setPhotoUploadStatus("idle"), 1200);
   }
 
-  function removeSectionPhoto(sectionId: WalkthroughSectionId, photoId: string) {
-    updateSectionPhotos(
-      sectionId,
-      job.checklist[sectionId].photos.filter((photo) => photo.id !== photoId),
+  function togglePhotoTag(photoId: string, tag: PhotoTag) {
+    updatePropertyPhotos(
+      job.propertyPhotos.map((photo) => {
+        if (photo.id !== photoId) {
+          return photo;
+        }
+
+        return {
+          ...photo,
+          tags: photo.tags.includes(tag)
+            ? photo.tags.filter((item) => item !== tag)
+            : [...photo.tags, tag],
+        };
+      }),
     );
+  }
+
+  function updateVoiceMemo(sectionId: WalkthroughSectionId) {
+    updateChecklist(sectionId, { voiceMemo: createVoiceMemo(sectionId) });
+  }
+
+  function removeVoiceMemo(sectionId: WalkthroughSectionId) {
+    updateChecklist(sectionId, { voiceMemo: undefined });
+  }
+
+  function updateEstimateViewMode(mode: EstimateViewMode) {
+    updateJob((current) => ({
+      ...current,
+      estimateViewMode: mode,
+    }));
   }
 
   function toggleAddOn(addOnId: AddOnId) {
@@ -263,6 +303,12 @@ export function WalkthroughApp() {
             >
               Intake
             </a>
+            <a
+              href="#photos"
+              className="shrink-0 rounded-full border border-white/10 bg-white/[0.06] px-4 py-2 text-xs font-semibold text-white/70 no-underline transition hover:border-sky-300/40 hover:text-white"
+            >
+              Photos
+            </a>
             {WALKTHROUGH_SECTIONS.map((section) => {
               const complete = checklist[section.id].completed;
               return (
@@ -280,7 +326,7 @@ export function WalkthroughApp() {
                 </a>
               );
             })}
-            {steps.slice(2).map((step) => (
+            {steps.slice(3).map((step) => (
               <a
                 key={step.id}
                 href={`#${step.id}`}
@@ -509,26 +555,35 @@ export function WalkthroughApp() {
                 />
               </Field>
 
-              <PhotoUploader
-                id="property-photos"
-                label="Upload property photos"
-                scope="property"
+            </SectionCard>
+
+            <SectionCard
+              id="photos"
+              kicker="Step 02"
+              title="Bulk walkthrough photo intake"
+              description="Upload once, then optionally tag only the photos that matter. Camera roll and live capture are both supported by the device picker."
+            >
+              <BulkPhotoIntake
                 photos={job.propertyPhotos}
-                onChange={updatePropertyPhotos}
+                uploadStatus={photoUploadStatus}
+                onAddPhotos={addBulkPhotos}
                 onRemove={removePropertyPhoto}
+                onExpand={setExpandedPhoto}
+                onToggleTag={togglePhotoTag}
               />
             </SectionCard>
 
             <SectionCard
-              id="checklist"
-              kicker="Step 02"
-              title="Walkthrough checklist"
-              description="Record condition, notes, photos, and whether each area needs a specialty add-on."
+              id="condition-pass"
+              kicker="Step 03"
+              title="Room / area condition pass"
+              description="Fast one-tap condition, add-on flags, voice memo placeholders, and completion status. Photos remain centralized."
             >
               <div className="grid gap-3">
                 {WALKTHROUGH_SECTIONS.map((section) => {
                   const item = checklist[section.id];
                   const collapsed = collapsedSections[section.id] ?? item.completed;
+                  const taggedCount = getTaggedPhotoCount(job.propertyPhotos, section.id);
                   return (
                     <article
                       id={`section-${section.id}`}
@@ -555,6 +610,11 @@ export function WalkthroughApp() {
                             <h3 className="text-base font-semibold">{section.label}</h3>
                           </div>
                           <p className="mt-1 text-xs leading-5 text-white/45">{section.prompt}</p>
+                          {taggedCount > 0 ? (
+                            <p className="mt-2 inline-flex rounded-full border border-sky-200/20 bg-sky-200/10 px-3 py-1 text-[0.65rem] font-bold uppercase tracking-[0.14em] text-sky-100">
+                              {section.label.toUpperCase()} - {taggedCount} photos attached
+                            </p>
+                          ) : null}
                         </button>
                         <div className="flex shrink-0 flex-col items-end gap-2">
                           <Toggle
@@ -577,25 +637,28 @@ export function WalkthroughApp() {
                       </div>
                       {!collapsed ? (
                         <div className="mt-4">
-                          <div className="grid gap-3 sm:grid-cols-[180px_minmax(0,1fr)]">
-                            <label className="block text-xs font-semibold uppercase tracking-[0.18em] text-white/45">
-                              Condition
-                              <select
-                                value={item.condition}
-                                onChange={(event) =>
-                                  updateChecklist(section.id, {
-                                    condition: event.target.value as Condition,
-                                  })
-                                }
-                                className={selectClass}
-                              >
+                          <div className="grid gap-3 sm:grid-cols-[260px_minmax(0,1fr)]">
+                            <div>
+                              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-white/45">
+                                Condition
+                              </p>
+                              <div className="mt-2 grid grid-cols-3 gap-2">
                                 {CONDITION_OPTIONS.map((condition) => (
-                                  <option key={condition} value={condition} className="bg-[#0a0d13]">
+                                  <button
+                                    key={condition}
+                                    type="button"
+                                    onClick={() => updateChecklist(section.id, { condition })}
+                                    className={`min-h-12 rounded-2xl border px-3 text-sm font-semibold transition ${
+                                      item.condition === condition
+                                        ? "border-white bg-white text-black"
+                                        : "border-white/10 bg-white/[0.05] text-white/62"
+                                    }`}
+                                  >
                                     {condition}
-                                  </option>
+                                  </button>
                                 ))}
-                              </select>
-                            </label>
+                              </div>
+                            </div>
                             <label className="block text-xs font-semibold uppercase tracking-[0.18em] text-white/45">
                               Notes
                               <textarea
@@ -609,17 +672,11 @@ export function WalkthroughApp() {
                               />
                             </label>
                           </div>
-                          <div className="mt-3">
-                            <PhotoUploader
-                              id={`photo-${section.id}`}
-                              label={`Add ${section.label.toLowerCase()} photos`}
-                              scope={section.id}
-                              photos={item.photos}
-                              compact
-                              onChange={(photos) => updateSectionPhotos(section.id, photos)}
-                              onRemove={(photoId) => removeSectionPhoto(section.id, photoId)}
-                            />
-                          </div>
+                          <VoiceMemoControl
+                            voiceMemo={item.voiceMemo}
+                            onRecord={() => updateVoiceMemo(section.id)}
+                            onRemove={() => removeVoiceMemo(section.id)}
+                          />
                         </div>
                       ) : null}
                     </article>
@@ -630,9 +687,9 @@ export function WalkthroughApp() {
 
             <SectionCard
               id="addons"
-              kicker="Step 03"
-              title="Add-on selector"
-              description="Tap specialty services as the walkthrough reveals scope. Pricing flows into the live estimate."
+              kicker="Step 04"
+              title="Add-on recommendations"
+              description="Tap specialty services as the walkthrough reveals scope. Future AI suggestions will appear in this same layer."
             >
               <div className="grid gap-3 sm:grid-cols-2">
                 {ADD_ON_SERVICES.map((service) => {
@@ -675,14 +732,44 @@ export function WalkthroughApp() {
 
             <SectionCard
               id="scope"
-              kicker="Step 05"
+              kicker="Step 06"
               title="Generate client scope"
               description="Clean client-facing language that updates with service type, property type, and selected add-ons."
             >
-              <div className="rounded-[1.5rem] border border-white/10 bg-black/25 p-4">
-                <p className="text-sm leading-7 text-white/78">{clientScope}</p>
+              <div className="grid grid-cols-2 rounded-2xl border border-white/10 bg-white/[0.04] p-1">
+                {(["internal", "client"] as const).map((mode) => (
+                  <button
+                    key={mode}
+                    type="button"
+                    onClick={() => updateEstimateViewMode(mode)}
+                    className={`rounded-xl px-4 py-3 text-sm font-semibold capitalize transition ${
+                      selectedViewMode === mode ? "bg-white text-black" : "text-white/60"
+                    }`}
+                  >
+                    {mode === "internal" ? "Internal Ops View" : "Client Estimate View"}
+                  </button>
+                ))}
               </div>
-              <div className="grid gap-3 sm:grid-cols-4">
+              <div className="rounded-[1.5rem] border border-white/10 bg-black/25 p-4">
+                {selectedViewMode === "internal" ? (
+                  <div className="space-y-3">
+                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-white/35">
+                      Internal ops context
+                    </p>
+                    <p className="text-sm leading-7 text-white/78">{clientScope}</p>
+                    <ul className="space-y-2">
+                      {quote.internalNotes.map((note) => (
+                        <li key={note} className="rounded-2xl bg-white/[0.04] p-3 text-xs text-white/55">
+                          {note}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ) : (
+                  <p className="text-sm leading-7 text-white/78">{clientScope}</p>
+                )}
+              </div>
+              <div className="grid gap-3 sm:grid-cols-5">
                 <button
                   type="button"
                   className="rounded-2xl border border-sky-200/20 bg-sky-200/10 px-4 py-3 text-sm font-semibold text-sky-50"
@@ -707,6 +794,12 @@ export function WalkthroughApp() {
                   className="rounded-2xl border border-white/10 bg-white/[0.05] px-4 py-3 text-sm font-semibold text-white/55"
                 >
                   Export PDF
+                </button>
+                <button
+                  type="button"
+                  className="rounded-2xl border border-white/10 bg-white/[0.05] px-4 py-3 text-sm font-semibold text-white/55"
+                >
+                  Save Walkthrough
                 </button>
               </div>
             </SectionCard>
@@ -745,6 +838,45 @@ export function WalkthroughApp() {
           </a>
         </div>
       </div>
+      {expandedPhoto ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/88 p-4 backdrop-blur-xl">
+          <button
+            type="button"
+            className="absolute inset-0"
+            aria-label="Close photo preview"
+            onClick={() => setExpandedPhoto(null)}
+          />
+          <div className="relative w-full max-w-3xl overflow-hidden rounded-[2rem] border border-white/10 bg-[#090b10] shadow-[0_30px_120px_rgba(0,0,0,0.65)]">
+            <button
+              type="button"
+              onClick={() => setExpandedPhoto(null)}
+              className="absolute right-4 top-4 z-10 rounded-full bg-black/70 px-4 py-2 text-sm font-semibold text-white backdrop-blur"
+            >
+              Close
+            </button>
+            <div className="relative aspect-[4/5] max-h-[80vh] w-full">
+              {expandedPhoto.previewUrl ? (
+                <Image
+                  src={expandedPhoto.previewUrl}
+                  alt={expandedPhoto.name}
+                  fill
+                  sizes="90vw"
+                  className="object-contain"
+                  unoptimized
+                />
+              ) : null}
+            </div>
+            <div className="border-t border-white/10 p-4">
+              <p className="font-semibold">{expandedPhoto.name}</p>
+              <p className="mt-1 text-xs text-white/45">
+                {expandedPhoto.tags.length > 0
+                  ? expandedPhoto.tags.map(getTagLabel).join(", ")
+                  : "No tags yet"}
+              </p>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }
@@ -850,96 +982,178 @@ function Toggle({
   );
 }
 
-function PhotoUploader({
-  id,
-  label,
-  scope,
-  photos,
-  onChange,
+function VoiceMemoControl({
+  voiceMemo,
+  onRecord,
   onRemove,
-  compact = false,
 }: {
-  id: string;
-  label: string;
-  scope: PhotoScope;
-  photos: WalkthroughPhoto[];
-  onChange: (photos: WalkthroughPhoto[]) => void;
-  onRemove: (photoId: string) => void;
-  compact?: boolean;
+  voiceMemo: ChecklistItem["voiceMemo"];
+  onRecord: () => void;
+  onRemove: () => void;
 }) {
-  async function handleFiles(files: FileList | null) {
-    const nextPhotos = await createPhotoAssets(files, scope);
-    onChange([...photos, ...nextPhotos]);
-  }
-
   return (
-    <div
-      className={`rounded-[1.25rem] border border-dashed border-white/14 bg-white/[0.035] ${
-        compact ? "p-3" : "p-4"
-      }`}
-    >
+    <div className="mt-3 rounded-2xl border border-white/10 bg-white/[0.035] p-3">
+      <div className="flex items-center justify-between gap-3">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-white/35">
+            Voice note
+          </p>
+          <p className="mt-1 text-sm text-white/70">
+            {voiceMemo ? `${voiceMemo.label} - ${voiceMemo.durationLabel}` : "Tap to attach a memo placeholder"}
+          </p>
+        </div>
+        {voiceMemo ? (
+          <div className="flex gap-2">
+            <button
+              type="button"
+              className="min-h-11 rounded-2xl border border-white/10 bg-white/[0.06] px-4 text-sm font-semibold text-white/70"
+            >
+              Play
+            </button>
+            <button
+              type="button"
+              onClick={onRemove}
+              className="min-h-11 rounded-2xl border border-red-200/20 bg-red-300/10 px-4 text-sm font-semibold text-red-100"
+            >
+              Remove
+            </button>
+          </div>
+        ) : (
+          <button
+            type="button"
+            onClick={onRecord}
+            className="min-h-11 rounded-2xl bg-white px-4 text-sm font-semibold text-black"
+          >
+            Record
+          </button>
+        )}
+      </div>
+      <p className="mt-2 text-xs text-white/35">
+        Future-ready for transcription, AI scope generation, and photo/context matching.
+      </p>
+    </div>
+  );
+}
+
+function BulkPhotoIntake({
+  photos,
+  uploadStatus,
+  onAddPhotos,
+  onRemove,
+  onExpand,
+  onToggleTag,
+}: {
+  photos: WalkthroughPhoto[];
+  uploadStatus: "idle" | "processing" | "ready";
+  onAddPhotos: (files: FileList | null) => void;
+  onRemove: (photoId: string) => void;
+  onExpand: (photo: WalkthroughPhoto) => void;
+  onToggleTag: (photoId: string, tag: PhotoTag) => void;
+}) {
+  return (
+    <div className="rounded-[1.75rem] border border-dashed border-white/14 bg-white/[0.035] p-4">
       <input
-        id={id}
+        id="bulk-walkthrough-photos"
         type="file"
         accept="image/*"
         multiple
         className="sr-only"
         onChange={(event) => {
-          void handleFiles(event.target.files);
+          onAddPhotos(event.target.files);
           event.target.value = "";
         }}
       />
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <p className="text-sm font-semibold text-white/80">
-            {label}{" "}
-            <span className="text-xs font-medium text-white/35">
-              ({photos.length} {photos.length === 1 ? "image" : "images"})
-            </span>
+          <p className="text-lg font-semibold text-white">
+            {photos.length} {photos.length === 1 ? "walkthrough photo" : "walkthrough photos"}
           </p>
           <p className="mt-1 text-xs text-white/40">
-            Choose from camera roll or take photos. Stored as AI-ready image records.
+            Use the iPhone picker for camera roll or live capture. No forced camera mode.
           </p>
+          {uploadStatus !== "idle" ? (
+            <p className="mt-2 text-xs font-semibold uppercase tracking-[0.16em] text-sky-100">
+              {uploadStatus === "processing" ? "Processing image previews..." : "Photos ready"}
+            </p>
+          ) : null}
         </div>
         <label
-          htmlFor={id}
-          className="inline-flex cursor-pointer items-center justify-center rounded-2xl bg-white px-4 py-3 text-sm font-semibold text-black transition hover:bg-sky-100"
+          htmlFor="bulk-walkthrough-photos"
+          className="inline-flex min-h-14 cursor-pointer items-center justify-center rounded-2xl bg-white px-5 py-4 text-sm font-semibold text-black transition hover:bg-sky-100"
         >
-          Choose photos
+          Add photos
         </label>
       </div>
       {photos.length > 0 ? (
-        <ul className="mt-3 grid grid-cols-3 gap-2 sm:grid-cols-4">
+        <ul className="mt-5 columns-2 gap-2 sm:columns-3 lg:columns-4">
           {photos.map((photo) => (
-            <li
-              key={photo.id}
-              className="group relative aspect-square overflow-hidden rounded-2xl bg-black/30"
-            >
-              {photo.previewUrl ? (
-                <Image
-                  src={photo.previewUrl}
-                  alt={photo.name}
-                  fill
-                  sizes="120px"
-                  className="object-cover opacity-95 transition duration-300 group-hover:scale-105 group-hover:opacity-100"
-                  unoptimized
-                />
-              ) : (
-                <div className="flex h-full items-center justify-center bg-white/[0.06] text-xs text-white/35">
-                  Image
+            <li key={photo.id} className="relative mb-2 break-inside-avoid overflow-hidden rounded-2xl bg-black/30">
+              <button
+                type="button"
+                onClick={() => onExpand(photo)}
+                className="group relative block w-full overflow-hidden text-left"
+              >
+                <div className="relative aspect-[4/5] w-full">
+                  {photo.previewUrl ? (
+                    <Image
+                      src={photo.previewUrl}
+                      alt={photo.name}
+                      fill
+                      sizes="(max-width: 640px) 50vw, 25vw"
+                      className="object-cover opacity-0 transition duration-500 group-hover:scale-[1.03]"
+                      onLoadingComplete={(image) => image.classList.remove("opacity-0")}
+                      unoptimized
+                    />
+                  ) : (
+                    <div className="flex h-full items-center justify-center bg-white/[0.06] text-xs text-white/35">
+                      Image
+                    </div>
+                  )}
+                  <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 to-transparent p-2">
+                    <p className="truncate text-[0.65rem] font-medium text-white">{photo.name}</p>
+                    <p className="text-[0.6rem] text-white/55">{formatFileSize(photo.size)}</p>
+                  </div>
                 </div>
-              )}
+              </button>
               <button
                 type="button"
                 onClick={() => onRemove(photo.id)}
-                className="absolute right-1.5 top-1.5 flex h-7 w-7 items-center justify-center rounded-full bg-black/70 text-sm font-semibold text-white backdrop-blur transition hover:bg-red-500"
+                className="absolute right-2 top-2 flex h-8 w-8 items-center justify-center rounded-full bg-black/70 text-sm font-semibold text-white backdrop-blur transition hover:bg-red-500"
                 aria-label={`Remove ${photo.name}`}
               >
                 x
               </button>
-              <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/75 to-transparent p-2">
-                <p className="truncate text-[0.65rem] font-medium text-white">{photo.name}</p>
-                <p className="text-[0.6rem] text-white/55">{formatFileSize(photo.size)}</p>
+              <div className="space-y-2 p-2">
+                <div className="flex flex-wrap gap-1">
+                  {photo.tags.length > 0 ? (
+                    photo.tags.map((tag) => (
+                      <span
+                        key={tag}
+                        className="rounded-full bg-sky-200/10 px-2 py-1 text-[0.6rem] font-semibold uppercase tracking-[0.1em] text-sky-100"
+                      >
+                        {getTagLabel(tag)}
+                      </span>
+                    ))
+                  ) : (
+                    <span className="text-[0.65rem] text-white/35">Optional tags</span>
+                  )}
+                </div>
+                <div className="flex gap-1 overflow-x-auto pb-1">
+                  {[...WALKTHROUGH_SECTIONS.map((section) => section.id), "other" as const].map((tag) => (
+                    <button
+                      key={tag}
+                      type="button"
+                      onClick={() => onToggleTag(photo.id, tag)}
+                      className={`shrink-0 rounded-full px-2 py-1 text-[0.6rem] font-semibold uppercase tracking-[0.1em] transition ${
+                        photo.tags.includes(tag)
+                          ? "bg-white text-black"
+                          : "bg-white/[0.06] text-white/45"
+                      }`}
+                    >
+                      {getTagLabel(tag)}
+                    </button>
+                  ))}
+                </div>
               </div>
             </li>
           ))}
@@ -965,8 +1179,9 @@ function AiReadinessCard({
       </p>
       <h2 className="mt-2 text-lg font-semibold tracking-tight">Operations OS foundation</h2>
       <p className="mt-2 text-xs leading-5 text-white/45">
-        This job is structured for later OpenAI Vision analysis, quote recommendations, scope
-        generation, invoice drafting, and photo-based labor estimation.
+        This job is structured for later OpenAI Vision analysis, automatic room detection,
+        stain/scuff detection, AI scope generation, invoice drafting, upsell suggestions, and
+        photo-based labor estimation.
       </p>
       <div className="mt-4 grid grid-cols-3 gap-2 text-center">
         <MetricPill label="Photos" value={photoCount.toString()} />
@@ -1038,7 +1253,7 @@ function QuoteCard({
     <section className="rounded-[2rem] border border-white/10 bg-white/[0.075] p-5 shadow-[0_24px_80px_rgba(0,0,0,0.32)] backdrop-blur-xl">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.24em] text-sky-200/60">Step 04</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.24em] text-sky-200/60">Step 05</p>
           <h2 className="mt-2 text-2xl font-semibold tracking-tight">Quote summary</h2>
           <p className="mt-2 text-sm text-white/45">{serviceType} estimate</p>
         </div>
@@ -1093,7 +1308,7 @@ function QuoteCard({
         </ul>
       </div>
       <div className="mt-4 grid grid-cols-2 gap-2">
-        {["Generate Client Scope", "Copy Scope", "Generate Invoice", "Export PDF"].map((action) => (
+        {["Generate Client Scope", "Copy Scope", "Generate Invoice", "Export PDF", "Save Walkthrough"].map((action) => (
           <a
             key={action}
             href={action === "Generate Client Scope" || action === "Copy Scope" ? "#scope" : "#quote"}
@@ -1136,10 +1351,7 @@ function formatRange(low: number, high: number) {
 }
 
 function countJobPhotos(job: WalkthroughJob) {
-  return (
-    job.propertyPhotos.length +
-    Object.values(job.checklist).reduce((total, item) => total + item.photos.length, 0)
-  );
+  return job.propertyPhotos.length;
 }
 
 function loadStoredJob() {
@@ -1155,10 +1367,28 @@ function loadStoredJob() {
   }
 }
 
+function stripPhotoPreviews(job: WalkthroughJob): WalkthroughJob {
+  return {
+    ...job,
+    propertyPhotos: job.propertyPhotos.map((photo) => ({
+      ...photo,
+      previewUrl: undefined,
+    })),
+  };
+}
+
 function formatFileSize(size: number) {
   if (size < 1024 * 1024) {
     return `${Math.max(1, Math.round(size / 1024))} KB`;
   }
 
   return `${(size / (1024 * 1024)).toFixed(1)} MB`;
+}
+
+function getTagLabel(tag: PhotoTag) {
+  if (tag === "other") {
+    return "Other";
+  }
+
+  return WALKTHROUGH_SECTIONS.find((section) => section.id === tag)?.label ?? tag;
 }

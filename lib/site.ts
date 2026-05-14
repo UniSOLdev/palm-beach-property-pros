@@ -1,5 +1,7 @@
 export const SITE_URL = "https://www.palmbeachpropertypros.com";
 export const SITE_NAME = "Palm Beach Property Pros";
+export const SITE_DESCRIPTION =
+  "Licensed Palm Beach County property cleaning and maintenance: window cleaning, pressure washing, residential and commercial cleaning, auto detailing, carpet care, and coordinated turnovers.";
 export const TAGLINE =
   "One reliable local team for everything your property needs.";
 

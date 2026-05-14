@@ -343,6 +343,7 @@ export const expenses: Expense[] = [
     amount: 68.4,
     paymentMethod: "Card",
     jobId: "job_airbnb_turn",
+    serviceType: "Airbnb Turnover",
     receiptUrl: null,
     expenseType: "Job-specific",
     reimbursable: false,

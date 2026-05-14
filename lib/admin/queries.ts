@@ -13,6 +13,7 @@ import {
   mapSopTemplateFromRows,
   mapSupplyRow,
 } from "@/lib/admin/mappers";
+import { monthBounds } from "@/lib/admin/expense-analytics";
 import { adminSeed, getClientById as seedGetClientById, getSopBySlug as seedGetSopBySlug } from "@/lib/admin/seed";
 import { isSupabaseServerConfigured } from "@/lib/supabase/env";
 import type {
@@ -288,33 +289,86 @@ export async function getInvoiceByPublicId(publicId: string): Promise<Invoice | 
   return mapInvoiceRow(row, items);
 }
 
-export async function listExpenses(filters?: {
+export type ExpenseListFilters = {
   category?: string;
   expenseType?: string;
+  paymentMethod?: string;
+  jobId?: string;
+  /** YYYY-MM; when set, overrides loose from/to for the calendar month */
+  month?: string;
   from?: string;
   to?: string;
-}): Promise<Expense[]> {
+  search?: string;
+  sort?: "date" | "amount";
+  order?: "asc" | "desc";
+};
+
+function applyExpenseListFilters(rows: Expense[], filters?: ExpenseListFilters): Expense[] {
+  let out = [...rows];
+  if (filters?.category) out = out.filter((e) => e.category === filters.category);
+  if (filters?.expenseType) out = out.filter((e) => e.expenseType === filters.expenseType);
+  if (filters?.paymentMethod) out = out.filter((e) => e.paymentMethod === filters.paymentMethod);
+  if (filters?.jobId) out = out.filter((e) => e.jobId === filters.jobId);
+
+  if (filters?.month) {
+    const b = monthBounds(filters.month);
+    if (b) out = out.filter((e) => e.date >= b.from && e.date <= b.to);
+  } else {
+    if (filters?.from) out = out.filter((e) => e.date >= filters.from!);
+    if (filters?.to) out = out.filter((e) => e.date <= filters.to!);
+  }
+
+  const q = filters?.search?.trim().toLowerCase();
+  if (q) {
+    out = out.filter(
+      (e) =>
+        e.vendor.toLowerCase().includes(q) ||
+        e.description.toLowerCase().includes(q) ||
+        e.notes.toLowerCase().includes(q),
+    );
+  }
+
+  const sortKey = filters?.sort === "amount" ? "amount" : "date";
+  const asc = filters?.order === "asc";
+  out.sort((a, b) => {
+    const cmp =
+      sortKey === "amount"
+        ? a.amount - b.amount
+        : a.date.localeCompare(b.date) || b.createdAt.localeCompare(a.createdAt);
+    return asc ? cmp : -cmp;
+  });
+
+  return out;
+}
+
+export async function listExpenses(filters?: ExpenseListFilters): Promise<Expense[]> {
   if (!isSupabaseServerConfigured()) {
-    let rows = adminSeed.expenses;
-    if (filters?.category) rows = rows.filter((e) => e.category === filters.category);
-    if (filters?.expenseType) rows = rows.filter((e) => e.expenseType === filters.expenseType);
-    if (filters?.from) rows = rows.filter((e) => e.date >= filters.from!);
-    if (filters?.to) rows = rows.filter((e) => e.date <= filters.to!);
-    return rows;
+    return applyExpenseListFilters(adminSeed.expenses, filters);
   }
   const sb = createSupabaseAdminClient();
-  if (!sb) return adminSeed.expenses;
-  let q = sb.from("expenses").select("*").eq("archived", false).order("expense_date", { ascending: false });
-  if (filters?.category) q = q.eq("category", filters.category);
-  if (filters?.expenseType) q = q.eq("expense_type", filters.expenseType);
-  if (filters?.from) q = q.gte("expense_date", filters.from);
-  if (filters?.to) q = q.lte("expense_date", filters.to);
-  const { data, error } = await q;
+  if (!sb) return applyExpenseListFilters(adminSeed.expenses, filters);
+
+  const { data, error } = await sb.from("expenses").select("*").eq("archived", false);
   if (error || !data) {
     if (error) logDb("listExpenses", error);
     return [];
   }
-  return (data as Record<string, unknown>[]).map(mapExpenseRow);
+  const mapped = (data as Record<string, unknown>[]).map(mapExpenseRow);
+  return applyExpenseListFilters(mapped, filters);
+}
+
+export async function getExpenseById(id: string): Promise<Expense | undefined> {
+  if (!isSupabaseServerConfigured()) return adminSeed.expenses.find((e) => e.id === id);
+  const sb = createSupabaseAdminClient();
+  if (!sb) return adminSeed.expenses.find((e) => e.id === id);
+  const { data, error } = await sb.from("expenses").select("*").eq("id", id).maybeSingle();
+  if (error || !data) {
+    if (error) logDb("getExpenseById", error);
+    return undefined;
+  }
+  const row = data as Record<string, unknown>;
+  if (row.archived) return undefined;
+  return mapExpenseRow(row);
 }
 
 export async function listSupplies(): Promise<Supply[]> {

@@ -1,25 +1,57 @@
 import Link from "next/link";
 import { AdminPageHeader, Card } from "@/components/admin/ui";
-import { EXPENSE_CATEGORIES, EXPENSE_TYPES } from "@/lib/admin/constants";
+import { EXPENSE_CATEGORIES, EXPENSE_TYPES, SERVICE_TYPES } from "@/lib/admin/constants";
 import { createExpenseAction } from "@/lib/admin/actions";
 import { listJobs } from "@/lib/admin/queries";
 import { isSupabaseServerConfigured } from "@/lib/supabase/env";
 
-export default async function NewExpensePage() {
+const PAYMENT_OPTIONS = ["Cash", "Zelle", "Card", "Check", "Square Invoice", "Other"] as const;
+
+export default async function NewExpensePage({
+  searchParams,
+}: {
+  searchParams: Promise<{ err?: string; saved?: string }>;
+}) {
+  const sp = await searchParams;
   const useDb = isSupabaseServerConfigured();
   const jobs = useDb ? await listJobs() : [];
 
   return (
-    <div>
+    <div className="space-y-6">
       <AdminPageHeader
         title="Add expense"
-        subtitle="Tag job-specific costs to keep per-job profit honest."
+        subtitle="Tag job-specific costs for honest per-job profit. Route bulk chemical buys through Reusable supplies or Equipment so one Costco run does not look like a job loss."
         actions={
           <Link href="/admin/expenses" className="btn-secondary no-underline">
-            Cancel
+            Back to expenses
           </Link>
         }
       />
+
+      {sp.err ? (
+        <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-900">{sp.err}</div>
+      ) : null}
+
+      <Card title="Expense types (quick guide)">
+        <ul className="grid gap-2 text-sm text-charcoal/80 md:grid-cols-2">
+          <li>
+            <span className="font-semibold text-navy">Job-specific</span> — gas to the job, parking, job-only chemicals,
+            dump tickets tied to that address.
+          </li>
+          <li>
+            <span className="font-semibold text-navy">Reusable supplies</span> — stock for the van/shop that serves many
+            jobs.
+          </li>
+          <li>
+            <span className="font-semibold text-navy">Equipment investment</span> — pressure washer parts, vacuums,
+            long-life tools.
+          </li>
+          <li>
+            <span className="font-semibold text-navy">Overhead</span> — software, marketing, storage, non-field spend.
+          </li>
+        </ul>
+      </Card>
+
       <Card>
         {useDb ? (
           <form action={createExpenseAction} className="grid gap-4 md:grid-cols-2">
@@ -46,7 +78,10 @@ export default async function NewExpensePage() {
             </label>
             <label>
               <span className="text-xs font-semibold uppercase tracking-wide text-charcoal/55">Category</span>
-              <select name="category" className="mt-1 w-full rounded-xl border border-navy/15 bg-white px-3 py-2.5 text-sm outline-none ring-ocean/30 focus:ring-2">
+              <select
+                name="category"
+                className="mt-1 w-full rounded-xl border border-navy/15 bg-white px-3 py-2.5 text-sm outline-none ring-ocean/30 focus:ring-2"
+              >
                 {EXPENSE_CATEGORIES.map((c) => (
                   <option key={c} value={c}>
                     {c}
@@ -56,7 +91,10 @@ export default async function NewExpensePage() {
             </label>
             <label>
               <span className="text-xs font-semibold uppercase tracking-wide text-charcoal/55">Expense type</span>
-              <select name="expense_type" className="mt-1 w-full rounded-xl border border-navy/15 bg-white px-3 py-2.5 text-sm outline-none ring-ocean/30 focus:ring-2">
+              <select
+                name="expense_type"
+                className="mt-1 w-full rounded-xl border border-navy/15 bg-white px-3 py-2.5 text-sm outline-none ring-ocean/30 focus:ring-2"
+              >
                 {EXPENSE_TYPES.map((c) => (
                   <option key={c} value={c}>
                     {c}
@@ -65,17 +103,39 @@ export default async function NewExpensePage() {
               </select>
             </label>
             <label className="md:col-span-2">
-              <span className="text-xs font-semibold uppercase tracking-wide text-charcoal/55">Vendor</span>
-              <input name="vendor" required className="mt-1 w-full rounded-xl border border-navy/15 px-3 py-2.5 text-sm outline-none ring-ocean/30 focus:ring-2" />
+              <span className="text-xs font-semibold uppercase tracking-wide text-charcoal/55">Service type (optional)</span>
+              <select name="service_type" className="mt-1 w-full rounded-xl border border-navy/15 bg-white px-3 py-2.5 text-sm outline-none ring-ocean/30 focus:ring-2">
+                <option value="">Infer from linked job, or pick manually</option>
+                {SERVICE_TYPES.map((s) => (
+                  <option key={s} value={s}>
+                    {s}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="md:col-span-2">
+              <span className="text-xs font-semibold uppercase tracking-wide text-charcoal/55">Vendor / store</span>
+              <input
+                name="vendor"
+                required
+                className="mt-1 w-full rounded-xl border border-navy/15 px-3 py-2.5 text-sm outline-none ring-ocean/30 focus:ring-2"
+              />
             </label>
             <label className="md:col-span-2">
               <span className="text-xs font-semibold uppercase tracking-wide text-charcoal/55">Item / description</span>
-              <input name="description" required className="mt-1 w-full rounded-xl border border-navy/15 px-3 py-2.5 text-sm outline-none ring-ocean/30 focus:ring-2" />
+              <input
+                name="description"
+                required
+                className="mt-1 w-full rounded-xl border border-navy/15 px-3 py-2.5 text-sm outline-none ring-ocean/30 focus:ring-2"
+              />
             </label>
             <label>
               <span className="text-xs font-semibold uppercase tracking-wide text-charcoal/55">Payment method</span>
-              <select name="payment_method" className="mt-1 w-full rounded-xl border border-navy/15 bg-white px-3 py-2.5 text-sm outline-none ring-ocean/30 focus:ring-2">
-                {["Cash", "Zelle", "Card", "Check", "Other"].map((m) => (
+              <select
+                name="payment_method"
+                className="mt-1 w-full rounded-xl border border-navy/15 bg-white px-3 py-2.5 text-sm outline-none ring-ocean/30 focus:ring-2"
+              >
+                {PAYMENT_OPTIONS.map((m) => (
                   <option key={m} value={m}>
                     {m}
                   </option>
@@ -102,8 +162,12 @@ export default async function NewExpensePage() {
               <span className="text-sm text-charcoal/80">Reimbursed</span>
             </label>
             <label className="md:col-span-2">
-              <span className="text-xs font-semibold uppercase tracking-wide text-charcoal/55">Receipt URL</span>
-              <input name="receipt_url" placeholder="https://…" className="mt-1 w-full rounded-xl border border-navy/15 px-3 py-2.5 text-sm outline-none ring-ocean/30 focus:ring-2" />
+              <span className="text-xs font-semibold uppercase tracking-wide text-charcoal/55">Receipt / photo URL</span>
+              <input
+                name="receipt_url"
+                placeholder="https://…"
+                className="mt-1 w-full rounded-xl border border-navy/15 px-3 py-2.5 text-sm outline-none ring-ocean/30 focus:ring-2"
+              />
             </label>
             <label className="md:col-span-2">
               <span className="text-xs font-semibold uppercase tracking-wide text-charcoal/55">Notes</span>

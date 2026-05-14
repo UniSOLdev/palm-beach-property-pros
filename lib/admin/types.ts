@@ -168,6 +168,8 @@ export interface Expense {
   amount: number;
   paymentMethod: PaymentMethod;
   jobId: string | null;
+  /** Optional; may mirror linked job service type or be entered manually */
+  serviceType?: string | null;
   receiptUrl: string | null;
   expenseType: ExpenseType;
   reimbursable: boolean;

@@ -86,3 +86,50 @@ export function StatCard({
     </div>
   );
 }
+
+export function ProfitToneBadge({ tone, children }: { tone: "strong" | "thin" | "loss"; children: ReactNode }) {
+  const cls =
+    tone === "strong"
+      ? "bg-emerald-50 text-emerald-900 ring-emerald-200"
+      : tone === "thin"
+        ? "bg-amber-50 text-amber-900 ring-amber-200"
+        : "bg-rose-50 text-rose-900 ring-rose-200";
+  return (
+    <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ring-1 ring-inset ${cls}`}>
+      {children}
+    </span>
+  );
+}
+
+export function ExpenseCategoryBadge({ category }: { category: string }) {
+  return (
+    <span className="inline-flex max-w-[10rem] truncate rounded-full bg-sky/40 px-2 py-0.5 text-[11px] font-semibold text-navy ring-1 ring-navy/10">
+      {category}
+    </span>
+  );
+}
+
+export function ExpenseTypeBadge({ type }: { type: string }) {
+  const subtle =
+    type === "Job-specific"
+      ? "bg-blue-50 text-blue-900 ring-blue-200"
+      : type === "Reusable supplies"
+        ? "bg-teal-50 text-teal-900 ring-teal-200"
+        : type === "Equipment investment"
+          ? "bg-violet-50 text-violet-900 ring-violet-200"
+          : "bg-slate-100 text-slate-800 ring-slate-200";
+  return (
+    <span className={`inline-flex max-w-[11rem] truncate rounded-full px-2 py-0.5 text-[11px] font-semibold ring-1 ring-inset ${subtle}`}>
+      {type}
+    </span>
+  );
+}
+
+export function MiniProgressBar({ fraction }: { fraction: number }) {
+  const pct = Math.max(0, Math.min(100, fraction * 100));
+  return (
+    <div className="h-2 overflow-hidden rounded-full bg-sky/50">
+      <div className="h-full rounded-full bg-ocean" style={{ width: `${pct}%` }} />
+    </div>
+  );
+}

@@ -176,6 +176,7 @@ export function mapExpenseRow(row: Record<string, unknown>): Expense {
     amount: num(row.amount),
     paymentMethod: str(row.payment_method, "Other") as PaymentMethod,
     jobId: row.job_id ? str(row.job_id) : null,
+    serviceType: row.service_type ? str(row.service_type) : null,
     receiptUrl: row.receipt_url ? str(row.receipt_url) : null,
     expenseType: str(row.expense_type, "Overhead") as ExpenseType,
     reimbursable: Boolean(row.reimbursable),

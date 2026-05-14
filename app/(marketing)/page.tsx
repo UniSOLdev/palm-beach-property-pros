@@ -5,6 +5,8 @@ import { FAQ_ITEMS } from "@/lib/faq";
 import { LINKR_URL, linkrRel } from "@/lib/linkr";
 import { SERVICES } from "@/lib/services";
 import { PHONE_DISPLAY, SERVICE_CITIES, SITE_NAME } from "@/lib/site";
+import { getBusinessSettings } from "@/lib/admin/queries";
+import { resolveBookingHref, resolveBookingLabel, resolvePaymentCtaLabel } from "@/lib/booking-settings";
 
 export const metadata: Metadata = {
   title: "Palm Beach County Window Cleaning, Pressure Washing & Property Maintenance",
@@ -42,7 +44,13 @@ const cityList = SERVICE_CITIES.filter((c) => !c.toLowerCase().startsWith("and n
   ", ",
 );
 
-export default function HomePage() {
+export default async function HomePage() {
+  const settings = await getBusinessSettings();
+  const bookingHref = resolveBookingHref(settings);
+  const bookingLabel = resolveBookingLabel(settings);
+  const bookingExternal = bookingHref.startsWith("http");
+  const payUrl = settings.squareInvoiceUrl?.trim();
+
   return (
     <>
       <section className="relative overflow-hidden bg-gradient-to-b from-sky/50 via-cream to-cream">
@@ -60,9 +68,20 @@ export default function HomePage() {
             Licensed &amp; insured. Local team. Fast quotes.
           </p>
           <div className="mt-8 flex max-w-xl flex-col gap-4 sm:flex-row sm:flex-wrap">
-            <a href={LINKR_URL} target="_blank" rel={linkrRel} className="btn-primary-lg">
-              Get a Free Quote
-            </a>
+            {bookingExternal ? (
+              <a href={bookingHref} target="_blank" rel="noopener noreferrer" className="btn-primary-lg">
+                {bookingLabel}
+              </a>
+            ) : (
+              <Link href={bookingHref} className="btn-primary-lg no-underline">
+                {bookingLabel}
+              </Link>
+            )}
+            {payUrl ? (
+              <a href={payUrl} target="_blank" rel="noopener noreferrer" className="btn-secondary-lg border-ocean/40">
+                {resolvePaymentCtaLabel(settings)}
+              </a>
+            ) : null}
             <a href={LINKR_URL} target="_blank" rel={linkrRel} className="btn-secondary-lg">
               Call {PHONE_DISPLAY}
             </a>

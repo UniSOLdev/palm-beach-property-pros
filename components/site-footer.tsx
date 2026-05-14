@@ -105,6 +105,14 @@ export function SiteFooter() {
                     Privacy policy
                   </Link>
                 </li>
+                <li>
+                  <Link
+                    href="/admin"
+                    className="text-cream/90 no-underline hover:text-white hover:underline"
+                  >
+                    Staff operations dashboard
+                  </Link>
+                </li>
               </ul>
             </div>
           </div>

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
+import { AdminDbBanner } from "@/components/admin/admin-db-banner";
 import { AdminShell } from "@/components/admin/admin-shell";
 
 export const metadata: Metadata = {
@@ -8,5 +9,10 @@ export const metadata: Metadata = {
 };
 
 export default function AdminLayout({ children }: { children: ReactNode }) {
-  return <AdminShell>{children}</AdminShell>;
+  return (
+    <AdminShell>
+      <AdminDbBanner />
+      {children}
+    </AdminShell>
+  );
 }

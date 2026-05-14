@@ -2,14 +2,14 @@ import { notFound } from "next/navigation";
 import { PrintButton } from "@/components/view/print-button";
 import { formatCurrency, formatDate } from "@/lib/admin/format";
 import { invoiceBalanceDue, invoiceSubtotal } from "@/lib/admin/invoice-totals";
-import { adminSeed, getClientById, getInvoiceByPublicId } from "@/lib/admin/seed";
+import { getBusinessSettings, getClientById, getInvoiceByPublicId } from "@/lib/admin/queries";
 
 export default async function PublicInvoicePage({ params }: { params: Promise<{ publicId: string }> }) {
   const { publicId } = await params;
-  const inv = getInvoiceByPublicId(decodeURIComponent(publicId));
+  const inv = await getInvoiceByPublicId(decodeURIComponent(publicId));
   if (!inv) notFound();
-  const client = getClientById(inv.clientId);
-  const brand = adminSeed.businessSettings;
+  const client = await getClientById(inv.clientId);
+  const brand = await getBusinessSettings();
 
   const subtotal = invoiceSubtotal(inv);
   const balance = invoiceBalanceDue(inv);

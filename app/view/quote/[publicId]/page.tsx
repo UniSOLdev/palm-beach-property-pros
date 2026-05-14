@@ -2,14 +2,14 @@ import { notFound } from "next/navigation";
 import { PrintButton } from "@/components/view/print-button";
 import { formatCurrency, formatDate } from "@/lib/admin/format";
 import { quoteLineTotal, quoteRemaining } from "@/lib/admin/quote-totals";
-import { adminSeed, getClientById, getQuoteByPublicId } from "@/lib/admin/seed";
+import { getBusinessSettings, getClientById, getQuoteByPublicId } from "@/lib/admin/queries";
 
 export default async function PublicQuotePage({ params }: { params: Promise<{ publicId: string }> }) {
   const { publicId } = await params;
-  const quote = getQuoteByPublicId(decodeURIComponent(publicId));
+  const quote = await getQuoteByPublicId(decodeURIComponent(publicId));
   if (!quote) notFound();
-  const client = getClientById(quote.clientId);
-  const brand = adminSeed.businessSettings;
+  const client = await getClientById(quote.clientId);
+  const brand = await getBusinessSettings();
 
   const total = quoteLineTotal(quote);
   const remaining = quoteRemaining(quote);

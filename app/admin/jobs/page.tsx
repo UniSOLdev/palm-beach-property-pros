@@ -1,10 +1,11 @@
 import Link from "next/link";
 import { AdminPageHeader, Card, StatusBadge } from "@/components/admin/ui";
 import { formatCurrency, formatDate } from "@/lib/admin/format";
-import { adminSeed, getClientById } from "@/lib/admin/seed";
+import { listClients, listJobs } from "@/lib/admin/queries";
 
-export default function JobsPage() {
-  const rows = [...adminSeed.jobs].sort((a, b) => b.date.localeCompare(a.date));
+export default async function JobsPage() {
+  const [jobs, clients] = await Promise.all([listJobs(), listClients()]);
+  const rows = [...jobs].sort((a, b) => b.date.localeCompare(a.date));
 
   return (
     <div>
@@ -34,7 +35,7 @@ export default function JobsPage() {
             </thead>
             <tbody>
               {rows.map((j) => {
-                const c = getClientById(j.clientId);
+                const c = clients.find((x) => x.id === j.clientId);
                 return (
                   <tr key={j.id} className="border-b border-navy/5 last:border-0">
                     <td className="py-3 pr-4 font-mono text-xs text-charcoal/70">{j.id}</td>

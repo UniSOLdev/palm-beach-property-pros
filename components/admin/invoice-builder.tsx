@@ -1,7 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useCallback, useEffect, useMemo, useState, useTransition } from "react";
+
+import { markInvoiceReviewSentAction, saveInvoiceAction } from "@/lib/admin/actions";
 import type { Invoice, InvoiceLineItem, InvoicePaymentStatus, PaymentMethod } from "@/lib/admin/types";
 import { formatCurrency, formatDate } from "@/lib/admin/format";
 import { invoiceBalanceDue, invoiceSubtotal } from "@/lib/admin/invoice-totals";
@@ -17,28 +20,32 @@ export function InvoiceBuilder({
   initialInvoice,
   clientName,
   mode,
+  dataMode,
 }: {
   initialInvoice: Invoice;
   clientName: string;
   mode: "existing" | "new";
+  dataMode: "supabase" | "seed";
 }) {
   const storageKey = `pbpp_invoice_draft_${initialInvoice.id}`;
   const [inv, setInv] = useState<Invoice>(initialInvoice);
   const [toast, setToast] = useState<string | null>(null);
   const [partial, setPartial] = useState(0);
+  const [isPending, startTransition] = useTransition();
+  const router = useRouter();
 
   useEffect(() => {
-    if (mode !== "existing") return;
+    if (dataMode !== "seed" || mode !== "existing") return;
     try {
       const raw = localStorage.getItem(storageKey);
       if (raw) setInv(JSON.parse(raw) as Invoice);
     } catch {
       /* ignore */
     }
-  }, [mode, storageKey]);
+  }, [mode, storageKey, dataMode]);
 
   useEffect(() => {
-    if (mode !== "existing") return;
+    if (dataMode !== "seed" || mode !== "existing") return;
     const t = setTimeout(() => {
       try {
         localStorage.setItem(storageKey, JSON.stringify(inv));
@@ -47,7 +54,7 @@ export function InvoiceBuilder({
       }
     }, 250);
     return () => clearTimeout(t);
-  }, [inv, mode, storageKey]);
+  }, [inv, mode, storageKey, dataMode]);
 
   const subtotal = useMemo(() => invoiceSubtotal(inv), [inv]);
   const balance = useMemo(() => invoiceBalanceDue(inv), [inv]);
@@ -56,6 +63,17 @@ export function InvoiceBuilder({
     setToast(msg);
     setTimeout(() => setToast(null), 2600);
   }, []);
+
+  const persistInvoice = useCallback(
+    async (next: Invoice) => {
+      if (dataMode !== "supabase") return { ok: true as const };
+      const res = await saveInvoiceAction(next);
+      if (!res.ok) return res;
+      router.refresh();
+      return { ok: true as const };
+    },
+    [dataMode, router],
+  );
 
   const addLine = () => {
     const row: InvoiceLineItem = { id: uid(), description: "Line item", quantity: 1, unitPrice: 0 };
@@ -76,15 +94,26 @@ export function InvoiceBuilder({
   const markPaid = (method: PaymentMethod) => {
     setInv((i) => {
       const sub = invoiceSubtotal(i);
-      return {
+      const next: Invoice = {
         ...i,
         paymentStatus: "Paid",
         paymentMethod: method,
         paidDate: new Date().toISOString().slice(0, 10),
         depositPaid: sub,
       };
+      if (dataMode === "supabase") {
+        startTransition(() => {
+          void (async () => {
+            const res = await persistInvoice(next);
+            if (!res.ok) pushToast(res.error);
+            else pushToast("Saved · Paid");
+          })();
+        });
+      } else {
+        pushToast("Marked paid (demo mode)");
+      }
+      return next;
     });
-    pushToast("Marked paid (demo UI)");
   };
 
   const recordPartial = () => {
@@ -93,13 +122,24 @@ export function InvoiceBuilder({
       const nextDeposit = i.depositPaid + partial;
       const next = { ...i, depositPaid: nextDeposit };
       const bal = invoiceBalanceDue(next);
-      return {
+      const next2: Invoice = {
         ...next,
         paymentStatus: (bal <= 0 ? "Paid" : "Partially Paid") as InvoicePaymentStatus,
       };
+      if (dataMode === "supabase") {
+        startTransition(() => {
+          void (async () => {
+            const res = await persistInvoice(next2);
+            if (!res.ok) pushToast(res.error);
+            else pushToast("Saved · Partial payment");
+          })();
+        });
+      } else {
+        pushToast("Recorded partial payment (demo mode)");
+      }
+      return next2;
     });
     setPartial(0);
-    pushToast("Recorded partial payment (demo UI)");
   };
 
   const shareUrl =

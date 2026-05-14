@@ -2,10 +2,11 @@ import Link from "next/link";
 import { AdminPageHeader, Card, StatusBadge } from "@/components/admin/ui";
 import { formatCurrency } from "@/lib/admin/format";
 import { quoteLineTotal } from "@/lib/admin/quote-totals";
-import { adminSeed, getClientById } from "@/lib/admin/seed";
+import { listClients, listQuotes } from "@/lib/admin/queries";
 
-export default function QuotesPage() {
-  const rows = [...adminSeed.quotes].sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+export default async function QuotesPage() {
+  const [quotes, clients] = await Promise.all([listQuotes(), listClients()]);
+  const rows = [...quotes].sort((a, b) => b.createdAt.localeCompare(a.createdAt));
 
   return (
     <div>
@@ -34,7 +35,7 @@ export default function QuotesPage() {
             </thead>
             <tbody>
               {rows.map((q) => {
-                const c = getClientById(q.clientId);
+                const c = clients.find((x) => x.id === q.clientId);
                 return (
                   <tr key={q.id} className="border-b border-navy/5 last:border-0">
                     <td className="py-3 pr-4 font-semibold text-navy">{q.quoteNumber}</td>

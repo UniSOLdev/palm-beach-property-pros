@@ -1,8 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useCallback, useEffect, useMemo, useState, useTransition } from "react";
 import type { Quote, QuoteLineItem, QuoteStatus } from "@/lib/admin/types";
+import { convertQuoteToInvoiceAction, saveQuoteAction } from "@/lib/admin/actions";
 import { DEFAULT_MOVEOUT_ADDONS, DEFAULT_MOVEOUT_LINE_ITEMS } from "@/lib/admin/constants";
 import { formatCurrency, formatDate } from "@/lib/admin/format";
 import { quoteLineTotal, quoteRemaining } from "@/lib/admin/quote-totals";
@@ -19,18 +21,22 @@ export function QuoteBuilder({
   initialQuote,
   clientName,
   mode,
+  dataMode,
 }: {
   initialQuote: Quote;
   clientName: string;
   mode: "existing" | "new";
+  dataMode: "supabase" | "seed";
 }) {
   const storageKey = `pbpp_quote_draft_${initialQuote.id}`;
 
   const [quote, setQuote] = useState<Quote>(initialQuote);
   const [toast, setToast] = useState<string | null>(null);
+  const [isPending, startTransition] = useTransition();
+  const router = useRouter();
 
   useEffect(() => {
-    if (mode !== "existing") return;
+    if (dataMode !== "seed" || mode !== "existing") return;
     try {
       const raw = localStorage.getItem(storageKey);
       if (raw) {
@@ -40,10 +46,10 @@ export function QuoteBuilder({
     } catch {
       /* ignore */
     }
-  }, [mode, storageKey]);
+  }, [mode, storageKey, dataMode]);
 
   useEffect(() => {
-    if (mode !== "existing") return;
+    if (dataMode !== "seed" || mode !== "existing") return;
     const t = setTimeout(() => {
       try {
         localStorage.setItem(storageKey, JSON.stringify(quote));
@@ -52,7 +58,7 @@ export function QuoteBuilder({
       }
     }, 250);
     return () => clearTimeout(t);
-  }, [quote, mode, storageKey]);
+  }, [quote, mode, storageKey, dataMode]);
 
   const lineTotal = useMemo(() => quoteLineTotal(quote), [quote]);
   const remaining = useMemo(() => quoteRemaining(quote), [quote]);
@@ -62,9 +68,31 @@ export function QuoteBuilder({
     setTimeout(() => setToast(null), 2600);
   }, []);
 
+  const persistQuote = useCallback(
+    async (next: Quote) => {
+      if (dataMode !== "supabase") return { ok: true as const };
+      const res = await saveQuoteAction(next);
+      if (!res.ok) return res;
+      router.refresh();
+      return { ok: true as const };
+    },
+    [dataMode, router],
+  );
+
   const updateStatus = (status: QuoteStatus) => {
-    setQuote((q) => ({ ...q, status }));
-    pushToast(`Status updated to ${status} (demo UI)`);
+    const next = { ...quote, status };
+    setQuote(next);
+    if (dataMode === "supabase") {
+      startTransition(() => {
+        void (async () => {
+          const res = await persistQuote(next);
+          if (!res.ok) pushToast(res.error);
+          else pushToast(`Saved · ${status}`);
+        })();
+      });
+      return;
+    }
+    pushToast(`Status updated to ${status} (demo mode)`);
   };
 
   const addLineItem = () => {
@@ -374,24 +402,56 @@ export function QuoteBuilder({
 
           <Card title="Workflow">
             <div className="flex flex-col gap-2 print:hidden">
-              <button type="button" className="btn-secondary" onClick={() => updateStatus("Draft")}>
+              {dataMode === "supabase" ? (
+                <button
+                  type="button"
+                  className="btn-secondary"
+                  disabled={isPending}
+                  onClick={() => {
+                    startTransition(() => {
+                      void (async () => {
+                        const res = await persistQuote(quote);
+                        if (!res.ok) pushToast(res.error);
+                        else pushToast("Saved");
+                      })();
+                    });
+                  }}
+                >
+                  {isPending ? "Saving…" : "Save all fields"}
+                </button>
+              ) : null}
+              <button type="button" className="btn-secondary" disabled={isPending} onClick={() => updateStatus("Draft")}>
                 Save draft
               </button>
-              <button type="button" className="btn-secondary" onClick={() => updateStatus("Sent")}>
+              <button type="button" className="btn-secondary" disabled={isPending} onClick={() => updateStatus("Sent")}>
                 Mark sent
               </button>
-              <button type="button" className="btn-secondary" onClick={() => updateStatus("Approved")}>
+              <button type="button" className="btn-secondary" disabled={isPending} onClick={() => updateStatus("Approved")}>
                 Mark approved
               </button>
-              <Link
-                className="btn-primary text-center no-underline"
-                href={`/admin/invoices/new?fromQuote=${encodeURIComponent(quote.id)}`}
-              >
-                Convert to invoice
-              </Link>
+              <button type="button" className="btn-secondary" disabled={isPending} onClick={() => updateStatus("Declined")}>
+                Mark declined
+              </button>
+              {dataMode === "supabase" ? (
+                <form action={convertQuoteToInvoiceAction} className="flex flex-col gap-2">
+                  <input type="hidden" name="quote_id" value={quote.id} />
+                  <button type="submit" className="btn-primary" disabled={isPending}>
+                    Convert to invoice (server)
+                  </button>
+                </form>
+              ) : (
+                <Link
+                  className="btn-primary text-center no-underline"
+                  href={`/admin/invoices/new?fromQuote=${encodeURIComponent(quote.id)}`}
+                >
+                  Convert to invoice
+                </Link>
+              )}
             </div>
             <p className="mt-3 text-xs text-charcoal/55 print:hidden">
-              Drafts auto-save in this browser for existing quotes (localStorage). Wire Supabase to sync across devices.
+              {dataMode === "supabase"
+                ? "Changes save to Supabase. Convert copies all quote line items into a new invoice."
+                : "Demo mode: drafts auto-save in this browser (localStorage)."}
             </p>
           </Card>
         </div>

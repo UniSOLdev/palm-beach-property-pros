@@ -2,10 +2,11 @@ import Link from "next/link";
 import { AdminPageHeader, Card, StatusBadge } from "@/components/admin/ui";
 import { formatCurrency } from "@/lib/admin/format";
 import { invoiceBalanceDue, invoiceSubtotal } from "@/lib/admin/invoice-totals";
-import { adminSeed, getClientById } from "@/lib/admin/seed";
+import { listClients, listInvoices } from "@/lib/admin/queries";
 
-export default function InvoicesPage() {
-  const rows = [...adminSeed.invoices].sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+export default async function InvoicesPage() {
+  const [invoices, clients] = await Promise.all([listInvoices(), listClients()]);
+  const rows = [...invoices].sort((a, b) => b.createdAt.localeCompare(a.createdAt));
 
   return (
     <div>
@@ -34,7 +35,7 @@ export default function InvoicesPage() {
             </thead>
             <tbody>
               {rows.map((inv) => {
-                const c = getClientById(inv.clientId);
+                const c = clients.find((x) => x.id === inv.clientId);
                 return (
                   <tr key={inv.id} className="border-b border-navy/5 last:border-0">
                     <td className="py-3 pr-4 font-semibold text-navy">{inv.invoiceNumber}</td>

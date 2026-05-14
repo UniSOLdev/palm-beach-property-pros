@@ -1,8 +1,10 @@
 import Link from "next/link";
-import { AdminPageHeader } from "@/components/admin/ui";
 import { InvoiceBuilder } from "@/components/admin/invoice-builder";
+import { AdminPageHeader } from "@/components/admin/ui";
 import { invoiceFromQuote, makeBlankInvoice } from "@/lib/admin/invoice-factory";
-import { adminSeed, getQuoteById } from "@/lib/admin/seed";
+import { getClientById, getQuoteById, listClients } from "@/lib/admin/queries";
+import { adminSeed } from "@/lib/admin/seed";
+import { isSupabaseServerConfigured } from "@/lib/supabase/env";
 
 export default async function NewInvoicePage({
   searchParams,
@@ -11,9 +13,12 @@ export default async function NewInvoicePage({
 }) {
   const sp = await searchParams;
   const fromQuoteId = sp.fromQuote ? decodeURIComponent(sp.fromQuote) : undefined;
-  const quote = fromQuoteId ? getQuoteById(fromQuoteId) : undefined;
-  const initial = quote ? invoiceFromQuote(quote, null) : makeBlankInvoice(adminSeed.clients[0].id);
-  const client = adminSeed.clients.find((c) => c.id === initial.clientId);
+  const quote = fromQuoteId ? await getQuoteById(fromQuoteId) : undefined;
+  const clients = await listClients();
+  const fallbackClientId = clients[0]?.id ?? adminSeed.clients[0].id;
+  const initial = quote ? invoiceFromQuote(quote, null) : makeBlankInvoice(fallbackClientId);
+  const client = (await getClientById(initial.clientId)) ?? clients.find((c) => c.id === initial.clientId);
+  const dataMode = isSupabaseServerConfigured() ? "supabase" : "seed";
 
   return (
     <div>
@@ -26,7 +31,7 @@ export default async function NewInvoicePage({
           </Link>
         }
       />
-      <InvoiceBuilder initialInvoice={initial} clientName={client?.name ?? "Client"} mode="new" />
+      <InvoiceBuilder initialInvoice={initial} clientName={client?.name ?? "Client"} mode="new" dataMode={dataMode} />
     </div>
   );
 }

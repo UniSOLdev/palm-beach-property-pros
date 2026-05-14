@@ -1,13 +1,20 @@
 import Link from "next/link";
 import { AdminPageHeader, Card, StatCard } from "@/components/admin/ui";
 import { formatCurrency, formatDate } from "@/lib/admin/format";
-import { computeDashboardMetrics } from "@/lib/admin/metrics";
-import { adminSeed, getClientById } from "@/lib/admin/seed";
 import { invoiceBalanceDue } from "@/lib/admin/invoice-totals";
+import { computeDashboardMetricsFrom } from "@/lib/admin/metrics";
+import { listClients, listExpenses, listInvoices, listJobs, listQuotes } from "@/lib/admin/queries";
 
-export default function AdminDashboardPage() {
-  const metrics = computeDashboardMetrics();
-  const { jobs, quotes, invoices, expenses } = adminSeed;
+export default async function AdminDashboardPage() {
+  const [clients, jobs, quotes, invoices, expenses] = await Promise.all([
+    listClients(),
+    listJobs(),
+    listQuotes(),
+    listInvoices(),
+    listExpenses(),
+  ]);
+
+  const metrics = computeDashboardMetricsFrom({ jobs, invoices, expenses, quotes });
 
   const upcomingJobs = [...jobs]
     .filter((j) => ["Scheduled", "Approved", "In Progress"].includes(j.status))
@@ -15,9 +22,7 @@ export default function AdminDashboardPage() {
     .slice(0, 5);
 
   const recentQuotes = [...quotes].sort((a, b) => b.createdAt.localeCompare(a.createdAt)).slice(0, 4);
-  const recentInvoices = [...invoices]
-    .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
-    .slice(0, 4);
+  const recentInvoices = [...invoices].sort((a, b) => b.createdAt.localeCompare(a.createdAt)).slice(0, 4);
   const recentExpenses = [...expenses].sort((a, b) => b.date.localeCompare(a.date)).slice(0, 4);
 
   return (
@@ -48,7 +53,7 @@ export default function AdminDashboardPage() {
         <Card title="Upcoming jobs">
           <ul className="divide-y divide-navy/10">
             {upcomingJobs.map((j) => {
-              const client = getClientById(j.clientId);
+              const client = clients.find((c) => c.id === j.clientId);
               return (
                 <li key={j.id} className="flex flex-col gap-1 py-3 first:pt-0 last:pb-0 sm:flex-row sm:items-center sm:justify-between">
                   <div>
@@ -95,7 +100,7 @@ export default function AdminDashboardPage() {
         <Card title="Recent quotes">
           <ul className="space-y-3">
             {recentQuotes.map((q) => {
-              const c = getClientById(q.clientId);
+              const c = clients.find((x) => x.id === q.clientId);
               return (
                 <li key={q.id} className="flex items-start justify-between gap-3">
                   <div>
@@ -115,7 +120,7 @@ export default function AdminDashboardPage() {
         <Card title="Recent invoices">
           <ul className="space-y-3">
             {recentInvoices.map((inv) => {
-              const c = getClientById(inv.clientId);
+              const c = clients.find((x) => x.id === inv.clientId);
               return (
                 <li key={inv.id} className="flex items-start justify-between gap-3">
                   <div>

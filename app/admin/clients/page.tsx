@@ -1,14 +1,13 @@
 import Link from "next/link";
 import { AdminPageHeader, Card, StatusBadge } from "@/components/admin/ui";
 import { formatCurrency } from "@/lib/admin/format";
-import { adminSeed } from "@/lib/admin/seed";
+import { listClients, listJobs } from "@/lib/admin/queries";
 
-export default function ClientsPage() {
-  const rows = adminSeed.clients.map((c) => {
-    const revenue = adminSeed.jobs.filter((j) => j.clientId === c.id).reduce((acc, j) => acc + j.revenue, 0);
-    const jobsDone = adminSeed.jobs.filter(
-      (j) => j.clientId === c.id && ["Completed", "Paid"].includes(j.status),
-    ).length;
+export default async function ClientsPage() {
+  const [clients, jobs] = await Promise.all([listClients(), listJobs()]);
+  const rows = clients.map((c) => {
+    const revenue = jobs.filter((j) => j.clientId === c.id).reduce((acc, j) => acc + j.revenue, 0);
+    const jobsDone = jobs.filter((j) => j.clientId === c.id && ["Completed", "Paid"].includes(j.status)).length;
     return { c, revenue, jobsDone };
   });
 

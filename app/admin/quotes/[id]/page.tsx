@@ -1,14 +1,16 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { AdminPageHeader } from "@/components/admin/ui";
 import { QuoteBuilder } from "@/components/admin/quote-builder";
-import { getClientById, getQuoteById } from "@/lib/admin/seed";
+import { AdminPageHeader } from "@/components/admin/ui";
+import { getClientById, getQuoteById } from "@/lib/admin/queries";
+import { isSupabaseServerConfigured } from "@/lib/supabase/env";
 
 export default async function QuoteDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const quote = getQuoteById(id);
+  const quote = await getQuoteById(id);
   if (!quote) notFound();
-  const client = getClientById(quote.clientId);
+  const client = await getClientById(quote.clientId);
+  const dataMode = isSupabaseServerConfigured() ? "supabase" : "seed";
 
   return (
     <div>
@@ -21,7 +23,7 @@ export default async function QuoteDetailPage({ params }: { params: Promise<{ id
           </Link>
         }
       />
-      <QuoteBuilder initialQuote={quote} clientName={client?.name ?? "Client"} mode="existing" />
+      <QuoteBuilder initialQuote={quote} clientName={client?.name ?? "Client"} mode="existing" dataMode={dataMode} />
     </div>
   );
 }

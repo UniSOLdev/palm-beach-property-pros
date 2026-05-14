@@ -3,17 +3,20 @@ import { notFound } from "next/navigation";
 import { AdminPageHeader, Card, StatusBadge } from "@/components/admin/ui";
 import { formatCurrency, formatDate } from "@/lib/admin/format";
 import { invoiceBalanceDue } from "@/lib/admin/invoice-totals";
-import { adminSeed, getClientById, getInvoiceById, getJobById, getQuoteById } from "@/lib/admin/seed";
+import { getClientById, getInvoiceById, getJobById, getQuoteById, listCrewMembers } from "@/lib/admin/queries";
 
 export default async function JobDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const job = getJobById(id);
+  const job = await getJobById(id);
   if (!job) notFound();
-  const client = getClientById(job.clientId);
-  const quote = job.quoteId ? getQuoteById(job.quoteId) : null;
-  const invoice = job.invoiceId ? getInvoiceById(job.invoiceId) : null;
+  const [client, quote, invoice, crewMembers] = await Promise.all([
+    getClientById(job.clientId),
+    job.quoteId ? getQuoteById(job.quoteId) : Promise.resolve(null),
+    job.invoiceId ? getInvoiceById(job.invoiceId) : Promise.resolve(null),
+    listCrewMembers(),
+  ]);
   const crew = job.assignedCrewIds
-    .map((cid) => adminSeed.crewMembers.find((m) => m.id === cid)?.name)
+    .map((cid) => crewMembers.find((m) => m.id === cid)?.name)
     .filter(Boolean)
     .join(", ");
 

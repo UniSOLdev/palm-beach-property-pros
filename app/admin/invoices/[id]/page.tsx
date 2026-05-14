@@ -1,14 +1,16 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { AdminPageHeader } from "@/components/admin/ui";
 import { InvoiceBuilder } from "@/components/admin/invoice-builder";
-import { getClientById, getInvoiceById } from "@/lib/admin/seed";
+import { AdminPageHeader } from "@/components/admin/ui";
+import { getClientById, getInvoiceById } from "@/lib/admin/queries";
+import { isSupabaseServerConfigured } from "@/lib/supabase/env";
 
 export default async function InvoiceDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const invoice = getInvoiceById(id);
+  const invoice = await getInvoiceById(id);
   if (!invoice) notFound();
-  const client = getClientById(invoice.clientId);
+  const client = await getClientById(invoice.clientId);
+  const dataMode = isSupabaseServerConfigured() ? "supabase" : "seed";
 
   return (
     <div>
@@ -21,7 +23,7 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
           </Link>
         }
       />
-      <InvoiceBuilder initialInvoice={invoice} clientName={client?.name ?? "Client"} mode="existing" />
+      <InvoiceBuilder initialInvoice={invoice} clientName={client?.name ?? "Client"} mode="existing" dataMode={dataMode} />
     </div>
   );
 }

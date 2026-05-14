@@ -1,31 +1,37 @@
 import { AdminPageHeader, Card } from "@/components/admin/ui";
 import { formatCurrency } from "@/lib/admin/format";
-import { bestClients, computeDashboardMetrics, revenueByServiceType } from "@/lib/admin/metrics";
 import { invoiceBalanceDue } from "@/lib/admin/invoice-totals";
+import { bestClientsFrom, computeDashboardMetricsFrom, revenueByServiceType } from "@/lib/admin/metrics";
 import { quoteLineTotal } from "@/lib/admin/quote-totals";
-import { adminSeed } from "@/lib/admin/seed";
+import { listClients, listCrewPayouts, listExpenses, listInvoices, listJobs, listQuotes } from "@/lib/admin/queries";
 
-export default function ReportsPage() {
-  const m = computeDashboardMetrics();
-  const byService = revenueByServiceType(adminSeed.jobs);
-  const clients = bestClients();
-  const outstanding = adminSeed.invoices.filter((i) => ["Unpaid", "Partially Paid", "Overdue"].includes(i.paymentStatus));
-  const openQuotes = adminSeed.quotes.filter((q) => ["Draft", "Sent"].includes(q.status));
-  const sources = adminSeed.jobs.reduce<Record<string, number>>((acc, j) => {
+export default async function ReportsPage() {
+  const [clients, jobs, quotes, invoices, expenses, payouts] = await Promise.all([
+    listClients(),
+    listJobs(),
+    listQuotes(),
+    listInvoices(),
+    listExpenses(),
+    listCrewPayouts(),
+  ]);
+
+  const m = computeDashboardMetricsFrom({ jobs, invoices, expenses, quotes });
+  const byService = revenueByServiceType(jobs);
+  const best = bestClientsFrom(clients, jobs);
+  const outstanding = invoices.filter((i) => ["Unpaid", "Partially Paid", "Overdue"].includes(i.paymentStatus));
+  const openQuotes = quotes.filter((q) => ["Draft", "Sent"].includes(q.status));
+  const sources = jobs.reduce<Record<string, number>>((acc, j) => {
     acc[j.referralSource] = (acc[j.referralSource] ?? 0) + 1;
     return acc;
   }, {});
   const sourceRows = Object.entries(sources).sort((a, b) => b[1] - a[1]);
-  const supplySpend = adminSeed.expenses
+  const supplySpend = expenses
     .filter((e) => e.category === "Supplies" || e.category === "Chemicals")
     .reduce((acc, e) => acc + e.amount, 0);
 
   return (
     <div>
-      <AdminPageHeader
-        title="Reports"
-        subtitle="Executive snapshots without the bloat — tuned for owner-operators."
-      />
+      <AdminPageHeader title="Reports" subtitle="Executive snapshots without the bloat — tuned for owner-operators." />
 
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <Card title="Revenue (MTD)">
@@ -68,7 +74,7 @@ export default function ReportsPage() {
 
         <Card title="Best clients (job revenue)">
           <ol className="space-y-3">
-            {clients.slice(0, 5).map((row, idx) => (
+            {best.slice(0, 5).map((row, idx) => (
               <li key={row.client.id} className="flex items-center justify-between gap-3">
                 <div className="flex items-center gap-3">
                   <div className="flex h-8 w-8 items-center justify-center rounded-full bg-navy text-xs font-bold text-white">
@@ -120,7 +126,7 @@ export default function ReportsPage() {
 
         <Card title="Crew payouts (logged)">
           <ul className="space-y-2 text-sm">
-            {adminSeed.crewPayouts.map((p) => (
+            {payouts.map((p) => (
               <li key={p.id} className="flex justify-between gap-3">
                 <span className="text-charcoal">{p.jobId}</span>
                 <span className="font-semibold text-navy">{formatCurrency(p.calculatedTotal)}</span>
@@ -131,7 +137,7 @@ export default function ReportsPage() {
 
         <Card title="Supplies spending (chemicals + supplies)">
           <div className="text-3xl font-bold text-navy">{formatCurrency(supplySpend)}</div>
-          <p className="mt-2 text-sm text-charcoal/60">Roll-up of mock expenses tagged to supply-heavy categories.</p>
+          <p className="mt-2 text-sm text-charcoal/60">Roll-up of expenses tagged to supply-heavy categories.</p>
         </Card>
       </div>
     </div>

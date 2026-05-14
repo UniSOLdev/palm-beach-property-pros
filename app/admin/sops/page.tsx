@@ -1,8 +1,10 @@
 import Link from "next/link";
 import { AdminPageHeader } from "@/components/admin/ui";
-import { adminSeed } from "@/lib/admin/seed";
+import { listSopTemplates } from "@/lib/admin/queries";
 
-export default function SopsPage() {
+export default async function SopsPage() {
+  const templates = await listSopTemplates();
+
   return (
     <div>
       <AdminPageHeader
@@ -11,7 +13,7 @@ export default function SopsPage() {
       />
 
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-        {adminSeed.sopTemplates.map((s) => (
+        {templates.map((s) => (
           <Link
             key={s.id}
             href={`/admin/sops/${s.slug}`}

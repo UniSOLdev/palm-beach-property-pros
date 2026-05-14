@@ -228,6 +228,7 @@ export interface CrewPayout {
 }
 
 export interface BusinessSettings {
+  id?: string;
   businessName: string;
   phone: string;
   email: string;

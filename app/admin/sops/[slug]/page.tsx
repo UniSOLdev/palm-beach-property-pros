@@ -2,11 +2,11 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { AdminPageHeader, Card } from "@/components/admin/ui";
 import { SopDetail } from "@/components/admin/sop-detail";
-import { getSopBySlug } from "@/lib/admin/seed";
+import { getSopBySlug } from "@/lib/admin/queries";
 
 export default async function SopDetailPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const sop = getSopBySlug(slug);
+  const sop = await getSopBySlug(slug);
   if (!sop) notFound();
 
   return (

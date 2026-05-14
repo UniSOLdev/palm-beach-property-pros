@@ -497,8 +497,8 @@ export const businessSettings: BusinessSettings = {
   defaultQuoteTerms:
     "Estimates are valid for 14 days. Scope changes may adjust pricing. Deposits secure scheduling.",
   paymentMethodsAccepted: ["Cash", "Zelle", "Card", "Check"] as PaymentMethod[],
-  brandPrimary: "#0C2340",
-  brandAccent: "#6A8F6B",
+  brandPrimary: "#082A4D",
+  brandAccent: "#2E8B57",
   squareBookingUrl: null,
   squareInvoiceUrl: null,
   zelleDisplayName: null,

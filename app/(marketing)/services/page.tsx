@@ -3,13 +3,27 @@ import Link from "next/link";
 import { LINKR_URL, linkrRel } from "@/lib/linkr";
 import { SERVICES } from "@/lib/services";
 import { SITE_NAME } from "@/lib/site";
+import { getBusinessSettings } from "@/lib/admin/queries";
+import {
+  buildInvoicePaymentInstructionText,
+  resolveBookingHref,
+  resolveBookingLabel,
+  resolvePaymentCtaLabel,
+} from "@/lib/booking-settings";
 
 export const metadata: Metadata = {
   title: "Cleaning & Property Services",
   description: `${SITE_NAME} — window cleaning, pressure washing, residential and commercial cleaning, detailing, carpet care, and maintenance in Palm Beach County. Licensed & insured.`,
 };
 
-export default function ServicesPage() {
+export default async function ServicesPage() {
+  const settings = await getBusinessSettings();
+  const bookingHref = resolveBookingHref(settings);
+  const bookingLabel = resolveBookingLabel(settings);
+  const bookingExternal = bookingHref.startsWith("http");
+  const payUrl = settings.squareInvoiceUrl?.trim();
+  const payText = buildInvoicePaymentInstructionText(settings);
+
   return (
     <div className="bg-cream">
       <section className="w-full py-14">
@@ -22,13 +36,29 @@ export default function ServicesPage() {
           book work, pay invoices, or leave a review.
         </p>
         <div className="mt-8 flex flex-wrap gap-3">
-          <a href={LINKR_URL} target="_blank" rel={linkrRel} className="btn-primary">
-            Get a free quote
-          </a>
+          {bookingExternal ? (
+            <a href={bookingHref} target="_blank" rel="noopener noreferrer" className="btn-primary">
+              {bookingLabel}
+            </a>
+          ) : (
+            <Link href={bookingHref} className="btn-primary no-underline">
+              {bookingLabel}
+            </Link>
+          )}
+          {payUrl ? (
+            <a href={payUrl} target="_blank" rel="noopener noreferrer" className="btn-secondary border-ocean/40">
+              {resolvePaymentCtaLabel(settings)}
+            </a>
+          ) : null}
           <a href={LINKR_URL} target="_blank" rel={linkrRel} className="btn-secondary border-ocean/40">
-            Book service
+            Quick access
           </a>
         </div>
+        {!payUrl && payText ? (
+          <p className="mt-4 max-w-2xl whitespace-pre-line rounded-2xl border border-navy/10 bg-white/80 p-4 text-sm text-charcoal/80">
+            {payText}
+          </p>
+        ) : null}
 
         <div className="mt-14 grid gap-6 sm:grid-cols-2">
           {SERVICES.map((s) => (
@@ -42,12 +72,23 @@ export default function ServicesPage() {
               <p className="mt-3 text-sm font-medium text-ocean">Best for</p>
               <p className="text-sm text-charcoal/85">{s.bestFor}</p>
               <div className="mt-6 flex flex-wrap gap-3">
-                <Link
-                  href={`/services/${s.slug}`}
-                  className="btn-primary px-4 py-2 text-xs sm:text-sm"
-                >
+                <Link href={`/services/${s.slug}`} className="btn-primary px-4 py-2 text-xs sm:text-sm">
                   Learn more
                 </Link>
+                {bookingExternal ? (
+                  <a
+                    href={bookingHref}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="btn-secondary px-4 py-2 text-xs sm:text-sm"
+                  >
+                    {bookingLabel}
+                  </a>
+                ) : (
+                  <Link href={bookingHref} className="btn-secondary px-4 py-2 text-xs sm:text-sm no-underline">
+                    {bookingLabel}
+                  </Link>
+                )}
                 <a href={LINKR_URL} target="_blank" rel={linkrRel} className="btn-secondary px-4 py-2 text-xs sm:text-sm">
                   Request pricing
                 </a>

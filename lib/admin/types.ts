@@ -19,7 +19,7 @@ export type QuoteStatus =
 
 export type InvoicePaymentStatus = "Unpaid" | "Partially Paid" | "Paid" | "Overdue";
 
-export type PaymentMethod = "Cash" | "Zelle" | "Card" | "Check" | "Other";
+export type PaymentMethod = "Cash" | "Zelle" | "Card" | "Check" | "Square Invoice" | "Other";
 
 export type ClientType =
   | "Residential"
@@ -127,6 +127,9 @@ export interface Quote {
   createdAt: string;
   /** If converted, links to invoice */
   invoiceId?: string | null;
+  /** Admin / ops: client deposit received */
+  depositReceived?: boolean;
+  depositReceivedAt?: string | null;
 }
 
 export interface InvoiceLineItem {
@@ -227,6 +230,8 @@ export interface CrewPayout {
   createdAt: string;
 }
 
+export type PreferredBookingMethod = "Square" | "Quote Form" | "Phone/Text" | "Manual";
+
 export interface BusinessSettings {
   id?: string;
   businessName: string;
@@ -241,6 +246,20 @@ export interface BusinessSettings {
   paymentMethodsAccepted: PaymentMethod[];
   brandPrimary: string;
   brandAccent: string;
+  /** Public Square Appointments (or similar) URL */
+  squareBookingUrl: string | null;
+  /** Square Online Checkout / invoices portal */
+  squareInvoiceUrl: string | null;
+  zelleDisplayName: string | null;
+  zelleEmail: string | null;
+  zellePhone: string | null;
+  depositInstructions: string | null;
+  cancellationPolicy: string | null;
+  bookingCtaText: string | null;
+  paymentCtaText: string | null;
+  preferredBookingMethod: PreferredBookingMethod;
+  /** Shown on marketing / public payment copy (can include Square Invoice) */
+  bookingPaymentMethods: string[];
 }
 
 export interface AdminDataset {

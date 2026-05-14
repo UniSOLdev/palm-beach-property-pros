@@ -1,15 +1,17 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { InvoicePaymentToolbar } from "@/components/admin/invoice-payment-toolbar";
 import { InvoiceBuilder } from "@/components/admin/invoice-builder";
 import { AdminPageHeader } from "@/components/admin/ui";
-import { getClientById, getInvoiceById } from "@/lib/admin/queries";
+import { buildInvoicePaymentInstructionText } from "@/lib/booking-settings";
+import { getBusinessSettings, getClientById, getInvoiceById } from "@/lib/admin/queries";
 import { isSupabaseServerConfigured } from "@/lib/supabase/env";
 
 export default async function InvoiceDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const invoice = await getInvoiceById(id);
   if (!invoice) notFound();
-  const client = await getClientById(invoice.clientId);
+  const [client, settings] = await Promise.all([getClientById(invoice.clientId), getBusinessSettings()]);
   const dataMode = isSupabaseServerConfigured() ? "supabase" : "seed";
 
   return (
@@ -23,6 +25,13 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
           </Link>
         }
       />
+      {dataMode === "supabase" ? (
+        <InvoicePaymentToolbar
+          invoiceId={invoice.id}
+          paymentInstructions={buildInvoicePaymentInstructionText(settings)}
+          squareInvoiceUrl={settings.squareInvoiceUrl ?? ""}
+        />
+      ) : null}
       <InvoiceBuilder initialInvoice={invoice} clientName={client?.name ?? "Client"} mode="existing" dataMode={dataMode} />
     </div>
   );

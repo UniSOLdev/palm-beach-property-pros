@@ -49,6 +49,7 @@ export async function createDraftQuoteAction(formData: FormData): Promise<void> 
     internal_notes: String(formData.get("internal_notes") ?? "").trim(),
     invoice_id: null as string | null,
     archived: false,
+    deposit_received: false,
   };
 
   if (!quoteRow.job_address) redirect(`/admin/quotes/new?err=${encodeURIComponent("Job address is required.")}`);
@@ -94,6 +95,8 @@ export async function saveQuoteAction(quote: Quote): Promise<ActionResult> {
     internal_notes: quote.internalNotes,
     invoice_id: quote.invoiceId ?? null,
     archived: false,
+    deposit_received: Boolean(quote.depositReceived),
+    deposit_received_at: quote.depositReceived ? (quote.depositReceivedAt ?? new Date().toISOString()) : null,
   };
 
   const { error } = await gate.sb.from("quotes").upsert(row, { onConflict: "id" });
@@ -218,4 +221,30 @@ export async function convertQuoteToInvoiceAction(formData: FormData): Promise<v
   revalidatePath("/admin/invoices");
   revalidatePath("/admin");
   redirect(`/admin/invoices/${invoiceId}?converted=1`);
+}
+
+export async function markQuoteDepositReceivedAction(formData: FormData): Promise<void> {
+  const gate = requireSb();
+  if (!gate.ok) redirect(`/admin/quotes?err=${encodeURIComponent(gate.error)}`);
+  const id = String(formData.get("quote_id") ?? "");
+  if (!id) redirect(`/admin/quotes?err=${encodeURIComponent("Missing quote id.")}`);
+
+  const { data: pub, error: pErr } = await gate.sb.from("quotes").select("public_id").eq("id", id).maybeSingle();
+  if (pErr) redirect(`/admin/quotes/${id}?err=${encodeURIComponent(pErr.message)}`);
+
+  const { error } = await gate.sb
+    .from("quotes")
+    .update({
+      deposit_received: true,
+      deposit_received_at: new Date().toISOString(),
+    })
+    .eq("id", id);
+  if (error) redirect(`/admin/quotes/${id}?err=${encodeURIComponent(error.message)}`);
+
+  revalidatePath("/admin/quotes");
+  revalidatePath(`/admin/quotes/${id}`);
+  revalidatePath("/admin");
+  const pid = pub && typeof (pub as { public_id?: string }).public_id === "string" ? (pub as { public_id: string }).public_id : null;
+  if (pid) revalidatePath(`/view/quote/${pid}`);
+  redirect(`/admin/quotes/${id}?deposit=1`);
 }

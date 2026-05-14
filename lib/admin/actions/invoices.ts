@@ -5,7 +5,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
 import { nextInvoiceNumber } from "@/lib/admin/numbers";
-import type { Invoice } from "@/lib/admin/types";
+import type { Invoice, PaymentMethod } from "@/lib/admin/types";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 
 import type { ActionResult } from "./clients";
@@ -136,4 +136,66 @@ export async function markInvoiceReviewSentAction(formData: FormData): Promise<A
   if (error) return { ok: false, error: error.message };
   revalidatePath(`/admin/invoices/${id}`);
   return { ok: true };
+}
+
+function subtotalFromInvoiceRows(
+  items: { quantity: number | string | null; unit_price: number | string | null }[] | null,
+  discount: number,
+) {
+  let sub = 0;
+  for (const it of items ?? []) {
+    sub += (Number(it.quantity ?? 0) || 0) * (Number(it.unit_price ?? 0) || 0);
+  }
+  return Math.max(0, sub - (Number(discount) || 0));
+}
+
+export async function quickMarkInvoicePaidAction(formData: FormData): Promise<void> {
+  const gate = requireSb();
+  if (!gate.ok) redirect(`/admin/invoices?err=${encodeURIComponent(gate.error)}`);
+  const id = String(formData.get("id") ?? "");
+  if (!id) redirect(`/admin/invoices?err=${encodeURIComponent("Missing invoice id.")}`);
+  const method = String(formData.get("payment_method") ?? "Cash").trim() as PaymentMethod;
+
+  const { data: inv, error: iErr } = await gate.sb.from("invoices").select("discount, public_id").eq("id", id).maybeSingle();
+  if (iErr || !inv) redirect(`/admin/invoices/${id}?err=${encodeURIComponent(iErr?.message ?? "Invoice not found.")}`);
+
+  const { data: items, error: liErr } = await gate.sb.from("invoice_items").select("quantity, unit_price").eq("invoice_id", id);
+  if (liErr) redirect(`/admin/invoices/${id}?err=${encodeURIComponent(liErr.message)}`);
+
+  const subtotal = subtotalFromInvoiceRows(items ?? [], Number((inv as { discount?: unknown }).discount ?? 0));
+  const paidDate = new Date().toISOString().slice(0, 10);
+
+  const { error } = await gate.sb
+    .from("invoices")
+    .update({
+      payment_status: "Paid",
+      payment_method: method,
+      deposit_paid: subtotal,
+      paid_date: paidDate,
+    })
+    .eq("id", id);
+  if (error) redirect(`/admin/invoices/${id}?err=${encodeURIComponent(error.message)}`);
+
+  revalidatePath("/admin/invoices");
+  revalidatePath(`/admin/invoices/${id}`);
+  revalidatePath("/admin");
+  const pub = (inv as { public_id?: string }).public_id;
+  if (pub) revalidatePath(`/view/invoice/${pub}`);
+  redirect(`/admin/invoices/${id}?paid=1`);
+}
+
+export async function quickSetInvoicePaymentMethodAction(formData: FormData): Promise<void> {
+  const gate = requireSb();
+  if (!gate.ok) redirect(`/admin/invoices?err=${encodeURIComponent(gate.error)}`);
+  const id = String(formData.get("id") ?? "");
+  const methodRaw = String(formData.get("payment_method") ?? "").trim();
+  if (!id) redirect(`/admin/invoices?err=${encodeURIComponent("Missing invoice id.")}`);
+  const method = methodRaw ? (methodRaw as PaymentMethod) : null;
+  const { error } = await gate.sb.from("invoices").update({ payment_method: method }).eq("id", id);
+  if (error) redirect(`/admin/invoices/${id}?err=${encodeURIComponent(error.message)}`);
+  revalidatePath(`/admin/invoices/${id}`);
+  const { data: pubRow } = await gate.sb.from("invoices").select("public_id").eq("id", id).maybeSingle();
+  const pub = pubRow && typeof (pubRow as { public_id?: string }).public_id === "string" ? (pubRow as { public_id: string }).public_id : null;
+  if (pub) revalidatePath(`/view/invoice/${pub}`);
+  redirect(`/admin/invoices/${id}?method=1`);
 }

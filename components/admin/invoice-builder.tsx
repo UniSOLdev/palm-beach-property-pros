@@ -322,7 +322,7 @@ export function InvoiceBuilder({
             <div className="flex flex-col gap-2 print:hidden">
               <div className="text-xs font-semibold uppercase tracking-wide text-charcoal/55">Mark paid</div>
               <div className="flex flex-wrap gap-2">
-                {(["Cash", "Zelle", "Card", "Check", "Other"] as const).map((m) => (
+                {(["Cash", "Zelle", "Card", "Check", "Square Invoice", "Other"] as const).map((m) => (
                   <button key={m} type="button" className="btn-secondary" onClick={() => markPaid(m)}>
                     {m}
                   </button>

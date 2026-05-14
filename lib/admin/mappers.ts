@@ -22,6 +22,7 @@ import type {
   Supply,
   SupplyCategory,
 } from "./types";
+import { normalizePreferredBookingMethod } from "@/lib/booking-settings";
 
 function num(v: unknown, fallback = 0): number {
   if (typeof v === "number" && Number.isFinite(v)) return v;
@@ -127,6 +128,8 @@ export function mapQuoteRow(
     internalNotes: str(row.internal_notes),
     createdAt: isoDateTime(row.created_at),
     invoiceId: row.invoice_id ? str(row.invoice_id) : null,
+    depositReceived: Boolean(row.deposit_received),
+    depositReceivedAt: row.deposit_received_at ? isoDateTime(row.deposit_received_at) : null,
   };
 }
 
@@ -234,6 +237,9 @@ export function mapBusinessSettingsRow(row: Record<string, unknown>): BusinessSe
   const methods = Array.isArray(row.payment_methods_accepted)
     ? (row.payment_methods_accepted as unknown[]).map((m) => str(m) as PaymentMethod)
     : (["Cash", "Zelle", "Card", "Check"] as PaymentMethod[]);
+  const bookingMethods = Array.isArray(row.booking_payment_methods)
+    ? (row.booking_payment_methods as unknown[]).map((m) => str(m)).filter(Boolean)
+    : ["Cash", "Zelle", "Card", "Check", "Square Invoice"];
   return {
     id: row.id ? str(row.id) : undefined,
     businessName: str(row.business_name, "Palm Beach Property Pros"),
@@ -248,6 +254,17 @@ export function mapBusinessSettingsRow(row: Record<string, unknown>): BusinessSe
     paymentMethodsAccepted: methods.length ? methods : (["Cash", "Zelle", "Card", "Check"] as PaymentMethod[]),
     brandPrimary: str(row.brand_primary, "#0C2340"),
     brandAccent: str(row.brand_accent, "#6A8F6B"),
+    squareBookingUrl: row.square_booking_url ? str(row.square_booking_url) : null,
+    squareInvoiceUrl: row.square_invoice_url ? str(row.square_invoice_url) : null,
+    zelleDisplayName: row.zelle_display_name ? str(row.zelle_display_name) : null,
+    zelleEmail: row.zelle_email ? str(row.zelle_email) : null,
+    zellePhone: row.zelle_phone ? str(row.zelle_phone) : null,
+    depositInstructions: row.deposit_instructions ? str(row.deposit_instructions) : null,
+    cancellationPolicy: row.cancellation_policy ? str(row.cancellation_policy) : null,
+    bookingCtaText: row.booking_cta_text ? str(row.booking_cta_text) : null,
+    paymentCtaText: row.payment_cta_text ? str(row.payment_cta_text) : null,
+    preferredBookingMethod: normalizePreferredBookingMethod(row.preferred_booking_method ? str(row.preferred_booking_method) : undefined),
+    bookingPaymentMethods: bookingMethods.length ? bookingMethods : ["Cash", "Zelle", "Card", "Check", "Square Invoice"],
   };
 }
 

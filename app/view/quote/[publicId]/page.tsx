@@ -3,6 +3,7 @@ import { PrintButton } from "@/components/view/print-button";
 import { formatCurrency, formatDate } from "@/lib/admin/format";
 import { quoteLineTotal, quoteRemaining } from "@/lib/admin/quote-totals";
 import { getBusinessSettings, getClientById, getQuoteByPublicId } from "@/lib/admin/queries";
+import { buildDepositInstructionText, resolvePaymentCtaLabel } from "@/lib/booking-settings";
 
 export default async function PublicQuotePage({ params }: { params: Promise<{ publicId: string }> }) {
   const { publicId } = await params;
@@ -101,6 +102,39 @@ export default async function PublicQuotePage({ params }: { params: Promise<{ pu
         <h3 className="mt-6 text-sm font-bold uppercase tracking-wide text-navy/70">Terms</h3>
         <p className="mt-2 whitespace-pre-line">{quote.terms}</p>
       </section>
+
+      {quote.depositRequired && quote.depositAmount > 0 ? (
+        <section className="mt-8 rounded-2xl border border-leaf/30 bg-sky/30 p-5 print:border-navy/15">
+          <h2 className="text-sm font-bold uppercase tracking-wide text-navy/70">Deposit &amp; booking</h2>
+          <p className="mt-2 text-sm text-charcoal/80">
+            Deposit due: <span className="font-semibold text-navy">{formatCurrency(quote.depositAmount)}</span>
+            {quote.depositReceived ? (
+              <span className="ml-2 rounded-full bg-leaf/30 px-2 py-0.5 text-xs font-semibold text-navy">Received — thank you</span>
+            ) : null}
+          </p>
+          <div className="mt-4 flex flex-wrap gap-2 print:hidden">
+            {brand.squareInvoiceUrl?.trim() ? (
+              <a
+                href={brand.squareInvoiceUrl.trim()}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="btn-primary text-sm no-underline"
+              >
+                {resolvePaymentCtaLabel(brand)}
+              </a>
+            ) : null}
+          </div>
+          {buildDepositInstructionText(brand) ? (
+            <pre className="mt-4 whitespace-pre-wrap rounded-xl border border-navy/10 bg-white/90 p-4 text-xs leading-relaxed text-charcoal/90 print:text-[11px]">
+              {buildDepositInstructionText(brand)}
+            </pre>
+          ) : !brand.squareInvoiceUrl?.trim() ? (
+            <p className="mt-3 text-sm text-charcoal/70">
+              Contact {brand.businessName} at {brand.phone} to arrange deposit payment.
+            </p>
+          ) : null}
+        </section>
+      ) : null}
 
       <footer className="mt-10 border-t border-navy/10 pt-6 text-center text-xs text-charcoal/55 print:hidden">
         <PrintButton />

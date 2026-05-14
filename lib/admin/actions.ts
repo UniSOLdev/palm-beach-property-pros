@@ -13,6 +13,7 @@ export {
   archiveQuoteAction,
   convertQuoteToInvoiceAction,
   createDraftQuoteAction,
+  markQuoteDepositReceivedAction,
   saveQuoteAction,
   updateQuoteStatusAction,
 } from "./actions/quotes";
@@ -21,6 +22,8 @@ export {
   archiveInvoiceAction,
   createDraftInvoiceAction,
   markInvoiceReviewSentAction,
+  quickMarkInvoicePaidAction,
+  quickSetInvoicePaymentMethodAction,
   saveInvoiceAction,
 } from "./actions/invoices";
 

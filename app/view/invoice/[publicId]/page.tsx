@@ -3,6 +3,7 @@ import { PrintButton } from "@/components/view/print-button";
 import { formatCurrency, formatDate } from "@/lib/admin/format";
 import { invoiceBalanceDue, invoiceSubtotal } from "@/lib/admin/invoice-totals";
 import { getBusinessSettings, getClientById, getInvoiceByPublicId } from "@/lib/admin/queries";
+import { buildInvoicePaymentInstructionText, resolvePaymentCtaLabel } from "@/lib/booking-settings";
 
 export default async function PublicInvoicePage({ params }: { params: Promise<{ publicId: string }> }) {
   const { publicId } = await params;
@@ -80,6 +81,27 @@ export default async function PublicInvoicePage({ params }: { params: Promise<{ 
           <span className="text-2xl font-bold text-leaf">{formatCurrency(balance)}</span>
         </div>
       </section>
+
+      {balance > 0 ? (
+        <section className="mt-8 rounded-2xl border border-ocean/25 bg-sky/30 p-5 print:border-navy/15">
+          <h2 className="text-sm font-bold uppercase tracking-wide text-navy/70">Pay this invoice</h2>
+          <div className="mt-3 flex flex-wrap gap-2 print:hidden">
+            {brand.squareInvoiceUrl?.trim() ? (
+              <a
+                href={brand.squareInvoiceUrl.trim()}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="btn-primary text-sm no-underline"
+              >
+                {resolvePaymentCtaLabel(brand)}
+              </a>
+            ) : null}
+          </div>
+          <pre className="mt-4 whitespace-pre-wrap rounded-xl border border-navy/10 bg-white/90 p-4 text-xs leading-relaxed text-charcoal/90 print:text-[11px]">
+            {buildInvoicePaymentInstructionText(brand) || `Contact ${brand.businessName} at ${brand.phone} for payment options.`}
+          </pre>
+        </section>
+      ) : null}
 
       <section className="mt-8 text-sm leading-relaxed text-charcoal/80">
         <h2 className="text-sm font-bold uppercase tracking-wide text-navy/70">Notes</h2>

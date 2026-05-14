@@ -6,6 +6,7 @@ import { redirect } from "next/navigation";
 
 import type { BusinessSettings } from "@/lib/admin/types";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
+import { normalizePreferredBookingMethod } from "@/lib/booking-settings";
 
 import type { ActionResult } from "./clients";
 
@@ -25,6 +26,8 @@ export async function saveBusinessSettingsAction(formData: FormData): Promise<vo
     .map((s) => s.trim())
     .filter(Boolean);
 
+  const bookingPayRaw = formData.getAll("booking_payment_method").map((v) => String(v).trim()).filter(Boolean);
+
   const row = {
     id: id || randomUUID(),
     business_name: String(formData.get("business_name") ?? "").trim(),
@@ -39,12 +42,23 @@ export async function saveBusinessSettingsAction(formData: FormData): Promise<vo
     payment_methods_accepted: methodsRaw.length ? methodsRaw : ["Cash", "Zelle", "Card", "Check"],
     brand_primary: String(formData.get("brand_primary") ?? "#0C2340").trim(),
     brand_accent: String(formData.get("brand_accent") ?? "#6A8F6B").trim(),
+    square_booking_url: String(formData.get("square_booking_url") ?? "").trim() || null,
+    square_invoice_url: String(formData.get("square_invoice_url") ?? "").trim() || null,
+    zelle_display_name: String(formData.get("zelle_display_name") ?? "").trim() || null,
+    zelle_email: String(formData.get("zelle_email") ?? "").trim() || null,
+    zelle_phone: String(formData.get("zelle_phone") ?? "").trim() || null,
+    deposit_instructions: String(formData.get("deposit_instructions") ?? "").trim() || null,
+    cancellation_policy: String(formData.get("cancellation_policy") ?? "").trim() || null,
+    booking_cta_text: String(formData.get("booking_cta_text") ?? "").trim() || null,
+    payment_cta_text: String(formData.get("payment_cta_text") ?? "").trim() || null,
+    preferred_booking_method: normalizePreferredBookingMethod(String(formData.get("preferred_booking_method") ?? "")),
+    booking_payment_methods: bookingPayRaw.length ? bookingPayRaw : ["Cash", "Zelle", "Card", "Check", "Square Invoice"],
     updated_at: new Date().toISOString(),
   };
 
   if (!row.business_name) redirect(`/admin/settings?err=${encodeURIComponent("Business name is required.")}`);
 
-  const { id: _generatedId, ...rest } = row;
+  const { id: _rowId, ...rest } = row;
 
   if (id) {
     const { error } = await gate.sb.from("business_settings").update(rest).eq("id", id);
@@ -62,6 +76,10 @@ export async function saveBusinessSettingsAction(formData: FormData): Promise<vo
   }
 
   revalidatePath("/admin/settings");
+  revalidatePath("/", "layout");
+  revalidatePath("/services");
+  revalidatePath("/quote");
+  revalidatePath("/service-area");
   redirect("/admin/settings?saved=1");
 }
 
@@ -83,6 +101,17 @@ export async function saveBusinessSettingsFromModel(settings: BusinessSettings &
     payment_methods_accepted: settings.paymentMethodsAccepted,
     brand_primary: settings.brandPrimary,
     brand_accent: settings.brandAccent,
+    square_booking_url: settings.squareBookingUrl,
+    square_invoice_url: settings.squareInvoiceUrl,
+    zelle_display_name: settings.zelleDisplayName,
+    zelle_email: settings.zelleEmail,
+    zelle_phone: settings.zellePhone,
+    deposit_instructions: settings.depositInstructions,
+    cancellation_policy: settings.cancellationPolicy,
+    booking_cta_text: settings.bookingCtaText,
+    payment_cta_text: settings.paymentCtaText,
+    preferred_booking_method: settings.preferredBookingMethod,
+    booking_payment_methods: settings.bookingPaymentMethods,
     updated_at: new Date().toISOString(),
   };
 

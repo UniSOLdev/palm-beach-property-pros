@@ -184,6 +184,8 @@ export const quoteNeilMoveout: Quote = {
   depositAmount: 250,
   internalNotes: "Confirm rug sizes on site. Patio is partial sun — algae light.",
   createdAt: new Date(today.getFullYear(), today.getMonth(), today.getDate() - 1).toISOString(),
+  depositReceived: false,
+  depositReceivedAt: null,
 };
 
 export const quotes: Quote[] = [
@@ -208,6 +210,8 @@ export const quotes: Quote[] = [
     depositAmount: 0,
     internalNotes: "",
     createdAt: new Date(today.getFullYear(), today.getMonth(), today.getDate() - 5).toISOString(),
+    depositReceived: false,
+    depositReceivedAt: null,
   },
 ];
 
@@ -435,6 +439,17 @@ export const businessSettings: BusinessSettings = {
   paymentMethodsAccepted: ["Cash", "Zelle", "Card", "Check"] as PaymentMethod[],
   brandPrimary: "#0C2340",
   brandAccent: "#6A8F6B",
+  squareBookingUrl: null,
+  squareInvoiceUrl: null,
+  zelleDisplayName: null,
+  zelleEmail: null,
+  zellePhone: null,
+  depositInstructions: null,
+  cancellationPolicy: null,
+  bookingCtaText: null,
+  paymentCtaText: null,
+  preferredBookingMethod: "Quote Form",
+  bookingPaymentMethods: ["Cash", "Zelle", "Card", "Check", "Square Invoice"],
 };
 
 export const adminSeed: AdminDataset = {

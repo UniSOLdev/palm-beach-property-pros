@@ -81,7 +81,7 @@ export default async function SettingsPage() {
             </div>
           </Card>
 
-          <Card title="Booking & payments">
+          <Card title="Booking & payments" id="booking-payments">
             <div className="grid gap-4 text-sm">
               <p className="text-xs text-charcoal/70">
                 Public links and display-only payment copy (no bank logins). Used on the marketing site and admin quick actions.

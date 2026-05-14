@@ -2,10 +2,12 @@ import Link from "next/link";
 import { AdminPageHeader, Card, StatCard } from "@/components/admin/ui";
 import { formatCurrency, formatDate } from "@/lib/admin/format";
 import { invoiceBalanceDue } from "@/lib/admin/invoice-totals";
-import { computeDashboardMetricsFrom } from "@/lib/admin/metrics";
+import { computeDashboardMetricsFrom, isoDateLocal, jobsDueOnDate } from "@/lib/admin/metrics";
 import { listClients, listExpenses, listInvoices, listJobs, listQuotes } from "@/lib/admin/queries";
 
 export default async function AdminDashboardPage() {
+  const now = new Date();
+  const todayIso = isoDateLocal(now);
   const [clients, jobs, quotes, invoices, expenses] = await Promise.all([
     listClients(),
     listJobs(),
@@ -14,7 +16,8 @@ export default async function AdminDashboardPage() {
     listExpenses(),
   ]);
 
-  const metrics = computeDashboardMetricsFrom({ jobs, invoices, expenses, quotes });
+  const metrics = computeDashboardMetricsFrom({ jobs, invoices, expenses, quotes }, now);
+  const todaysJobs = jobsDueOnDate(jobs, todayIso);
 
   const upcomingJobs = [...jobs]
     .filter((j) => ["Scheduled", "Approved", "In Progress"].includes(j.status))
@@ -29,7 +32,7 @@ export default async function AdminDashboardPage() {
     <div>
       <AdminPageHeader
         title="Dashboard"
-        subtitle="Central command center for jobs, money, crew, and quality — optimized for Palm Beach County field work."
+        subtitle="Command center for Palm Beach County field work — revenue, spend, pipeline, and what is on the truck today."
       />
 
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
@@ -45,11 +48,44 @@ export default async function AdminDashboardPage() {
         <StatCard label="Jobs scheduled (this month)" value={String(metrics.jobsScheduled)} />
         <StatCard label="Completed jobs (this month)" value={String(metrics.completedJobs)} />
         <StatCard label="Average job value (paid)" value={formatCurrency(metrics.averageJobValue)} />
-        <StatCard label="Cash collected (all time)" value={formatCurrency(metrics.cashCollected)} />
-        <StatCard label="Card / Zelle collected (all time)" value={formatCurrency(metrics.cardZelleCollected)} />
+        <StatCard label="Cash (MTD paid)" value={formatCurrency(metrics.cashCollectedMtd)} />
+        <StatCard label="Zelle (MTD paid)" value={formatCurrency(metrics.zelleCollectedMtd)} />
+        <StatCard label="Card (MTD paid)" value={formatCurrency(metrics.cardCollectedMtd)} />
+        <StatCard label="Check (MTD paid)" value={formatCurrency(metrics.checkCollectedMtd)} />
+        <StatCard
+          label="All-time · cash / card+Zelle"
+          value={`${formatCurrency(metrics.cashCollected)} / ${formatCurrency(metrics.cardZelleCollected)}`}
+          hint="Historical paid invoice totals"
+        />
       </div>
 
       <div className="mt-6 grid gap-6 lg:grid-cols-2">
+        <Card title={`Today's jobs (${formatDate(todayIso)})`}>
+          {todaysJobs.length ? (
+            <ul className="divide-y divide-navy/10">
+              {todaysJobs.map((j) => {
+                const client = clients.find((c) => c.id === j.clientId);
+                return (
+                  <li key={j.id} className="flex flex-col gap-1 py-3 first:pt-0 last:pb-0 sm:flex-row sm:items-center sm:justify-between">
+                    <div>
+                      <div className="font-semibold text-navy">{client?.name ?? "Client"}</div>
+                      <div className="text-sm text-charcoal/70">
+                        {j.serviceType} · {j.startTime}–{j.endTime}
+                      </div>
+                      <div className="text-xs text-charcoal/55">{j.address}</div>
+                    </div>
+                    <Link href={`/admin/jobs/${j.id}`} className="text-sm font-semibold text-ocean no-underline">
+                      Open →
+                    </Link>
+                  </li>
+                );
+              })}
+            </ul>
+          ) : (
+            <p className="text-sm text-charcoal/60">No jobs scheduled for today in this dataset.</p>
+          )}
+        </Card>
+
         <Card title="Upcoming jobs">
           <ul className="divide-y divide-navy/10">
             {upcomingJobs.map((j) => {
@@ -72,25 +108,40 @@ export default async function AdminDashboardPage() {
           </ul>
         </Card>
 
-        <Card title="Quick actions">
-          <div className="grid gap-2 sm:grid-cols-2">
-            <Link className="btn-primary text-center no-underline" href="/admin/jobs/new">
+        <Card title="Quick actions" className="lg:col-span-2">
+          <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+            <Link className="btn-primary min-h-[44px] text-center no-underline" href="/admin/jobs/new">
               Create job
             </Link>
-            <Link className="btn-secondary text-center no-underline" href="/admin/quotes/new">
+            <Link className="btn-secondary min-h-[44px] text-center no-underline" href="/admin/quotes/new">
               Create quote
             </Link>
-            <Link className="btn-secondary text-center no-underline" href="/admin/invoices/new">
+            <Link className="btn-secondary min-h-[44px] text-center no-underline" href="/admin/invoices/new">
               Create invoice
             </Link>
-            <Link className="btn-secondary text-center no-underline" href="/admin/expenses/new">
+            <Link className="btn-secondary min-h-[44px] text-center no-underline" href="/admin/expenses/new">
               Add expense
             </Link>
-            <Link className="btn-secondary text-center no-underline" href="/admin/clients/new">
+            <Link className="btn-secondary min-h-[44px] text-center no-underline" href="/admin/clients/new">
               Add client
             </Link>
-            <Link className="btn-secondary text-center no-underline" href="/admin/sops">
+            <Link className="btn-secondary min-h-[44px] text-center no-underline" href="/admin/website/gallery/new">
+              Add gallery photo
+            </Link>
+            <Link className="btn-secondary min-h-[44px] text-center no-underline" href="/admin/website/reviews/new">
+              Add review
+            </Link>
+            <Link className="btn-secondary min-h-[44px] text-center no-underline" href="/admin/website/homepage">
+              Edit homepage
+            </Link>
+            <Link className="btn-secondary min-h-[44px] text-center no-underline" href="/admin/settings#booking-payments">
+              Booking settings
+            </Link>
+            <Link className="btn-secondary min-h-[44px] text-center no-underline" href="/admin/sops">
               Open SOP checklist
+            </Link>
+            <Link className="btn-secondary min-h-[44px] text-center no-underline" href="/admin/website">
+              Website manager
             </Link>
           </div>
         </Card>

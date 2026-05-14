@@ -13,6 +13,7 @@ import {
   businessInvestmentVsJobCost,
   categorySpendRows,
   isInCalendarMonth,
+  largestVendor,
   paymentMethodExpenseTotals,
 } from "@/lib/admin/expense-analytics";
 import { formatCurrency } from "@/lib/admin/format";
@@ -54,7 +55,10 @@ export default async function ReportsPage() {
   const byService = revenueByServiceType(jobs);
   const best = bestClientsFrom(clients, jobs);
   const outstanding = invoices.filter((i) => ["Unpaid", "Partially Paid", "Overdue"].includes(i.paymentStatus));
-  const openQuotes = quotes.filter((q) => ["Draft", "Sent"].includes(q.status));
+  const openQuotesList = quotes.filter((q) => ["Draft", "Sent", "Approved"].includes(q.status));
+  const quoteDraft = quotes.filter((q) => q.status === "Draft").length;
+  const quoteSent = quotes.filter((q) => q.status === "Sent").length;
+  const quoteApproved = quotes.filter((q) => q.status === "Approved").length;
   const sources = jobs.reduce<Record<string, number>>((acc, j) => {
     acc[j.referralSource] = (acc[j.referralSource] ?? 0) + 1;
     return acc;
@@ -82,6 +86,22 @@ export default async function ReportsPage() {
   const jobById = new Map(jobs.map((j) => [j.id, j] as const));
   const memberById = new Map(crewMembers.map((cm) => [cm.id, cm] as const));
 
+  const crewAllocated = new Map<string, { name: string; total: number; jobs: number }>();
+  for (const p of payouts) {
+    const share = p.calculatedTotal / Math.max(1, p.crewMemberIds.length);
+    for (const mid of p.crewMemberIds) {
+      const cur = crewAllocated.get(mid) ?? { name: memberById.get(mid)?.name ?? mid, total: 0, jobs: 0 };
+      cur.total += share;
+      cur.jobs += 1;
+      crewAllocated.set(mid, cur);
+    }
+  }
+  const crewRows = [...crewAllocated.entries()]
+    .map(([id, row]) => ({ id, ...row }))
+    .sort((a, b) => b.total - a.total);
+
+  const topVendorMonth = largestVendor(monthExpenses);
+
   return (
     <div className="space-y-8">
       <AdminPageHeader
@@ -100,11 +120,16 @@ export default async function ReportsPage() {
             value={`${grossMargin.toFixed(1)}%`}
             hint="Paid revenue vs job-specific MTD expenses"
           />
-          <StatCard label="Cash collected (paid · all time)" value={formatCurrency(m.cashCollected)} />
+          <StatCard label="Cash (MTD paid)" value={formatCurrency(m.cashCollectedMtd)} />
           <StatCard label="Zelle collected (MTD)" value={formatCurrency(revPay.Zelle)} />
           <StatCard label="Card collected (MTD)" value={formatCurrency(revPay.Card)} />
+          <StatCard label="Check collected (MTD)" value={formatCurrency(revPay.Check)} />
           <StatCard label="Outstanding invoices" value={formatCurrency(m.outstandingBalance)} hint={`${m.unpaidInvoices} open statuses`} />
-          <StatCard label="Open quotes" value={String(m.openQuotes)} />
+          <StatCard
+            label="Open quotes (pipeline)"
+            value={String(m.openQuotes)}
+            hint={`Approved also open: ${quoteApproved} · Draft ${quoteDraft} · Sent ${quoteSent}`}
+          />
           <StatCard label="Average job value (paid jobs)" value={formatCurrency(m.averageJobValue)} />
           <StatCard label="Average job profit (est.)" value={formatCurrency(avgJobProfit)} hint="Completed / Paid jobs only" />
         </div>
@@ -320,9 +345,12 @@ export default async function ReportsPage() {
           </ul>
         </Card>
 
-        <Card title="8 · Open quotes">
+        <Card title="8 · Open quotes (draft · sent · approved)">
+          <p className="mb-3 text-xs text-charcoal/60">
+            Draft {quoteDraft} · Sent {quoteSent} · Approved {quoteApproved} (approved still convertible to invoice).
+          </p>
           <ul className="space-y-2 text-sm">
-            {openQuotes.map((q) => (
+            {openQuotesList.map((q) => (
               <li key={q.id} className="flex justify-between gap-3">
                 <Link href={`/admin/quotes/${q.id}`} className="font-semibold text-ocean no-underline">
                   {q.quoteNumber}
@@ -361,6 +389,24 @@ export default async function ReportsPage() {
           </ul>
           {payouts.length === 0 ? <p className="text-sm text-charcoal/60">No payouts logged yet.</p> : null}
         </Card>
+
+        <Card title="9b · Crew by member (allocated share)">
+          <p className="mb-3 text-xs text-charcoal/60">
+            Each payout is split evenly across assigned crew for a quick directional total (not payroll accounting).
+          </p>
+          <ul className="space-y-2 text-sm">
+            {crewRows.map((row) => (
+              <li key={row.id} className="flex justify-between gap-3">
+                <span className="font-semibold text-navy">{row.name}</span>
+                <span>
+                  {formatCurrency(row.total)}{" "}
+                  <span className="text-xs text-charcoal/50">({row.jobs} payouts)</span>
+                </span>
+              </li>
+            ))}
+          </ul>
+          {crewRows.length === 0 ? <p className="text-sm text-charcoal/60">No payout rows to allocate.</p> : null}
+        </Card>
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">
@@ -377,6 +423,12 @@ export default async function ReportsPage() {
               hint="From supplies module"
             />
           </div>
+          {topVendorMonth ? (
+            <p className="mt-4 text-sm text-charcoal/70">
+              Top vendor (MTD): <span className="font-semibold text-navy">{topVendorMonth.vendor}</span> ·{" "}
+              {formatCurrency(topVendorMonth.total)}
+            </p>
+          ) : null}
         </Card>
 
         <Card title="Job source performance">

@@ -6,11 +6,34 @@ import { LINKR_URL, linkrRel } from "@/lib/linkr";
 import { SERVICES } from "@/lib/services";
 import { PHONE_DISPLAY, SERVICE_CITIES, SITE_NAME } from "@/lib/site";
 import { getBusinessSettings } from "@/lib/admin/queries";
+import { listWebsiteGalleryMarketingPreview, listWebsiteReviewsMarketingPreview, getWebsiteHomepageRow } from "@/lib/admin/website-queries";
 import { resolveBookingHref, resolveBookingLabel, resolvePaymentCtaLabel } from "@/lib/booking-settings";
 
+const SERVICE_PILLARS = [
+  "Residential & deep cleaning",
+  "Move-out cleaning",
+  "Pressure washing",
+  "Window cleaning",
+  "Auto detailing",
+  "Airbnb turnovers",
+  "Property maintenance",
+  "Carpet, rug & trash removal",
+] as const;
+
+const AREA_CHIPS = [
+  "Palm Beach Gardens",
+  "Jupiter",
+  "West Palm Beach",
+  "Lake Worth",
+  "Boca Raton",
+  "North Palm Beach",
+  "Riviera Beach",
+  "Surrounding Palm Beach County",
+] as const;
+
 export const metadata: Metadata = {
-  title: "Palm Beach County Window Cleaning, Pressure Washing & Property Maintenance",
-  description: `${SITE_NAME} — professional residential and commercial cleaning, window cleaning, pressure washing, detailing, and maintenance across Palm Beach County. Licensed & insured. Fast quotes via quick access.`,
+  title: "Palm Beach Property Pros | Premium Property Services in Palm Beach County",
+  description: `${SITE_NAME} — premium local cleaning, move-outs, detailing, pressure washing, windows, Airbnb turnovers, and maintenance across Palm Beach County. Professional team. Photo-based estimates.`,
 };
 
 const packages = [
@@ -50,24 +73,48 @@ export default async function HomePage() {
   const bookingLabel = resolveBookingLabel(settings);
   const bookingExternal = bookingHref.startsWith("http");
   const payUrl = settings.squareInvoiceUrl?.trim();
+  const [gallery, reviews, hp] = await Promise.all([
+    listWebsiteGalleryMarketingPreview(),
+    listWebsiteReviewsMarketingPreview(),
+    getWebsiteHomepageRow(),
+  ]);
+
+  const heroEyebrow = hp?.heroEyebrow?.trim() || "Palm Beach County";
+  const heroHeadline =
+    hp?.heroHeadline?.trim() ||
+    "Palm Beach Property Pros is a premium local property service company for cleaning, detailing, pressure washing, windows, turnovers, and maintenance.";
+  const heroSub =
+    hp?.heroSubheadline?.trim() ||
+    "Residential and commercial crews across Palm Beach County — clear quotes, careful crews, and results you can walk through with confidence.";
+  const trustBadges =
+    hp?.trustBadges?.length && hp.trustBadges.some(Boolean)
+      ? hp.trustBadges
+      : [
+          "Palm Beach County based",
+          "Residential & commercial",
+          "Professional local team",
+          "Photo-based estimates",
+          "Move-out, Airbnb & detailing specialists",
+        ];
+  const primaryCtaText = hp?.primaryCtaText?.trim() || "Request a Quote";
+  const primaryCtaHref = hp?.primaryCtaLink?.trim() || "/quote";
+  const secondaryCtaText = hp?.secondaryCtaText?.trim() || "View Services";
+  const secondaryCtaHref = hp?.secondaryCtaLink?.trim() || "/services";
 
   return (
     <>
-      <section className="relative overflow-hidden bg-gradient-to-b from-sky/50 via-cream to-cream">
-        <div className="w-full pb-16 pt-12 sm:pb-20 sm:pt-16">
-          <p className="text-sm font-semibold uppercase tracking-wide text-ocean">
-            Palm Beach County
-          </p>
-          <h1 className="mt-4 max-w-4xl text-4xl font-bold tracking-tight text-navy md:text-5xl lg:leading-[1.1]">
-            Palm Beach County Window Cleaning, Pressure Washing &amp; Property Maintenance
+      <section className="relative overflow-hidden bg-gradient-to-b from-ice via-cream to-sand/40">
+        <div className="pointer-events-none absolute -right-24 top-0 h-72 w-72 rounded-full bg-coast/15 blur-3xl" aria-hidden />
+        <div className="relative w-full pb-16 pt-12 sm:pb-20 sm:pt-16">
+          <p className="text-sm font-semibold uppercase tracking-wide text-ocean">{heroEyebrow}</p>
+          <h1 className="mt-4 max-w-4xl text-4xl font-bold tracking-tight text-navy md:text-5xl lg:leading-[1.08]">
+            {heroHeadline}
           </h1>
-          <p className="mt-4 max-w-2xl text-lg leading-relaxed text-charcoal/80 sm:text-xl">
-            Professional residential and commercial cleaning services across Palm Beach County.
-          </p>
+          <p className="mt-4 max-w-2xl text-lg leading-relaxed text-charcoal/85 sm:text-xl">{heroSub}</p>
           <p className="mt-4 text-sm font-semibold text-navy">
-            Licensed &amp; insured. Local team. Fast quotes.
+            Trusted for high-end homes, rentals, storefronts, and coastal exteriors.
           </p>
-          <div className="mt-8 flex max-w-xl flex-col gap-4 sm:flex-row sm:flex-wrap">
+          <div className="mt-8 flex max-w-xl flex-col gap-3 sm:flex-row sm:flex-wrap">
             {bookingExternal ? (
               <a href={bookingHref} target="_blank" rel="noopener noreferrer" className="btn-primary-lg">
                 {bookingLabel}
@@ -77,30 +124,62 @@ export default async function HomePage() {
                 {bookingLabel}
               </Link>
             )}
+            {primaryCtaHref.startsWith("http") ? (
+              <a href={primaryCtaHref} target="_blank" rel="noopener noreferrer" className="btn-secondary-lg border-ocean/35">
+                {primaryCtaText}
+              </a>
+            ) : (
+              <Link href={primaryCtaHref} className="btn-secondary-lg border-ocean/35 no-underline">
+                {primaryCtaText}
+              </Link>
+            )}
+            {secondaryCtaHref.startsWith("http") ? (
+              <a href={secondaryCtaHref} target="_blank" rel="noopener noreferrer" className="btn-secondary-lg border-navy/15 bg-white">
+                {secondaryCtaText}
+              </a>
+            ) : (
+              <Link href={secondaryCtaHref} className="btn-secondary-lg border-navy/15 bg-white no-underline">
+                {secondaryCtaText}
+              </Link>
+            )}
             {payUrl ? (
-              <a href={payUrl} target="_blank" rel="noopener noreferrer" className="btn-secondary-lg border-ocean/40">
+              <a href={payUrl} target="_blank" rel="noopener noreferrer" className="btn-secondary-lg border-gold/50 bg-gold/15 text-navy">
                 {resolvePaymentCtaLabel(settings)}
               </a>
             ) : null}
-            <a href={LINKR_URL} target="_blank" rel={linkrRel} className="btn-secondary-lg">
-              Call {PHONE_DISPLAY}
+            <a href={LINKR_URL} target="_blank" rel={linkrRel} className="btn-secondary-lg border-navy/15 bg-white">
+              Text or call {PHONE_DISPLAY}
             </a>
-            <Link
-              href="/services"
-              className="btn-secondary-lg border-navy/15 bg-cream hover:bg-sand/50"
-            >
-              View Services
-            </Link>
           </div>
         </div>
       </section>
 
-      <section className="border-y border-navy/10 bg-white py-6">
-        <ul className="flex flex-wrap justify-center gap-6 text-sm text-charcoal/70">
-          <li>Licensed &amp; insured</li>
-          <li>Local Palm Beach County team</li>
-          <li>Residential &amp; commercial</li>
-          <li>Photo-based estimates</li>
+      <section className="border-y border-navy/10 bg-white py-10">
+        <div className="w-full">
+          <h2 className="text-center text-xs font-bold uppercase tracking-[0.2em] text-ocean">What we deliver</h2>
+          <ul className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            {SERVICE_PILLARS.map((label) => (
+              <li
+                key={label}
+                className="rounded-2xl border border-navy/10 bg-ice/60 px-4 py-3 text-center text-sm font-semibold text-navy shadow-sm"
+              >
+                {label}
+              </li>
+            ))}
+          </ul>
+        </div>
+      </section>
+
+      <section className="border-b border-navy/10 bg-white py-6">
+        <ul className="flex flex-wrap justify-center gap-4 text-sm text-charcoal/75">
+          {trustBadges.map((t) => (
+            <li key={t} className="flex items-center gap-2 rounded-full border border-leaf/25 bg-leaf/10 px-4 py-1.5 font-medium text-navy">
+              <span className="text-leaf" aria-hidden>
+                ✓
+              </span>
+              {t}
+            </li>
+          ))}
         </ul>
       </section>
 
@@ -258,22 +337,66 @@ export default async function HomePage() {
         </div>
       </section>
 
-      <section className="bg-sky/40 py-16">
+      <section className="border-y border-navy/10 bg-gradient-to-b from-white to-ice py-16">
+        <div className="w-full">
+          <div className="flex flex-col justify-between gap-4 md:flex-row md:items-end">
+            <div>
+              <h2 className="text-2xl font-semibold tracking-tight text-navy md:text-3xl">Recent results</h2>
+              <p className="mt-2 max-w-2xl text-charcoal/80">A preview of work quality — swap in your own photos from the Website Manager.</p>
+            </div>
+            <Link href="/quote" className="text-sm font-semibold text-ocean no-underline hover:underline">
+              Request a property service quote →
+            </Link>
+          </div>
+          <ul className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            {gallery.map((g) => (
+              <li key={g.id} className="overflow-hidden rounded-3xl border border-navy/10 bg-white shadow-card">
+                <div className="aspect-[4/3] overflow-hidden bg-navy/10">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={g.imageUrl} alt={g.caption ?? "Project"} className="h-full w-full object-cover" />
+                </div>
+                <div className="p-4">
+                  <p className="text-sm font-semibold text-navy">{g.caption ?? "Project highlight"}</p>
+                  <p className="mt-1 text-xs text-charcoal/60">{[g.serviceType, g.location].filter(Boolean).join(" · ")}</p>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </section>
+
+      <section className="bg-sand/40 py-16">
+        <div className="w-full">
+          <h2 className="text-2xl font-semibold tracking-tight text-navy md:text-3xl">What neighbors say</h2>
+          <ul className="mt-8 grid gap-5 md:grid-cols-2">
+            {reviews.map((r) => (
+              <li key={r.id} className="rounded-3xl border border-navy/10 bg-white p-6 shadow-card">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="font-semibold text-navy">{r.customerName}</span>
+                  <span className="text-gold drop-shadow-sm">{Array.from({ length: r.rating }).map((_, i) => "★").join("")}</span>
+                </div>
+                <p className="mt-3 text-sm leading-relaxed text-charcoal/85">{r.reviewText}</p>
+                <p className="mt-3 text-xs font-medium text-charcoal/55">{[r.serviceType, r.city, r.source].filter(Boolean).join(" · ")}</p>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </section>
+
+      <section className="bg-sky/30 py-16">
         <div className="w-full">
           <h2 className="text-2xl font-semibold tracking-tight text-navy md:text-3xl">How it works</h2>
-          <ol className="mt-10 grid gap-6 md:grid-cols-4">
+          <ol className="mt-10 grid gap-6 md:grid-cols-2 lg:grid-cols-4">
             {[
-              "Request a quote",
-              "Send photos or details",
-              "Get scheduled",
-              "We handle the work",
+              { t: "Send photos or request a walkthrough", d: "Share elevations, stains, or interior priorities so we can scope accurately." },
+              { t: "Get a clear written quote", d: "Transparent line items, add-ons optional, and timing that respects your calendar." },
+              { t: "We complete the job", d: "Uniformed crews, surface-appropriate methods, and QC aligned to PBPP checklists." },
+              { t: "Pay & follow up", d: "Cash, Zelle, card, or Square invoice — then reviews and recurring maintenance if you want us back." },
             ].map((step, i) => (
-              <li
-                key={step}
-                className="rounded-3xl border border-navy/10 bg-white p-6 text-center shadow-card"
-              >
-                <span className="text-sm font-bold text-ocean">Step {i + 1}</span>
-                <p className="mt-2 font-semibold text-navy">{step}</p>
+              <li key={step.t} className="rounded-3xl border border-navy/10 bg-white p-6 text-left shadow-card">
+                <span className="text-xs font-bold uppercase tracking-wide text-ocean">Step {i + 1}</span>
+                <p className="mt-2 font-semibold text-navy">{step.t}</p>
+                <p className="mt-2 text-sm text-charcoal/80">{step.d}</p>
               </li>
             ))}
           </ol>
@@ -283,10 +406,19 @@ export default async function HomePage() {
       <section className="bg-cream py-16">
         <div className="w-full">
           <h2 className="text-2xl font-semibold tracking-tight text-navy md:text-3xl">Service area</h2>
-            <p className="mt-4 max-w-2xl text-lg leading-relaxed text-charcoal/80">
-            Palm Beach County, including {cityList}, and{" "}
-            {SERVICE_CITIES[SERVICE_CITIES.length - 1]}.
+          <p className="mt-4 max-w-2xl text-lg leading-relaxed text-charcoal/80">
+            Palm Beach County, including {cityList}, and {SERVICE_CITIES[SERVICE_CITIES.length - 1]}.
           </p>
+          <ul className="mt-6 flex flex-wrap gap-2">
+            {AREA_CHIPS.map((city) => (
+              <li
+                key={city}
+                className="rounded-full border border-navy/10 bg-white px-4 py-2 text-sm font-semibold text-navy shadow-sm"
+              >
+                {city}
+              </li>
+            ))}
+          </ul>
           <Link
             href="/service-area"
             className="mt-6 inline-flex text-sm font-semibold text-ocean no-underline hover:underline"
@@ -386,38 +518,37 @@ export default async function HomePage() {
         </div>
       </section>
 
-      <section className="bg-navy py-14 text-cream">
+      <section className="bg-gradient-to-br from-navy via-navy to-ocean py-16 text-cream">
         <div className="mx-auto w-full max-w-4xl text-center">
-          <h2 className="text-2xl font-semibold tracking-tight text-cream sm:text-3xl">
-            Schedule your next service
+          <p className="text-xs font-bold uppercase tracking-[0.25em] text-gold/95">Ready when you are</p>
+          <h2 className="mt-3 text-2xl font-semibold tracking-tight text-cream sm:text-3xl">
+            Request a property service quote
           </h2>
           <p className="mt-3 text-cream/85">
-            Quotes, bookings, invoices, and reviews are handled through one secure quick access page.
+            Text or call for a fast estimate — photos welcome. Serving Palm Beach County with premium, local crews.
           </p>
           <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row sm:gap-4">
+            <Link
+              href="/quote"
+              className="inline-flex min-h-[48px] items-center justify-center rounded-xl bg-coast px-8 py-3 text-sm font-semibold text-white no-underline shadow-lift hover:brightness-110"
+            >
+              Request a quote
+            </Link>
             <a
               href={LINKR_URL}
               target="_blank"
               rel={linkrRel}
-              className="inline-flex items-center justify-center rounded-lg bg-white px-8 py-4 text-sm font-semibold text-navy no-underline hover:bg-sky"
+              className="inline-flex min-h-[48px] items-center justify-center rounded-xl border border-white/35 bg-white/10 px-8 py-3 text-sm font-semibold text-white no-underline hover:bg-white/15"
             >
-              Get a free quote
+              Text or call {PHONE_DISPLAY}
             </a>
             <a
               href={LINKR_URL}
               target="_blank"
               rel={linkrRel}
-              className="inline-flex items-center justify-center rounded-lg border border-white/40 px-8 py-4 text-sm font-semibold text-white no-underline hover:bg-white/10"
+              className="inline-flex min-h-[48px] items-center justify-center rounded-xl bg-gold px-8 py-3 text-sm font-semibold text-navy no-underline hover:brightness-95"
             >
-              Book service
-            </a>
-            <a
-              href={LINKR_URL}
-              target="_blank"
-              rel={linkrRel}
-              className="inline-flex items-center justify-center rounded-lg bg-leaf px-8 py-4 text-sm font-semibold text-navy no-underline hover:brightness-95"
-            >
-              Pay invoice / review
+              Open quick access hub
             </a>
           </div>
         </div>

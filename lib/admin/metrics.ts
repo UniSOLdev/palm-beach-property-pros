@@ -6,6 +6,19 @@ function invoiceBalance(inv: Invoice) {
   return Math.max(0, invoiceSubtotal(inv) - inv.depositPaid);
 }
 
+export function isoDateLocal(now: Date) {
+  const y = now.getFullYear();
+  const m = String(now.getMonth() + 1).padStart(2, "0");
+  const d = String(now.getDate()).padStart(2, "0");
+  return `${y}-${m}-${d}`;
+}
+
+export function jobsDueOnDate(jobs: Job[], isoDate: string): Job[] {
+  return jobs
+    .filter((j) => j.date === isoDate && ["Scheduled", "Approved", "In Progress", "Quoted"].includes(j.status))
+    .sort((a, b) => a.startTime.localeCompare(b.startTime));
+}
+
 export function computeDashboardMetricsFrom(
   input: {
     jobs: Job[];
@@ -56,6 +69,24 @@ export function computeDashboardMetricsFrom(
     )
     .reduce((acc, i) => acc + invoiceSubtotal(i), 0);
 
+  const paidInvoicesThisMonth = invoices.filter(
+    (i) => i.paymentStatus === "Paid" && i.paidDate && inMonth(i.paidDate),
+  );
+  let cashCollectedMtd = 0;
+  let zelleCollectedMtd = 0;
+  let cardCollectedMtd = 0;
+  let checkCollectedMtd = 0;
+  let otherCollectedMtd = 0;
+  for (const i of paidInvoicesThisMonth) {
+    const sub = invoiceSubtotal(i);
+    const pm = i.paymentMethod ?? "Other";
+    if (pm === "Cash") cashCollectedMtd += sub;
+    else if (pm === "Zelle") zelleCollectedMtd += sub;
+    else if (pm === "Card") cardCollectedMtd += sub;
+    else if (pm === "Check") checkCollectedMtd += sub;
+    else otherCollectedMtd += sub;
+  }
+
   const outstandingBalance = invoices
     .filter((i) => ["Unpaid", "Partially Paid", "Overdue"].includes(i.paymentStatus))
     .reduce((acc, i) => acc + invoiceBalance(i), 0);
@@ -72,6 +103,11 @@ export function computeDashboardMetricsFrom(
     averageJobValue,
     cashCollected,
     cardZelleCollected,
+    cashCollectedMtd,
+    zelleCollectedMtd,
+    cardCollectedMtd,
+    checkCollectedMtd,
+    otherCollectedMtd,
     outstandingBalance,
   };
 }

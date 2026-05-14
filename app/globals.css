@@ -10,7 +10,7 @@
     @apply bg-cream text-charcoal antialiased;
   }
   ::selection {
-    @apply bg-sky text-navy;
+    @apply bg-sky/80 text-navy;
   }
 }
 
@@ -22,15 +22,15 @@
 
 @layer components {
   .btn-primary {
-    @apply inline-flex items-center justify-center rounded-lg bg-navy px-6 py-3 text-center text-sm font-semibold text-white no-underline shadow-card transition hover:bg-ocean;
+    @apply inline-flex items-center justify-center rounded-lg bg-ocean px-6 py-3 text-center text-sm font-semibold text-white no-underline shadow-card transition hover:bg-coast hover:shadow-lift;
   }
   .btn-primary-lg {
-    @apply inline-flex items-center justify-center rounded-lg bg-navy px-8 py-4 text-center text-base font-semibold text-white no-underline shadow-lift transition hover:bg-ocean;
+    @apply inline-flex items-center justify-center rounded-lg bg-ocean px-8 py-4 text-center text-base font-semibold text-white no-underline shadow-lift transition hover:bg-coast;
   }
   .btn-secondary {
-    @apply inline-flex items-center justify-center rounded-lg border border-navy/25 bg-white px-6 py-3 text-center text-sm font-semibold text-navy no-underline transition hover:bg-sand/50;
+    @apply inline-flex items-center justify-center rounded-lg border border-navy/20 bg-white px-6 py-3 text-center text-sm font-semibold text-navy no-underline transition hover:border-coast/40 hover:bg-ice;
   }
   .btn-secondary-lg {
-    @apply inline-flex items-center justify-center rounded-lg border border-navy/20 bg-white px-8 py-4 text-center text-base font-semibold text-navy no-underline transition hover:bg-sand/50;
+    @apply inline-flex items-center justify-center rounded-lg border border-navy/15 bg-white px-8 py-4 text-center text-base font-semibold text-navy no-underline transition hover:border-coast/40 hover:bg-ice;
   }
 }

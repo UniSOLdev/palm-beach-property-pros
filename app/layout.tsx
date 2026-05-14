@@ -3,14 +3,7 @@ import "./globals.css";
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import { Plus_Jakarta_Sans } from "next/font/google";
-import { LocalBusinessJsonLd } from "@/components/json-ld";
-import { MobileCtaBar } from "@/components/mobile-cta-bar";
-import { SiteFooter } from "@/components/site-footer";
-import { SiteHeader } from "@/components/site-header";
-import { SITE_NAME, SITE_URL } from "@/lib/site";
-
-const SITE_DESCRIPTION =
-  "Licensed Palm Beach County property cleaning and maintenance: window cleaning, pressure washing, residential and commercial cleaning, auto detailing, carpet care, and coordinated turnovers.";
+import { SITE_DESCRIPTION, SITE_NAME, SITE_URL } from "@/lib/site";
 
 const sans = Plus_Jakarta_Sans({
   subsets: ["latin"],
@@ -38,13 +31,7 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en" className={sans.variable}>
-      <body className={`${sans.className} min-h-screen antialiased`}>
-        <LocalBusinessJsonLd />
-        <SiteHeader />
-        <main className="mx-auto w-full max-w-6xl px-6 pb-28 pt-6 md:pb-10">{children}</main>
-        <SiteFooter />
-        <MobileCtaBar />
-      </body>
+      <body className={`${sans.className} min-h-screen antialiased`}>{children}</body>
     </html>
   );
 }

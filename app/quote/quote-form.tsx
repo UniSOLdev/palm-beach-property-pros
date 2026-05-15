@@ -14,6 +14,8 @@ const services = [
   "Trash Can Cleaning",
   "Property Maintenance",
   "Airbnb / Co-host Services",
+  "Restaurant & Hospitality Cleaning",
+  "Move-In / Move-Out & Relocation Support",
   "Multiple / Not sure",
 ] as const;
 

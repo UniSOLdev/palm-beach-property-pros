@@ -12,7 +12,7 @@ export async function generateMetadata(): Promise<Metadata> {
     title: seo?.title ?? "Cleaning & Property Services",
     description:
       seo?.description ??
-      `${SITE_NAME} — window cleaning, pressure washing, residential and commercial cleaning, detailing, carpet care, and maintenance in Palm Beach County. Licensed & insured.`,
+      `${SITE_NAME} — window cleaning, hospitality programs, move-in/move-out support, residential and commercial cleaning, detailing, and property care in Palm Beach County. Licensed & insured.`,
   };
 }
 

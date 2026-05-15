@@ -27,21 +27,21 @@ export const SERVICE_DIVISIONS: ServiceDivision[] = [
   {
     id: "interior-care",
     title: "Interior care",
-    subtitle: "Residences and interiors kept inspection-ready with repeatable crew standards.",
+    subtitle: "Residences, transitions, and interiors kept inspection-ready with repeatable crew standards.",
     services: [
       { label: "Residential cleaning", slug: "residential-cleaning" },
+      { label: "Move-in / move-out support", slug: "move-in-move-out-relocation" },
       { label: "Carpet cleaning", slug: "carpet-steam-cleaning" },
-      { label: "Move-out cleaning", slug: "residential-cleaning" },
     ],
   },
   {
     id: "property-support",
-    title: "Property support",
-    subtitle: "Turnovers, light maintenance, and onsite support aligned with operations calendars.",
+    title: "Property & hospitality",
+    subtitle: "Turnovers, hospitality programs, and onsite support aligned with operations calendars.",
     services: [
+      { label: "Restaurant & hospitality cleaning", slug: "restaurant-hospitality-cleaning" },
       { label: "Airbnb turnovers", slug: "airbnb-services" },
       { label: "Property maintenance", slug: "property-maintenance" },
-      { label: "Trash services", slug: "trash-can-cleaning" },
     ],
   },
 ];
@@ -72,6 +72,12 @@ export const PROPERTY_CARE_PLANS: PropertyCarePlan[] = [
     name: "Airbnb turnover programs",
     description: "Check-in aligned crews, linen resets, and staging details under your SOPs.",
     cadence: "Per turnover",
+  },
+  {
+    name: "Hospitality reset programs",
+    description:
+      "Opening and closing discipline for dining rooms, bars, and guest-facing zones on your operating calendar.",
+    cadence: "Nightly or weekly",
   },
   {
     name: "Storefront maintenance plans",

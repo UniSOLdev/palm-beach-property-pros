@@ -6,7 +6,7 @@ import { SITE_NAME } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: "Service Pricing",
-  description: `${SITE_NAME} starting prices for window cleaning, pressure washing, detailing, residential cleaning, and more in Palm Beach County. Scope-based quotes through our online request form.`,
+  description: `${SITE_NAME} starting prices for window cleaning, pressure washing, hospitality cleaning, move-in/move-out support, residential cleaning, and more in Palm Beach County. Scope-based quotes through our online request form.`,
 };
 
 const overview = [
@@ -21,6 +21,8 @@ const overview = [
   { service: "Trash Can Cleaning", price: "Starting at $25" },
   { service: "Property Maintenance", price: "Custom quote" },
   { service: "Airbnb Turnover Services", price: "Custom quote" },
+  { service: "Restaurant & Hospitality Cleaning", price: "Custom quote" },
+  { service: "Move-In / Move-Out & Relocation Support", price: "Starting at $200" },
 ] as const;
 
 const bundles = [
@@ -35,9 +37,14 @@ const bundles = [
       "Driveway, walks, patio, and siding refresh as a coordinated day—scoped by substrate and access.",
   },
   {
-    name: "Move-In / Move-Out",
+    name: "Move-In / Move-Out transition",
     detail:
-      "Detailed turnover cleaning with optional carpet extraction—timed to your closing or lease dates.",
+      "Inspection-ready cleaning plus optional labor-only relocation support—timed to closing, lease, or manager checklists.",
+  },
+  {
+    name: "Hospitality reset program",
+    detail:
+      "Recurring open/close resets for dining, bar, patio, and restroom zones—scoped to your operating hours.",
   },
   {
     name: "Airbnb Turnover",

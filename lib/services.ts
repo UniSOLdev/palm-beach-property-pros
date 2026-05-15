@@ -7,7 +7,9 @@ export type ServiceSlug =
   | "carpet-steam-cleaning"
   | "trash-can-cleaning"
   | "property-maintenance"
-  | "airbnb-services";
+  | "airbnb-services"
+  | "restaurant-hospitality-cleaning"
+  | "move-in-move-out-relocation";
 
 export type ServiceDefinition = {
   slug: ServiceSlug;
@@ -393,6 +395,114 @@ export const SERVICES: ServiceDefinition[] = [
       {
         q: "How do I book recurring turnovers?",
         a: "Use our quick access page to share your calendar cadence and unit details. We set a recurring slot when availability matches.",
+      },
+    ],
+  },
+  {
+    slug: "restaurant-hospitality-cleaning",
+    anchor: "restaurant-hospitality-cleaning",
+    name: "Restaurant & Hospitality Cleaning",
+    shortDescription:
+      "Hospitality-grade resets for dining rooms, bars, patios, and guest-facing zones—executed on operating calendars, not gig-app timelines.",
+    bestFor:
+      "Restaurants, bars, cafés, clubs, boutique hotels, and hospitality storefronts that need dependable open/close discipline.",
+    headline: "Restaurant & Hospitality Cleaning in Palm Beach County",
+    authorityIntro:
+      "Guest experience starts with how a space feels at open. We deliver structured hospitality cleaning—dining room presentation, bar detailing, restroom refreshes, floor care, and glass—aligned to your service windows, health standards, and brand presentation. Programs are built for operators who need the same crew standards night after night.",
+    included: [
+      "Dining room and front-of-house reset (tables, chairs, touchpoints)",
+      "Bar area detailing and back-bar reachable surfaces",
+      "Patio and exterior guest areas when included in scope",
+      "Glass and storefront cleaning for street-facing presentation",
+      "Restroom refreshes and consumable checks by agreement",
+      "Floor care suited to front-of-house finishes",
+      "Opening and closing reset checklists",
+      "Recurring service programs and overnight support options",
+    ],
+    whoItsFor: [
+      "Independent restaurants and chef-driven concepts",
+      "Bars, lounges, and nightlife venues",
+      "Cafés, bakeries, and fast-casual storefronts",
+      "Hospitality groups coordinating multiple locations",
+    ],
+    process: [
+      "Operations review — walkthrough, hours, access, and checklist alignment.",
+      "Program design — cadence (nightly, weekly, overnight), zones, and escalation contacts.",
+      "Service execution — crew follows agreed SOPs with photo notes when requested.",
+      "Quality loop — manager sign-off and schedule adjustments as volume changes.",
+    ],
+    startingPriceLabel:
+      "Hospitality programs are quoted after a brief walkthrough—square footage, hours of operation, and reset depth drive scope.",
+    faq: [
+      {
+        q: "Do you support opening and closing resets?",
+        a: "Yes. We structure visits around your open/close windows with checklists for dining room, bar, restrooms, and floors.",
+      },
+      {
+        q: "Can you work overnight or outside guest hours?",
+        a: "Overnight and pre-open slots are available when access and security protocols are confirmed in advance.",
+      },
+      {
+        q: "How do recurring programs work?",
+        a: "We agree cadence, zones, and escalation paths in writing—then assign consistent crews so standards do not drift week to week.",
+      },
+      {
+        q: "What is the fastest way to scope a new location?",
+        a: "Request a quote with photos, approximate seat count, and operating hours. We return a program outline before the first reset.",
+      },
+    ],
+  },
+  {
+    slug: "move-in-move-out-relocation",
+    anchor: "move-in-move-out-relocation",
+    name: "Move-In / Move-Out & Relocation Support",
+    shortDescription:
+      "Property transition support for move-in readiness, move-out standards, and coordinated relocation labor—organized, documented, and manager-friendly.",
+    bestFor:
+      "Residents, renters, Airbnb operators, and property managers who need inspection-ready handoffs—not ad-hoc labor marketplaces.",
+    headline: "Move-In / Move-Out & Relocation Support in Palm Beach County",
+    authorityIntro:
+      "Transitions fail when cleaning, logistics, and timing are fragmented. We provide move-in and move-out cleaning, labor-only moving assistance, furniture relocation within the property, turnover prep, and coordination for trash or junk removal—scoped in advance so owners, tenants, and managers share one accountable team.",
+    included: [
+      "Move-in cleaning for resident-ready presentation",
+      "Move-out cleaning aligned to lease or manager checklists",
+      "Labor-only moving help (no long-haul trucking)",
+      "In-unit furniture relocation and room resets",
+      "Trash and junk removal coordination with approved vendors",
+      "Storage unit and garage organization support",
+      "Apartment and condo transition prep",
+      "Turnover timing coordinated with property managers",
+    ],
+    whoItsFor: [
+      "Renters and homeowners between residences",
+      "Property managers handling unit turns",
+      "Airbnb operators between guest stays",
+      "HOA and condo transitions requiring documented standards",
+    ],
+    process: [
+      "Scope intake — photos, checklist, access, and target completion date.",
+      "Written plan — cleaning depth, labor hours, and any third-party coordination.",
+      "Transition day — crews execute in sequence to minimize downtime.",
+      "Sign-off — walkthrough with owner, tenant, or manager before keys change hands.",
+    ],
+    startingPriceLabel:
+      "Move-focused cleaning often starts around $200+ depending on unit size and condition; labor and coordination are quoted separately after scope review.",
+    faq: [
+      {
+        q: "Is this full-service moving or long-distance hauling?",
+        a: "No. We provide labor-only assistance and in-property relocation—organized transition support, not interstate moving.",
+      },
+      {
+        q: "Can you meet property manager move-out standards?",
+        a: "Yes. Share the manager checklist or inspection form and we align cleaning and touch-ups before final walkthrough.",
+      },
+      {
+        q: "Do you coordinate junk or bulk item removal?",
+        a: "We coordinate approved haul-away partners when included in scope. Items and access are confirmed before service day.",
+      },
+      {
+        q: "How do I schedule around a closing or lease date?",
+        a: "Request a quote with your target date, unit details, and photos. We confirm crew windows and dependencies before booking.",
       },
     ],
   },

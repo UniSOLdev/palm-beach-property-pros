@@ -41,4 +41,14 @@ export const FAQ_ITEMS: FaqItem[] = [
     answer:
       "Yes. From single-family homes and condos to retail, offices, dealerships, and HOAs, we scale crews and methods to fit the property.",
   },
+  {
+    question: "Do you clean restaurants and hospitality venues?",
+    answer:
+      "Yes. We run hospitality-grade programs for dining rooms, bars, patios, restrooms, and opening/closing resets—structured around your operating hours, not one-off gig visits.",
+  },
+  {
+    question: "Can you help with move-in, move-out, or relocation support?",
+    answer:
+      "Yes. We provide move-in and move-out cleaning, labor-only moving assistance within the property, turnover prep, and coordination for haul-away—scoped in writing before transition day.",
+  },
 ];

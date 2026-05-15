@@ -14,7 +14,7 @@ import {
 const trustPills = [
   "Licensed & insured",
   "Residential & commercial",
-  "Airbnb & turnover specialists",
+  "Hospitality & turnover programs",
   "Palm Beach County based",
 ] as const;
 
@@ -22,6 +22,7 @@ const whoWeWorkWith = [
   "Homeowners",
   "Airbnb hosts",
   "Property managers",
+  "Restaurants & hospitality",
   "Dealerships",
   "Storefronts",
   "HOAs",
@@ -67,7 +68,7 @@ export function buildDefaultSeoPublished(): CmsSeoPublished {
     },
     services_index: {
       title: "Cleaning & Property Services",
-      description: `${SITE_NAME} — window cleaning, pressure washing, residential and commercial cleaning, detailing, carpet care, and maintenance in Palm Beach County. Licensed & insured.`,
+      description: `${SITE_NAME} — window cleaning, hospitality programs, move-in/move-out support, residential and commercial cleaning, detailing, and property care in Palm Beach County. Licensed & insured.`,
       robots_index: true,
       robots_follow: true,
     },
@@ -134,7 +135,7 @@ export function buildDefaultHomeSections(): CmsHomeSection[] {
         sectionEyebrow: "Divisions",
         title: "Organized service lines",
         subtitle:
-          "Exterior, interior, and property support—structured the way high-trust operators run field programs.",
+          "Exterior, interior, and property & hospitality lines—structured the way high-trust operators run field programs.",
       },
     },
     {

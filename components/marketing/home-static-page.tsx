@@ -22,7 +22,7 @@ const cityList = SERVICE_CITIES.filter((c) => !c.toLowerCase().startsWith("and n
 const trustPills = [
   "Licensed & insured",
   "Residential & commercial",
-  "Airbnb & turnover specialists",
+  "Hospitality & turnover programs",
   "Palm Beach County based",
 ] as const;
 
@@ -30,6 +30,7 @@ const whoWeWorkWith = [
   "Homeowners",
   "Airbnb hosts",
   "Property managers",
+  "Restaurants & hospitality",
   "Dealerships",
   "Storefronts",
   "HOAs",
@@ -133,8 +134,8 @@ export function HomeStaticPage() {
             Organized service lines
           </h2>
           <p className="mt-4 text-charcoal/80">
-            Exterior, interior, and property support—structured the way high-trust operators run field
-            programs.
+            Exterior, interior, and property & hospitality lines—structured the way high-trust operators
+            run field programs.
           </p>
         </div>
         <div className="mt-14 grid gap-10 lg:grid-cols-3">

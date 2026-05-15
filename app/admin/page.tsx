@@ -1,7 +1,7 @@
 export const dynamic = "force-dynamic";
 
 import Link from "next/link";
-import { createServiceSupabase } from "@/lib/supabase/service";
+import { loadOpsDashboardMetrics } from "@/lib/ops/analytics";
 
 export const metadata = {
   title: "Operations",
@@ -17,27 +17,23 @@ export default async function AdminDashboardPage() {
   let jobs = 0;
   let expense_count = 0;
   let expense_total_cents = 0;
+  let profit_signal_cents = 0;
+  let active_jobs = 0;
+  let crew_active = 0;
+  let low_stock = 0;
   let err: string | null = null;
 
   try {
-    const supabase = createServiceSupabase();
-    const [cRes, iRes, jRes, eRes] = await Promise.all([
-      supabase.from("clients").select("id", { count: "exact", head: true }),
-      supabase.from("invoices").select("id", { count: "exact", head: true }),
-      supabase.from("jobs").select("id", { count: "exact", head: true }),
-      supabase.from("expense_totals_v").select("expense_count, total_cents").maybeSingle(),
-    ]);
-    if (cRes.error) throw cRes.error;
-    if (iRes.error) throw iRes.error;
-    if (jRes.error) throw jRes.error;
-    clients = cRes.count ?? 0;
-    invoices = iRes.count ?? 0;
-    jobs = jRes.count ?? 0;
-    if (!eRes.error && eRes.data) {
-      const et = eRes.data as { expense_count?: number; total_cents?: number } | null;
-      expense_count = Number(et?.expense_count ?? 0);
-      expense_total_cents = Number(et?.total_cents ?? 0);
-    }
+    const metrics = await loadOpsDashboardMetrics();
+    clients = metrics.clients;
+    invoices = metrics.invoices;
+    jobs = metrics.jobs;
+    active_jobs = metrics.active_jobs;
+    expense_count = metrics.expense_count;
+    expense_total_cents = metrics.expense_cents;
+    profit_signal_cents = metrics.profit_signal_cents;
+    crew_active = metrics.crew_active;
+    low_stock = metrics.low_stock;
   } catch (e) {
     err = e instanceof Error ? e.message : "Could not reach Supabase.";
   }
@@ -89,7 +85,15 @@ export default async function AdminDashboardPage() {
         </p>
       ) : null}
 
-      <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
+        <div className="rounded-2xl border border-emerald-400/20 bg-emerald-500/10 p-6 ring-1 ring-emerald-400/15 sm:col-span-2 lg:col-span-3 xl:col-span-6">
+          <p className="text-xs font-semibold uppercase tracking-wider text-emerald-200/80">Profit signal</p>
+          <p className="mt-2 text-3xl font-semibold tabular-nums text-white">{fmtMoney(profit_signal_cents)}</p>
+          <p className="mt-1 text-xs text-zinc-500">
+            Invoice revenue minus recorded expenses · {active_jobs} active jobs · {crew_active} crew ·{" "}
+            {low_stock} low-stock SKUs
+          </p>
+        </div>
         <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-6 ring-1 ring-white/[0.06]">
           <p className="text-xs font-semibold uppercase tracking-wider text-zinc-500">CRM clients</p>
           <p className="mt-2 text-3xl font-semibold tabular-nums text-white">{clients}</p>
@@ -135,6 +139,24 @@ export default async function AdminDashboardPage() {
               Crew operations →
             </Link>{" "}
             <span className="text-zinc-600">— roster, dispatch board, payout calculator, labor profitability.</span>
+          </li>
+          <li>
+            <Link href="/admin/website" className="text-sky-300 no-underline hover:underline">
+              Website manager →
+            </Link>{" "}
+            <span className="text-zinc-600">— homepage, SEO, media, navigation, and service overlays.</span>
+          </li>
+          <li>
+            <Link href="/admin/clients" className="text-sky-300 no-underline hover:underline">
+              Clients →
+            </Link>{" "}
+            <span className="text-zinc-600">— edit CRM records, notes, and contact details.</span>
+          </li>
+          <li>
+            <Link href="/admin/invoices" className="text-sky-300 no-underline hover:underline">
+              Invoices →
+            </Link>{" "}
+            <span className="text-zinc-600">— update line items, status, and public links.</span>
           </li>
           <li>
             <Link href="/admin/invoices/new" className="text-sky-300 no-underline hover:underline">

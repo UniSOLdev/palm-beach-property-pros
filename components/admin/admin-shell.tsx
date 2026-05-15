@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { OpsMobileBar } from "@/components/admin/ops-mobile-bar";
 
 export function AdminShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -29,10 +30,19 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
             Expenses
           </AdminNavLink>
           <AdminNavLink href="/admin/supplies" current={pathname}>
-            Ops inventory
+            Inventory
           </AdminNavLink>
           <AdminNavLink href="/admin/crew" current={pathname}>
             Crew
+          </AdminNavLink>
+          <AdminNavLink href="/admin/website" current={pathname}>
+            Website
+          </AdminNavLink>
+          <AdminNavLink href="/admin/clients" current={pathname}>
+            Clients
+          </AdminNavLink>
+          <AdminNavLink href="/admin/invoices" current={pathname}>
+            Invoices
           </AdminNavLink>
           <AdminNavLink href="/admin/invoices/new" current={pathname}>
             New invoice
@@ -57,7 +67,8 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
           </button>
         </div>
       </aside>
-      <div className="flex-1 overflow-x-hidden px-4 py-6 md:px-10 md:py-10">{children}</div>
+      <div className="flex-1 overflow-x-hidden px-4 py-6 pb-24 md:px-10 md:py-10 md:pb-10">{children}</div>
+      <OpsMobileBar />
     </div>
   );
 }

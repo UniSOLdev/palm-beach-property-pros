@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { ClientSummary } from "@/components/admin/client-combobox";
 import { ClientCombobox } from "@/components/admin/client-combobox";
+import { JobFileUpload } from "@/components/admin/job-file-upload";
 import { NewClientModal } from "@/components/admin/new-client-modal";
 import type { CrewAssignment, JobDetailPayload } from "@/lib/db-types";
 
@@ -517,6 +518,8 @@ export function JobWorkspace({ jobId, initialJob, recentClients }: Props) {
           Review requested
         </label>
       </section>
+
+      <JobFileUpload jobId={jobId} />
     </div>
   );
 }

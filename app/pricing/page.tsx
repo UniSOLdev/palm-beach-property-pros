@@ -1,11 +1,12 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { LINKR_URL, linkrRel } from "@/lib/linkr";
+import { PbppCtaLink } from "@/components/pbpp-cta-link";
+import { CTA_LABELS, PBPP_ROUTES } from "@/lib/cta-routes";
 import { SITE_NAME } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: "Service Pricing",
-  description: `${SITE_NAME} starting prices for window cleaning, pressure washing, detailing, residential cleaning, and more in Palm Beach County. Scope-based quotes through quick access.`,
+  description: `${SITE_NAME} starting prices for window cleaning, pressure washing, detailing, residential cleaning, and more in Palm Beach County. Scope-based quotes through our online request form.`,
 };
 
 const overview = [
@@ -118,16 +119,14 @@ export default function PricingPage() {
         <div className="mt-12 rounded-3xl bg-navy p-8 text-center text-cream shadow-lift">
           <p className="text-lg font-semibold">Request your written estimate</p>
           <p className="mt-2 text-sm text-cream/85">
-            Open quick access to send photos, select services, and receive pricing.
+            Send photos, select services, and receive written pricing through PBPP.
           </p>
-          <a
-            href={LINKR_URL}
-            target="_blank"
-            rel={linkrRel}
+          <PbppCtaLink
+            href={PBPP_ROUTES.quote}
             className="mt-6 inline-flex w-full items-center justify-center rounded-lg bg-white px-6 py-4 text-sm font-semibold text-navy no-underline hover:bg-sky sm:w-auto"
           >
-            Open quick access page
-          </a>
+            {CTA_LABELS.getAFreeQuote}
+          </PbppCtaLink>
           <Link
             href="/quote"
             className="mt-6 inline-block text-sm font-semibold text-sky no-underline underline-offset-2 hover:underline"

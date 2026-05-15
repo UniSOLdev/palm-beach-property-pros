@@ -23,22 +23,20 @@ export function SiteFooter({ shell, logoUrl }: SiteFooterProps) {
   const linkrCaption = shell?.footer_linkr_caption ?? "Book service · Pay invoice · Leave a review";
 
   return (
-    <footer className="border-t border-navy/10 bg-navy text-cream">
-      <div className="mx-auto max-w-6xl px-6 py-12">
-        <div className="grid gap-10 lg:grid-cols-12">
+    <footer className="border-t border-white/[0.06] bg-navy text-cream">
+      <div className="mx-auto max-w-6xl px-5 py-10 sm:px-6 sm:py-11">
+        <div className="grid gap-8 lg:grid-cols-12 lg:gap-10">
           <div className="lg:col-span-4">
-            <div className="rounded-2xl bg-cream p-4 shadow-card">
-              <BrandLogo variant="footer" logoSrc={logoUrl} />
-            </div>
-            <p className="mt-4 text-sm leading-relaxed text-cream/85">{blurb}</p>
+            <BrandLogo variant="footer" surface="dark" logoSrc={logoUrl} />
+            <p className="mt-4 max-w-sm text-[13px] leading-relaxed text-cream/65">{blurb}</p>
           </div>
 
-          <div className="grid gap-10 sm:grid-cols-2 lg:col-span-8 lg:grid-cols-3">
+          <div className="grid gap-8 sm:grid-cols-2 lg:col-span-8 lg:grid-cols-3 lg:gap-6">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-wider text-sky/90">Services</p>
-              <ul className="mt-3 max-h-64 space-y-2 overflow-y-auto text-sm pr-2">
+              <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-aqua/80">Services</p>
+              <ul className="mt-2.5 max-h-56 space-y-1.5 overflow-y-auto text-[13px] pr-2">
                 <li>
-                  <Link href="/services" className="text-cream/90 no-underline hover:text-white">
+                  <Link href="/services" className="text-cream/75 no-underline transition hover:text-cream">
                     All services
                   </Link>
                 </li>
@@ -46,24 +44,24 @@ export function SiteFooter({ shell, logoUrl }: SiteFooterProps) {
                   <li key={s.slug}>
                     <Link
                       href={`/services/${s.slug}`}
-                      className="text-cream/90 no-underline hover:text-white"
+                      className="text-cream/75 no-underline transition hover:text-cream"
                     >
                       {s.name}
                     </Link>
                   </li>
                 ))}
                 <li>
-                  <Link href="/pricing" className="text-cream/90 no-underline hover:text-white">
+                  <Link href="/pricing" className="text-cream/75 no-underline transition hover:text-cream">
                     Pricing
                   </Link>
                 </li>
                 <li>
-                  <Link href="/service-area" className="text-cream/90 no-underline hover:text-white">
+                  <Link href="/service-area" className="text-cream/75 no-underline transition hover:text-cream">
                     Service area
                   </Link>
                 </li>
                 <li>
-                  <Link href="/quote" className="text-cream/90 no-underline hover:text-white">
+                  <Link href="/quote" className="text-cream/75 no-underline transition hover:text-cream">
                     Quote details
                   </Link>
                 </li>
@@ -71,8 +69,8 @@ export function SiteFooter({ shell, logoUrl }: SiteFooterProps) {
             </div>
 
             <div>
-              <p className="text-xs font-semibold uppercase tracking-wider text-sky/90">Cities served</p>
-              <ul className="mt-3 space-y-1.5 text-sm text-cream/90">
+              <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-aqua/80">Cities served</p>
+              <ul className="mt-2.5 space-y-1 text-[13px] text-cream/70">
                 {coreCities.map((city) => (
                   <li key={city}>{city}</li>
                 ))}
@@ -80,10 +78,10 @@ export function SiteFooter({ shell, logoUrl }: SiteFooterProps) {
             </div>
 
             <div>
-              <p className="text-xs font-semibold uppercase tracking-wider text-sky/90">Contact</p>
-              <ul className="mt-3 space-y-3 text-sm">
+              <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-aqua/80">Contact</p>
+              <ul className="mt-2.5 space-y-2.5 text-[13px]">
                 <li>
-                  <a href={PHONE_TEL} className="font-medium text-white no-underline hover:underline">
+                  <a href={PHONE_TEL} className="font-medium text-cream/90 no-underline transition hover:text-cream">
                     {PHONE_DISPLAY}
                   </a>
                 </li>
@@ -92,21 +90,21 @@ export function SiteFooter({ shell, logoUrl }: SiteFooterProps) {
                     href={LINKR_URL}
                     target="_blank"
                     rel={linkrRel}
-                    className="text-cream/90 no-underline underline-offset-2 hover:text-white hover:underline"
+                    className="text-cream/70 no-underline underline-offset-2 transition hover:text-cream hover:underline"
                   >
                     {linkrCaption}
                   </a>
                 </li>
-                <li className="text-cream/75">
-                  <span className="block text-xs font-semibold uppercase tracking-wide text-sky/80">
+                <li className="text-cream/60">
+                  <span className="block text-[10px] font-semibold uppercase tracking-[0.16em] text-aqua/70">
                     Business hours
                   </span>
-                  {hours}
+                  <span className="mt-1 block leading-relaxed">{hours}</span>
                 </li>
                 <li>
                   <Link
                     href="/privacy"
-                    className="text-cream/90 no-underline hover:text-white hover:underline"
+                    className="text-cream/70 no-underline transition hover:text-cream hover:underline"
                   >
                     Privacy policy
                   </Link>
@@ -116,7 +114,7 @@ export function SiteFooter({ shell, logoUrl }: SiteFooterProps) {
           </div>
         </div>
 
-        <p className="mt-10 border-t border-white/10 pt-8 text-center text-xs text-cream/60">
+        <p className="mt-8 border-t border-white/[0.06] pt-6 text-center text-[11px] tracking-wide text-cream/45">
           © {new Date().getFullYear()} {SITE_NAME}. Serving Palm Beach County.
         </p>
       </div>

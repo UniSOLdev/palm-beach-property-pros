@@ -42,4 +42,9 @@
   .img-zoom img {
     @apply transition duration-700 ease-out group-hover:scale-[1.03];
   }
+  /** Knocks out baked-in black JPEG backgrounds on graphite/navy chrome. */
+  .logo-raster-on-dark {
+    mix-blend-mode: screen;
+    filter: contrast(1.06) saturate(1.05);
+  }
 }

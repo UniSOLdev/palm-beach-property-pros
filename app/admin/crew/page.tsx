@@ -15,6 +15,12 @@ import {
   marginToneClass,
   statusBadgeClasses,
 } from "@/lib/crew-constants";
+import {
+  crewAvatarUrlFromMeta,
+  crewDisplayRolesFromMeta,
+  crewShowAssignmentSummary,
+  crewSkillsFromMeta,
+} from "@/lib/crew-meta";
 import { calculateJobPayouts, payoutLineFromMember } from "@/lib/crew-payout";
 import { mapCrewMemberRow } from "@/lib/crew-serialization";
 import { parseCrewAssignments } from "@/lib/job-serialization";
@@ -311,9 +317,18 @@ export default async function AdminCrewPage({ searchParams }: PageProps) {
         ) : (
           <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
             {members.map((m) => {
-              const assignedJobs = dispatchJobs.filter((j) =>
-                j.crew_labels.some((l) => l.toLowerCase().includes(m.full_name.toLowerCase())),
-              ).length;
+              const showAssignments = crewShowAssignmentSummary(m.performance_meta);
+              const assignedJobs = showAssignments
+                ? dispatchJobs.filter((j) =>
+                    j.crew_labels.some((l) => l.toLowerCase().includes(m.full_name.toLowerCase())),
+                  ).length
+                : 0;
+              const avatarUrl = crewAvatarUrlFromMeta(m.performance_meta);
+              const displayRoles = crewDisplayRolesFromMeta(m.performance_meta);
+              const roleSubtitle = displayRoles.length
+                ? displayRoles.join(" · ")
+                : `${labelForRole(m.role)} · ${m.skill_level}`;
+              const skillsPreview = crewSkillsFromMeta(m.performance_meta).slice(0, 4).join(" · ");
               return (
                 <Link
                   key={m.id}
@@ -321,22 +336,40 @@ export default async function AdminCrewPage({ searchParams }: PageProps) {
                   className="block rounded-2xl border border-white/10 bg-white/[0.03] p-5 no-underline ring-1 ring-white/[0.05] transition hover:border-sky-400/35 hover:bg-white/[0.05]"
                 >
                   <div className="flex items-start gap-3">
-                    <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-sky-400/30 bg-sky-500/15 text-sm font-semibold text-sky-100">
-                      {initialsForName(m.full_name)}
-                    </div>
+                    {avatarUrl ? (
+                      // eslint-disable-next-line @next/next/no-img-element -- admin-only URL from trusted operators
+                      <img
+                        src={avatarUrl}
+                        alt=""
+                        className="h-11 w-11 shrink-0 rounded-full border border-sky-400/30 object-cover"
+                      />
+                    ) : (
+                      <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-sky-400/30 bg-sky-500/15 text-sm font-semibold text-sky-100">
+                        {initialsForName(m.full_name)}
+                      </div>
+                    )}
                     <div className="min-w-0 flex-1">
                       <p className="font-semibold text-white">{m.full_name}</p>
-                      <p className="text-xs text-zinc-500">{labelForRole(m.role)} · {m.skill_level}</p>
+                      <p className="text-xs text-zinc-500">{roleSubtitle}</p>
                     </div>
                   </div>
                   <div className="mt-4 flex flex-wrap gap-1.5">
                     <span className={`rounded-full border px-2 py-0.5 text-[10px] font-medium ${statusBadgeClasses(m.status)}`}>
                       {labelForStatus(m.status)}
                     </span>
-                    <span className="rounded-full border border-white/10 bg-black/30 px-2 py-0.5 text-[10px] text-zinc-400">
-                      {assignedJobs} active job{assignedJobs === 1 ? "" : "s"}
-                    </span>
+                    {showAssignments ? (
+                      <span className="rounded-full border border-white/10 bg-black/30 px-2 py-0.5 text-[10px] text-zinc-400">
+                        {assignedJobs} active job{assignedJobs === 1 ? "" : "s"}
+                      </span>
+                    ) : (
+                      <span className="rounded-full border border-white/10 bg-black/30 px-2 py-0.5 text-[10px] text-zinc-500">
+                        Assignments hidden
+                      </span>
+                    )}
                   </div>
+                  {skillsPreview ? (
+                    <p className="mt-3 text-xs text-zinc-600 line-clamp-2">{skillsPreview}</p>
+                  ) : null}
                   <p className="mt-3 text-xs text-zinc-500">
                     {m.phone ?? m.email ?? "No contact on file"}
                   </p>

@@ -6,6 +6,20 @@ import { useMemo, useState } from "react";
 
 import type { CrewMemberRow } from "@/lib/db-types";
 import { CREW_ROLES, CREW_STATUSES, PAY_TYPES, SKILL_LEVELS } from "@/lib/crew-constants";
+import {
+  ASSIGNMENT_VISIBILITY,
+  crewAvatarUrlFromMeta,
+  crewDisplayRolesFromMeta,
+  crewPermissionsFromMeta,
+  crewSkillsFromMeta,
+  displayRolesTextFromList,
+  normalizeAssignmentVisibility,
+  parseDisplayRolesTextarea,
+  parsePermissionsJson,
+  parseSkillsTextarea,
+  skillsTextFromList,
+  type AssignmentVisibilityValue,
+} from "@/lib/crew-meta";
 
 function dollarsFromCents(cents: number) {
   return (cents / 100).toFixed(2);
@@ -40,8 +54,20 @@ export function CrewMemberForm(props: Props) {
   const [lead_bonus_percent, setLeadBonusPercent] = useState(String(initial?.lead_bonus_percent ?? 10));
   const [trainee_pay_multiplier, setTraineeMultiplier] = useState(String(initial?.trainee_pay_multiplier ?? 0.75));
   const [is_active, setIsActive] = useState(initial?.is_active ?? true);
-  const [performance_meta] = useState<Record<string, unknown>>(() =>
+  const baseMeta = initial?.performance_meta ?? {};
+  const [metaExtras] = useState<Record<string, unknown>>(() =>
     initial?.performance_meta ? { ...initial.performance_meta } : {},
+  );
+  const [skillsText, setSkillsText] = useState(() => skillsTextFromList(crewSkillsFromMeta(baseMeta)));
+  const [displayRolesText, setDisplayRolesText] = useState(() =>
+    displayRolesTextFromList(crewDisplayRolesFromMeta(baseMeta)),
+  );
+  const [avatarUrl, setAvatarUrl] = useState(() => crewAvatarUrlFromMeta(baseMeta) ?? "");
+  const [assignmentVisibility, setAssignmentVisibility] = useState<AssignmentVisibilityValue>(() =>
+    normalizeAssignmentVisibility(baseMeta.assignment_visibility),
+  );
+  const [permissionsJson, setPermissionsJson] = useState(() =>
+    JSON.stringify(crewPermissionsFromMeta(baseMeta), null, 2),
   );
   const [equipment_meta] = useState<Record<string, unknown>>(() =>
     initial?.equipment_meta ? { ...initial.equipment_meta } : {},
@@ -66,7 +92,6 @@ export function CrewMemberForm(props: Props) {
       lead_bonus_percent: Number.parseFloat(lead_bonus_percent) || 10,
       trainee_pay_multiplier: Number.parseFloat(trainee_pay_multiplier) || 0.75,
       is_active,
-      performance_meta,
       equipment_meta,
     }),
     [
@@ -85,7 +110,6 @@ export function CrewMemberForm(props: Props) {
       lead_bonus_percent,
       trainee_pay_multiplier,
       is_active,
-      performance_meta,
       equipment_meta,
     ],
   );
@@ -93,6 +117,19 @@ export function CrewMemberForm(props: Props) {
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
+    const perms = parsePermissionsJson(permissionsJson);
+    if (perms === null && permissionsJson.trim() !== "") {
+      setError("Permissions must be a valid JSON object (for example an empty {}).");
+      return;
+    }
+    const performance_meta = {
+      ...metaExtras,
+      skills: parseSkillsTextarea(skillsText),
+      display_roles: parseDisplayRolesTextarea(displayRolesText),
+      avatar_url: avatarUrl.trim() || null,
+      assignment_visibility: assignmentVisibility,
+      permissions: perms ?? {},
+    };
     setBusy(true);
     try {
       const url = props.mode === "create" ? "/api/admin/crew" : `/api/admin/crew/${initial!.id}`;
@@ -100,7 +137,7 @@ export function CrewMemberForm(props: Props) {
       const res = await fetch(url, {
         method,
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
+        body: JSON.stringify({ ...payload, performance_meta }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "Save failed.");
@@ -193,6 +230,63 @@ export function CrewMemberForm(props: Props) {
             <input type="checkbox" checked={is_active} onChange={(e) => setIsActive(e.target.checked)} className="h-4 w-4" />
             Active on roster
           </label>
+        </div>
+      </FormSection>
+
+      <FormSection
+        title="Skills, visibility & profile image"
+        subtitle="Stored in performance_meta — safe to edit; supports future permissions and dispatch rules."
+      >
+        <div className="grid gap-4 md:grid-cols-2">
+          <Field label="Display titles (optional, one per line)" className="md:col-span-2">
+            <textarea
+              value={displayRolesText}
+              onChange={(e) => setDisplayRolesText(e.target.value)}
+              rows={2}
+              placeholder={"e.g. Operations lead\nLead tech"}
+              className={inputClass}
+            />
+          </Field>
+          <Field label="Skills (one per line or comma-separated)" className="md:col-span-2">
+            <textarea
+              value={skillsText}
+              onChange={(e) => setSkillsText(e.target.value)}
+              rows={4}
+              placeholder="e.g. residential cleaning"
+              className={inputClass}
+            />
+          </Field>
+          <Field label="Profile photo URL (https)" className="md:col-span-2">
+            <input
+              type="url"
+              value={avatarUrl}
+              onChange={(e) => setAvatarUrl(e.target.value)}
+              placeholder="https://…"
+              className={inputClass}
+            />
+          </Field>
+          <Field label="Assignment visibility">
+            <select
+              value={assignmentVisibility}
+              onChange={(e) => setAssignmentVisibility(normalizeAssignmentVisibility(e.target.value))}
+              className={inputClass}
+            >
+              {ASSIGNMENT_VISIBILITY.map((v) => (
+                <option key={v.value} value={v.value}>
+                  {v.label}
+                </option>
+              ))}
+            </select>
+          </Field>
+          <Field label="Permissions (JSON object, future use)" className="md:col-span-2">
+            <textarea
+              value={permissionsJson}
+              onChange={(e) => setPermissionsJson(e.target.value)}
+              rows={4}
+              spellCheck={false}
+              className={`${inputClass} font-mono text-xs`}
+            />
+          </Field>
         </div>
       </FormSection>
 

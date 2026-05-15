@@ -3,25 +3,17 @@ import Link from "next/link";
 
 import { FaqAccordion } from "@/components/faq-accordion";
 import { FAQ_ITEMS } from "@/lib/faq";
-import { linkrRel } from "@/lib/linkr";
+import { PbppCtaLink } from "@/components/pbpp-cta-link";
 import { SERVICE_DIVISIONS } from "@/lib/service-divisions";
 import { SITE_NAME } from "@/lib/site";
 import type { CmsCtaInline, CmsHomeSection, CmsThemePublished } from "@/lib/cms-types";
 import { cityListComma } from "@/lib/cms-defaults";
 
 function CtaLink({ cta, className }: { cta: CmsCtaInline; className?: string }) {
-  const ext = Boolean(cta.external);
-  if (ext) {
-    return (
-      <a href={cta.href} target="_blank" rel={linkrRel} className={className}>
-        {cta.label}
-      </a>
-    );
-  }
   return (
-    <Link href={cta.href} className={className}>
+    <PbppCtaLink href={cta.href} external={cta.external} className={className}>
       {cta.label}
-    </Link>
+    </PbppCtaLink>
   );
 }
 

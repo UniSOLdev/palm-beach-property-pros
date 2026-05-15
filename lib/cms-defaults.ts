@@ -1,4 +1,4 @@
-import { LINKR_URL } from "@/lib/linkr";
+import { CTA_LABELS, PBPP_ROUTES } from "@/lib/cta-routes";
 import type { CmsHomeSection, CmsSeoPublished, CmsSiteShellPublished } from "@/lib/cms-types";
 import { PROPERTY_CARE_PLANS } from "@/lib/service-divisions";
 import {
@@ -44,16 +44,16 @@ export function defaultHeaderNav(): { label: string; href: string }[] {
 export function buildDefaultSiteShellPublished(): CmsSiteShellPublished {
   return {
     header_nav: defaultHeaderNav(),
-    quote_button: { label: "Get Free Quote", href: LINKR_URL, external: true },
+    quote_button: { label: CTA_LABELS.getFreeQuote, href: PBPP_ROUTES.quote },
     header_call: { label: "Call or Text", href: PHONE_TEL },
     mobile: {
-      primary: { label: "Get Free Quote", href: LINKR_URL, external: true },
+      primary: { label: CTA_LABELS.getFreeQuote, href: PBPP_ROUTES.quote },
       secondary: { label: "Call or Text", href: PHONE_TEL },
     },
     footer_blurb: `${SITE_NAME} delivers premium property operations across Palm Beach County: exterior care, interior care, turnovers, maintenance, and recurring property care plans—licensed, insured, and built for repeat trust.`,
     business_hours:
       "Monday–Saturday, 8 a.m.–6 p.m. (by appointment; hours may vary by season)",
-    footer_linkr_caption: "Book service · Pay invoice · Leave a review",
+    footer_linkr_caption: CTA_LABELS.footerClientTools,
   };
 }
 
@@ -75,14 +75,13 @@ export function buildDefaultSeoPublished(): CmsSeoPublished {
 }
 
 export function buildDefaultHomeSections(): CmsHomeSection[] {
-  const linkr = LINKR_URL;
   const cityList = cityListComma();
 
   const carePlans = PROPERTY_CARE_PLANS.map((p) => ({
     name: p.name,
     description: p.description,
     cadence: p.cadence,
-    cta: { label: "Discuss a plan →", href: linkr, external: true },
+    cta: { label: CTA_LABELS.discussPlan, href: PBPP_ROUTES.quote },
   }));
 
   return [
@@ -98,7 +97,7 @@ export function buildDefaultHomeSections(): CmsHomeSection[] {
         trustPills: [...trustPills],
         heroImageUrl:
           "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=2000&q=80",
-        primaryCta: { label: "Get Free Quote", href: linkr, external: true },
+        primaryCta: { label: CTA_LABELS.getFreeQuote, href: PBPP_ROUTES.quote },
         secondaryCta: { label: `Call or Text ${PHONE_DISPLAY}`, href: PHONE_TEL },
       },
     },
@@ -110,7 +109,7 @@ export function buildDefaultHomeSections(): CmsHomeSection[] {
       data: {
         title: "One secure operations link",
         body: "Quotes, scheduling, invoices, payment, and review requests stay in a single client flow—so nothing gets lost between crews and your property stakeholders.",
-        cta: { label: "Open client portal", href: linkr, external: true },
+        cta: { label: CTA_LABELS.openClientPortal, href: PBPP_ROUTES.clientPortal },
       },
     },
     {
@@ -206,7 +205,7 @@ export function buildDefaultHomeSections(): CmsHomeSection[] {
       data: {
         title: "Ready when you are",
         body: "Same team for quotes, service delivery, invoices, and reviews—organized like modern property operations should be.",
-        primaryCta: { label: "Get Free Quote", href: linkr, external: true },
+        primaryCta: { label: CTA_LABELS.getFreeQuote, href: PBPP_ROUTES.quote },
         secondaryCta: {
           label: `Call or Text ${PHONE_DISPLAY}`,
           href: PHONE_TEL,

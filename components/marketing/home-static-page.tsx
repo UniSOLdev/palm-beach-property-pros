@@ -2,7 +2,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { FaqAccordion } from "@/components/faq-accordion";
 import { FAQ_ITEMS } from "@/lib/faq";
-import { LINKR_URL, linkrRel } from "@/lib/linkr";
+import { PbppCtaLink } from "@/components/pbpp-cta-link";
+import { CTA_LABELS, PBPP_ROUTES } from "@/lib/cta-routes";
 import { PROPERTY_CARE_PLANS, SERVICE_DIVISIONS } from "@/lib/service-divisions";
 import {
   BRAND_ESSENCE,
@@ -71,9 +72,9 @@ export function HomeStaticPage() {
             ))}
           </ul>
           <div className="mt-10 flex max-w-xl flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
-            <a href={LINKR_URL} target="_blank" rel={linkrRel} className="btn-primary-lg text-center">
-              Get Free Quote
-            </a>
+            <PbppCtaLink href={PBPP_ROUTES.quote} className="btn-primary-lg text-center">
+              {CTA_LABELS.getFreeQuote}
+            </PbppCtaLink>
             <a href={PHONE_TEL} className="btn-secondary-lg text-center">
               Call or Text {PHONE_DISPLAY}
             </a>
@@ -88,9 +89,9 @@ export function HomeStaticPage() {
             Quotes, scheduling, invoices, payment, and review requests stay in a single client flow—so
             nothing gets lost between crews and your property stakeholders.
           </p>
-          <a href={LINKR_URL} target="_blank" rel={linkrRel} className="btn-primary mx-auto mt-2">
-            Open client portal
-          </a>
+          <PbppCtaLink href={PBPP_ROUTES.clientPortal} className="btn-primary mx-auto mt-2">
+            {CTA_LABELS.openClientPortal}
+          </PbppCtaLink>
         </div>
       </section>
 
@@ -114,14 +115,12 @@ export function HomeStaticPage() {
               <p className="text-[10px] font-semibold uppercase tracking-wider text-aqua/90">{p.cadence}</p>
               <h3 className="mt-2 text-lg font-semibold text-navy">{p.name}</h3>
               <p className="mt-3 flex-1 text-sm leading-relaxed text-charcoal/85">{p.description}</p>
-              <a
-                href={LINKR_URL}
-                target="_blank"
-                rel={linkrRel}
+              <PbppCtaLink
+                href={PBPP_ROUTES.quote}
                 className="mt-5 text-sm font-semibold text-ocean no-underline hover:underline"
               >
-                Discuss a plan →
-              </a>
+                {CTA_LABELS.discussPlan}
+              </PbppCtaLink>
             </article>
           ))}
         </div>
@@ -260,9 +259,9 @@ export function HomeStaticPage() {
           operations should be.
         </p>
         <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row sm:flex-wrap">
-          <a href={LINKR_URL} target="_blank" rel={linkrRel} className="btn-primary-lg">
-            Get Free Quote
-          </a>
+          <PbppCtaLink href={PBPP_ROUTES.quote} className="btn-primary-lg">
+            {CTA_LABELS.getFreeQuote}
+          </PbppCtaLink>
           <a href={PHONE_TEL} className="btn-secondary-lg border-cream/25 bg-transparent text-cream">
             Call or Text {PHONE_DISPLAY}
           </a>

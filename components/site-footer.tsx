@@ -1,8 +1,9 @@
 import Link from "next/link";
 
 import { BrandLogo } from "@/components/brand-logo";
+import { PbppCtaLink } from "@/components/pbpp-cta-link";
 import type { CmsSiteShellPublished } from "@/lib/cms-types";
-import { LINKR_URL, linkrRel } from "@/lib/linkr";
+import { CTA_LABELS, PBPP_ROUTES } from "@/lib/cta-routes";
 import { SERVICES } from "@/lib/services";
 import { PHONE_DISPLAY, PHONE_TEL, SERVICE_CITIES, SITE_NAME } from "@/lib/site";
 
@@ -20,7 +21,7 @@ export function SiteFooter({ shell, logoUrl }: SiteFooterProps) {
   const hours =
     shell?.business_hours ??
     "Monday–Saturday, 8 a.m.–6 p.m. (by appointment; hours may vary by season)";
-  const linkrCaption = shell?.footer_linkr_caption ?? "Book service · Pay invoice · Leave a review";
+  const clientToolsCaption = shell?.footer_linkr_caption ?? CTA_LABELS.footerClientTools;
 
   return (
     <footer className="border-t border-white/[0.06] bg-navy text-cream">
@@ -86,14 +87,12 @@ export function SiteFooter({ shell, logoUrl }: SiteFooterProps) {
                   </a>
                 </li>
                 <li>
-                  <a
-                    href={LINKR_URL}
-                    target="_blank"
-                    rel={linkrRel}
+                  <PbppCtaLink
+                    href={PBPP_ROUTES.clientPortal}
                     className="text-cream/70 no-underline underline-offset-2 transition hover:text-cream hover:underline"
                   >
-                    {linkrCaption}
-                  </a>
+                    {clientToolsCaption}
+                  </PbppCtaLink>
                 </li>
                 <li className="text-cream/60">
                   <span className="block text-[10px] font-semibold uppercase tracking-[0.16em] text-aqua/70">

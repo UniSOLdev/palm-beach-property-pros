@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { LINKR_URL, linkrRel } from "@/lib/linkr";
+import { PbppCtaLink } from "@/components/pbpp-cta-link";
+import { CTA_LABELS, PBPP_ROUTES } from "@/lib/cta-routes";
 import { getPublishedSeoForKey, getPublishedServiceOverlay } from "@/lib/cms-queries";
 import { mergeServiceWithCmsOverlay } from "@/lib/cms-service-merge";
 import { serviceLocationSeoParagraphs } from "@/lib/location-seo";
@@ -33,7 +34,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     title: seo?.title ?? `${s.name} | Palm Beach County`,
     description:
       seo?.description ??
-      `${s.shortDescription} Licensed & insured. Request scope via ${SITE_NAME} quick access.`,
+      `${s.shortDescription} Licensed & insured. Request scope via ${SITE_NAME} online quote form.`,
     openGraph: seo?.og_image_url ? { images: [{ url: seo.og_image_url }] } : undefined,
     robots:
       seo?.robots_index === false || seo?.robots_follow === false
@@ -101,9 +102,9 @@ export default async function ServiceDetailPage({ params }: Props) {
             Final pricing depends on property size, condition, access, and scope. Send photos for
             the fastest estimate.
           </p>
-          <a href={LINKR_URL} target="_blank" rel={linkrRel} className="btn-primary mt-5">
-            Get a free quote
-          </a>
+          <PbppCtaLink href={PBPP_ROUTES.quote} className="btn-primary mt-5">
+            {CTA_LABELS.getAFreeQuote}
+          </PbppCtaLink>
         </section>
 
         <section className="mt-10">
@@ -162,16 +163,22 @@ export default async function ServiceDetailPage({ params }: Props) {
         <div className="mt-12 rounded-3xl bg-navy p-8 text-center text-cream shadow-lift">
           <p className="text-lg font-semibold">Book service or request pricing</p>
           <p className="mt-2 text-sm text-cream/85">
-            Use our quick access page for quotes, scheduling, invoices, and reviews.
+            Request a quote, manage invoices, and access client tools—all on the PBPP platform.
           </p>
-          <a
-            href={LINKR_URL}
-            target="_blank"
-            rel={linkrRel}
-            className="mt-6 inline-flex w-full items-center justify-center rounded-lg bg-white px-6 py-4 text-sm font-semibold text-navy no-underline hover:bg-sky sm:w-auto"
-          >
-            Open quick access page
-          </a>
+          <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-center">
+            <PbppCtaLink
+              href={PBPP_ROUTES.quote}
+              className="inline-flex w-full items-center justify-center rounded-lg bg-white px-6 py-4 text-sm font-semibold text-navy no-underline hover:bg-sky sm:w-auto"
+            >
+              {CTA_LABELS.getAFreeQuote}
+            </PbppCtaLink>
+            <PbppCtaLink
+              href={PBPP_ROUTES.clientPortal}
+              className="inline-flex w-full items-center justify-center rounded-lg border border-cream/30 bg-transparent px-6 py-4 text-sm font-semibold text-cream no-underline hover:bg-white/10 sm:w-auto"
+            >
+              {CTA_LABELS.openClientPortal}
+            </PbppCtaLink>
+          </div>
         </div>
       </article>
     </div>

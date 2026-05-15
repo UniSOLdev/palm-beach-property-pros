@@ -4,9 +4,10 @@ import Link from "next/link";
 import { useState } from "react";
 
 import { BrandLogo } from "@/components/brand-logo";
+import { PbppCtaLink } from "@/components/pbpp-cta-link";
 import { defaultHeaderNav } from "@/lib/cms-defaults";
 import type { CmsSiteShellPublished } from "@/lib/cms-types";
-import { LINKR_URL, linkrRel } from "@/lib/linkr";
+import { CTA_LABELS, PBPP_ROUTES } from "@/lib/cta-routes";
 import { PHONE_DISPLAY, PHONE_TEL } from "@/lib/site";
 
 export type SiteHeaderProps = {
@@ -17,7 +18,10 @@ export type SiteHeaderProps = {
 export function SiteHeader({ shell, logoUrl }: SiteHeaderProps) {
   const [open, setOpen] = useState(false);
   const navItems = shell?.header_nav?.length ? shell.header_nav : defaultHeaderNav();
-  const quote = shell?.quote_button ?? { label: "Get Free Quote", href: LINKR_URL, external: true };
+  const quote = shell?.quote_button ?? {
+    label: CTA_LABELS.getFreeQuote,
+    href: PBPP_ROUTES.quote,
+  };
   const call = shell?.header_call ?? { label: "Call or Text", href: PHONE_TEL };
 
   return (
@@ -47,23 +51,13 @@ export function SiteHeader({ shell, logoUrl }: SiteHeaderProps) {
         </div>
 
         <div className="flex shrink-0 items-center gap-2">
-          {quote.external ? (
-            <a
-              href={quote.href}
-              target="_blank"
-              rel={linkrRel}
-              className="btn-primary-lg hidden px-4 py-2 text-[13px] sm:inline-flex"
-            >
-              {quote.label}
-            </a>
-          ) : (
-            <Link
-              href={quote.href}
-              className="btn-primary-lg hidden px-4 py-2 text-[13px] sm:inline-flex"
-            >
-              {quote.label}
-            </Link>
-          )}
+          <PbppCtaLink
+            href={quote.href}
+            external={quote.external}
+            className="btn-primary-lg hidden px-4 py-2 text-[13px] sm:inline-flex"
+          >
+            {quote.label}
+          </PbppCtaLink>
           <a
             href={call.href}
             className="hidden rounded-lg border border-white/10 bg-white/[0.03] px-3 py-2 text-[11px] font-medium tracking-wide text-cream/85 no-underline transition hover:border-aqua/35 hover:bg-white/[0.06] hover:text-cream lg:inline-flex"
@@ -109,25 +103,14 @@ export function SiteHeader({ shell, logoUrl }: SiteHeaderProps) {
                 {item.label}
               </Link>
             ))}
-            {quote.external ? (
-              <a
-                href={quote.href}
-                target="_blank"
-                rel={linkrRel}
-                className="btn-primary-lg mt-2 text-center text-sm"
-                onClick={() => setOpen(false)}
-              >
-                {quote.label}
-              </a>
-            ) : (
-              <Link
-                href={quote.href}
-                className="btn-primary-lg mt-2 text-center text-sm"
-                onClick={() => setOpen(false)}
-              >
-                {quote.label}
-              </Link>
-            )}
+            <PbppCtaLink
+              href={quote.href}
+              external={quote.external}
+              className="btn-primary-lg mt-2 text-center text-sm"
+              onClick={() => setOpen(false)}
+            >
+              {quote.label}
+            </PbppCtaLink>
             <a
               href={call.href}
               className="btn-secondary mt-2 border-white/15 bg-white/[0.04] text-center text-sm text-cream"

@@ -10,7 +10,7 @@
     @apply bg-cream text-charcoal antialiased;
   }
   ::selection {
-    @apply bg-sky text-navy;
+    @apply bg-aqua/30 text-charcoal;
   }
 }
 
@@ -22,15 +22,24 @@
 
 @layer components {
   .btn-primary {
-    @apply inline-flex items-center justify-center rounded-lg bg-navy px-6 py-3 text-center text-sm font-semibold text-white no-underline shadow-card transition hover:bg-ocean;
+    @apply inline-flex items-center justify-center rounded-xl bg-graphite px-6 py-3 text-center text-sm font-semibold text-cream no-underline shadow-lift transition duration-300 hover:bg-navy hover:shadow-glow;
   }
   .btn-primary-lg {
-    @apply inline-flex items-center justify-center rounded-lg bg-navy px-8 py-4 text-center text-base font-semibold text-white no-underline shadow-lift transition hover:bg-ocean;
+    @apply inline-flex items-center justify-center rounded-xl bg-cream px-8 py-4 text-center text-base font-semibold text-graphite no-underline shadow-lift transition duration-300 hover:-translate-y-0.5 hover:bg-white hover:shadow-glow;
   }
   .btn-secondary {
-    @apply inline-flex items-center justify-center rounded-lg border border-navy/25 bg-white px-6 py-3 text-center text-sm font-semibold text-navy no-underline transition hover:bg-sand/50;
+    @apply inline-flex items-center justify-center rounded-xl border border-silver/40 bg-white/40 px-6 py-3 text-center text-sm font-semibold text-graphite no-underline shadow-card backdrop-blur-sm transition duration-300 hover:border-aqua/50 hover:bg-white/70;
   }
   .btn-secondary-lg {
-    @apply inline-flex items-center justify-center rounded-lg border border-navy/20 bg-white px-8 py-4 text-center text-base font-semibold text-navy no-underline transition hover:bg-sand/50;
+    @apply inline-flex items-center justify-center rounded-xl border border-silver/50 bg-white/50 px-8 py-4 text-center text-base font-semibold text-graphite no-underline shadow-card backdrop-blur-sm transition duration-300 hover:border-aqua/50 hover:bg-white/80;
+  }
+  .glass-panel {
+    @apply rounded-2xl border border-white/10 bg-white/10 shadow-card backdrop-blur-xl;
+  }
+  .img-zoom {
+    @apply overflow-hidden transition duration-700 ease-out;
+  }
+  .img-zoom img {
+    @apply transition duration-700 ease-out group-hover:scale-[1.03];
   }
 }

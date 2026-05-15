@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
-import { LINKR_URL, linkrRel } from "@/lib/linkr";
+import { PbppCtaLink } from "@/components/pbpp-cta-link";
+import { CTA_LABELS, PBPP_ROUTES } from "@/lib/cta-routes";
 import { SERVICE_CITIES, SITE_NAME } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: "Service Area – Palm Beach County",
-  description: `${SITE_NAME} serves West Palm Beach, Palm Beach Gardens, Jupiter, Delray Beach, and communities countywide. Request scheduling via quick access.`,
+  description: `${SITE_NAME} serves West Palm Beach, Palm Beach Gardens, Jupiter, Delray Beach, and communities countywide. Request a quote or schedule service online.`,
 };
 
 const bullets = SERVICE_CITIES.filter((c) => !c.toLowerCase().startsWith("and nearby"));
@@ -45,14 +46,9 @@ export default function ServiceAreaPage() {
         </p>
 
         <div className="mt-10">
-          <a
-            href={LINKR_URL}
-            target="_blank"
-            rel={linkrRel}
-            className="btn-primary w-full sm:w-auto"
-          >
-            Request service or a quote
-          </a>
+          <PbppCtaLink href={PBPP_ROUTES.quote} className="btn-primary w-full sm:w-auto">
+            {CTA_LABELS.getAFreeQuote}
+          </PbppCtaLink>
         </div>
       </section>
     </div>

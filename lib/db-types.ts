@@ -1,3 +1,27 @@
+export type QuoteStatus = "draft" | "sent" | "approved" | "converted" | "void";
+
+export type QuoteRow = {
+  id: string;
+  client_id: string | null;
+  service_type: string | null;
+  property_address: string | null;
+  notes: string | null;
+  customer_notes: string | null;
+  terms: string | null;
+  internal_notes: string | null;
+  line_items: InvoiceLineItem[];
+  subtotal_cents: number;
+  tax_cents: number;
+  discount_cents: number;
+  deposit_cents: number;
+  total_cents: number;
+  status: QuoteStatus;
+  reference_code: string | null;
+  row_version: number;
+  created_at: string;
+  updated_at: string;
+};
+
 export type ClientRow = {
   id: string;
   full_name: string;
@@ -23,10 +47,20 @@ export type InvoiceRow = {
   line_items: InvoiceLineItem[];
   subtotal_cents: number;
   tax_cents: number;
+  discount_cents: number;
+  deposit_cents: number;
   total_cents: number;
   public_token: string;
+  quote_id: string | null;
+  quote_reference_code: string | null;
+  converted_from_quote_at: string | null;
   created_at: string;
   updated_at: string;
+};
+
+export type CrewAssignment = {
+  name: string;
+  role: string | null;
 };
 
 export type JobRow = {
@@ -36,4 +70,61 @@ export type JobRow = {
   status: string;
   completed_at: string | null;
   created_at: string;
+  updated_at: string;
+  row_version: number;
+  job_number: string | null;
+  service_type: string | null;
+  property_address: string | null;
+  revenue_cents: number;
+  payment_method: string | null;
+  quote_id: string | null;
+  invoice_id: string | null;
+  crew_assignments: CrewAssignment[];
+  notes: string | null;
+  internal_notes: string | null;
+  referral_source: string | null;
+  review_requested: boolean;
+};
+
+export type JobClientEmbed = {
+  id: string;
+  full_name: string;
+  phone: string | null;
+  email: string | null;
+};
+
+export type JobQuoteEmbed = {
+  id: string;
+  reference_code: string | null;
+  status: string;
+  client_id: string | null;
+};
+
+export type JobInvoiceEmbed = {
+  id: string;
+  public_token: string;
+  title: string | null;
+  status: string;
+  client_id: string | null;
+};
+
+export type JobDetailPayload = JobRow & {
+  clients: JobClientEmbed | null;
+  quotes: JobQuoteEmbed | null;
+  invoices: JobInvoiceEmbed | null;
+};
+
+export type JobListItem = Pick<
+  JobRow,
+  | "id"
+  | "job_number"
+  | "title"
+  | "status"
+  | "client_id"
+  | "revenue_cents"
+  | "service_type"
+  | "created_at"
+  | "updated_at"
+> & {
+  client_name: string | null;
 };

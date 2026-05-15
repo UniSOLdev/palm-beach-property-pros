@@ -3,26 +3,11 @@ export const dynamic = "force-dynamic";
 import { InvoiceNewForm } from "@/components/admin/invoice-new-form";
 import { fetchRecentClientsForCombobox } from "@/lib/admin-recent-clients";
 import type { ClientSummary } from "@/components/admin/client-combobox";
-import { createServiceSupabase } from "@/lib/supabase/service";
+import { fetchClientSummaryById } from "@/lib/client-queries";
 
 export const metadata = {
   title: "New invoice",
 };
-
-async function fetchClientById(id: string): Promise<ClientSummary | null> {
-  try {
-    const supabase = createServiceSupabase();
-    const { data, error } = await supabase
-      .from("clients")
-      .select("id, full_name, phone, email, created_at")
-      .eq("id", id)
-      .maybeSingle();
-    if (error || !data) return null;
-    return data as ClientSummary;
-  } catch {
-    return null;
-  }
-}
 
 export default async function NewInvoicePage({
   searchParams,
@@ -46,7 +31,7 @@ export default async function NewInvoicePage({
   try {
     recentClients = await fetchRecentClientsForCombobox();
     if (preselectClientId) {
-      initialClient = await fetchClientById(preselectClientId);
+      initialClient = await fetchClientSummaryById(preselectClientId);
     }
   } catch (e) {
     dbWarning = e instanceof Error ? e.message : "Could not load Supabase.";

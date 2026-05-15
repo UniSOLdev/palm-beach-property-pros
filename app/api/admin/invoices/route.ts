@@ -4,6 +4,32 @@ import { isAdminAuthenticated } from "@/lib/admin-auth";
 import { invoiceTotalsFromLines } from "@/lib/invoice-math";
 import { createServiceSupabase } from "@/lib/supabase/service";
 
+export async function GET(req: Request) {
+  if (!(await isAdminAuthenticated())) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const { searchParams } = new URL(req.url);
+  const limit = Math.min(Number(searchParams.get("limit") ?? "120") || 120, 300);
+
+  try {
+    const supabase = createServiceSupabase();
+    const { data, error } = await supabase
+      .from("invoices")
+      .select(
+        "id, title, public_token, client_id, total_cents, status, created_at, quote_reference_code",
+      )
+      .order("created_at", { ascending: false })
+      .limit(limit);
+
+    if (error) throw error;
+    return NextResponse.json({ invoices: data ?? [] });
+  } catch (e) {
+    const message = e instanceof Error ? e.message : "Database error";
+    return NextResponse.json({ error: message }, { status: 503 });
+  }
+}
+
 export async function POST(req: Request) {
   if (!(await isAdminAuthenticated())) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

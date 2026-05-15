@@ -28,6 +28,9 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
           <AdminNavLink href="/admin/expenses" current={pathname}>
             Expenses
           </AdminNavLink>
+          <AdminNavLink href="/admin/supplies" current={pathname}>
+            Ops inventory
+          </AdminNavLink>
           <AdminNavLink href="/admin/invoices/new" current={pathname}>
             New invoice
           </AdminNavLink>

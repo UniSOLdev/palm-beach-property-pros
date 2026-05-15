@@ -162,3 +162,28 @@ export type ExpenseRow = {
   import_meta: Record<string, unknown>;
   created_at: string;
 };
+
+export type InventoryItemRow = {
+  id: string;
+  name: string;
+  category: string;
+  inventory_type: string;
+  operational_status: string;
+  quantity: number;
+  unit: string;
+  storage_location: string | null;
+  reorder_level: number;
+  unit_cost_cents: number;
+  vendor: string | null;
+  notes: string | null;
+  assigned_crew: string | null;
+  assigned_job_id: string | null;
+  last_restocked: string | null;
+  condition: string | null;
+  is_consumable: boolean;
+  priority_level: string;
+  priority_rank: number;
+  meta: Record<string, unknown>;
+  created_at: string;
+  updated_at: string;
+};

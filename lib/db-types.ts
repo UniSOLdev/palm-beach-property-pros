@@ -128,3 +128,37 @@ export type JobListItem = Pick<
 > & {
   client_name: string | null;
 };
+
+export type ExpenseImportBatchRow = {
+  id: string;
+  label: string | null;
+  source: string;
+  row_count: number;
+  inserted_count: number;
+  skipped_duplicates: number;
+  skipped_invalid: number;
+  reverted_at: string | null;
+  created_at: string;
+};
+
+export type ExpenseRow = {
+  id: string;
+  batch_id: string | null;
+  expense_date: string;
+  client_job_text: string | null;
+  job_id: string | null;
+  service_type: string | null;
+  vendor: string | null;
+  item_description: string | null;
+  category: string | null;
+  amount_cents: number;
+  payment_method: string | null;
+  expense_type: string | null;
+  related_job_text: string | null;
+  reimbursable: boolean;
+  reimbursed: boolean;
+  notes: string | null;
+  dedupe_key: string;
+  import_meta: Record<string, unknown>;
+  created_at: string;
+};

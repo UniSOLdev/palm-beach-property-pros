@@ -7,18 +7,25 @@ export const metadata = {
   title: "Operations",
 };
 
+function fmtMoney(cents: number) {
+  return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(cents / 100);
+}
+
 export default async function AdminDashboardPage() {
   let clients = 0;
   let invoices = 0;
   let jobs = 0;
+  let expense_count = 0;
+  let expense_total_cents = 0;
   let err: string | null = null;
 
   try {
     const supabase = createServiceSupabase();
-    const [cRes, iRes, jRes] = await Promise.all([
+    const [cRes, iRes, jRes, eRes] = await Promise.all([
       supabase.from("clients").select("id", { count: "exact", head: true }),
       supabase.from("invoices").select("id", { count: "exact", head: true }),
       supabase.from("jobs").select("id", { count: "exact", head: true }),
+      supabase.from("expense_totals_v").select("expense_count, total_cents").maybeSingle(),
     ]);
     if (cRes.error) throw cRes.error;
     if (iRes.error) throw iRes.error;
@@ -26,6 +33,11 @@ export default async function AdminDashboardPage() {
     clients = cRes.count ?? 0;
     invoices = iRes.count ?? 0;
     jobs = jRes.count ?? 0;
+    if (!eRes.error && eRes.data) {
+      const et = eRes.data as { expense_count?: number; total_cents?: number } | null;
+      expense_count = Number(et?.expense_count ?? 0);
+      expense_total_cents = Number(et?.total_cents ?? 0);
+    }
   } catch (e) {
     err = e instanceof Error ? e.message : "Could not reach Supabase.";
   }
@@ -45,6 +57,12 @@ export default async function AdminDashboardPage() {
             Open jobs
           </Link>
           <Link
+            href="/admin/expenses/import"
+            className="rounded-xl border border-white/15 px-5 py-2.5 text-sm font-semibold text-zinc-100 no-underline transition hover:bg-white/5"
+          >
+            Import expenses
+          </Link>
+          <Link
             href="/admin/invoices/new"
             className="rounded-xl bg-sky-500/90 px-5 py-2.5 text-sm font-semibold text-sky-950 no-underline shadow-lg shadow-sky-900/25 transition hover:bg-sky-400"
           >
@@ -59,7 +77,7 @@ export default async function AdminDashboardPage() {
         </p>
       ) : null}
 
-      <div className="mt-10 grid gap-4 sm:grid-cols-3">
+      <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-6 ring-1 ring-white/[0.06]">
           <p className="text-xs font-semibold uppercase tracking-wider text-zinc-500">CRM clients</p>
           <p className="mt-2 text-3xl font-semibold tabular-nums text-white">{clients}</p>
@@ -72,6 +90,11 @@ export default async function AdminDashboardPage() {
           <p className="text-xs font-semibold uppercase tracking-wider text-zinc-500">Invoices</p>
           <p className="mt-2 text-3xl font-semibold tabular-nums text-white">{invoices}</p>
         </div>
+        <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-6 ring-1 ring-white/[0.06]">
+          <p className="text-xs font-semibold uppercase tracking-wider text-zinc-500">Expenses</p>
+          <p className="mt-2 text-3xl font-semibold tabular-nums text-white">{expense_count}</p>
+          <p className="mt-1 text-xs text-zinc-500">{fmtMoney(expense_total_cents)} recorded</p>
+        </div>
       </div>
 
       <div className="mt-12 rounded-2xl border border-white/10 bg-gradient-to-br from-white/[0.06] to-transparent p-6 ring-1 ring-white/[0.05]">
@@ -82,6 +105,12 @@ export default async function AdminDashboardPage() {
               Jobs board →
             </Link>{" "}
             <span className="text-zinc-600">— editable field records with quote & invoice links.</span>
+          </li>
+          <li>
+            <Link href="/admin/expenses" className="text-sky-300 no-underline hover:underline">
+              Expense intelligence →
+            </Link>{" "}
+            <span className="text-zinc-600">— sheet imports, category & payment analytics, job costing.</span>
           </li>
           <li>
             <Link href="/admin/invoices/new" className="text-sky-300 no-underline hover:underline">

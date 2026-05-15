@@ -16,8 +16,9 @@ export function SiteFooter() {
               <BrandLogo variant="footer" />
             </div>
             <p className="mt-4 text-sm leading-relaxed text-cream/85">
-              {SITE_NAME} provides residential and commercial cleaning, window cleaning, pressure
-              washing, detailing, carpet care, and property maintenance across Palm Beach County.
+              {SITE_NAME} delivers premium property operations across Palm Beach County: exterior care,
+              interior care, turnovers, maintenance, and recurring property care plans—licensed, insured,
+              and built for repeat trust.
             </p>
           </div>
 

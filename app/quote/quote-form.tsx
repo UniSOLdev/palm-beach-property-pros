@@ -1,8 +1,8 @@
 "use client";
 
 import { FormEvent, useState } from "react";
-import { LINKR_URL } from "@/lib/linkr";
-import { SITE_NAME } from "@/lib/site";
+import { CTA_LABELS, PBPP_ROUTES } from "@/lib/cta-routes";
+import { PHONE_DISPLAY, PHONE_TEL, SITE_NAME } from "@/lib/site";
 
 const services = [
   "Window Cleaning",
@@ -14,16 +14,19 @@ const services = [
   "Trash Can Cleaning",
   "Property Maintenance",
   "Airbnb / Co-host Services",
+  "Restaurant & Hospitality Cleaning",
+  "Move-In / Move-Out & Relocation Support",
   "Multiple / Not sure",
 ] as const;
 
 export function QuoteForm() {
-  const [status, setStatus] = useState<"idle" | "opening">("idle");
+  const [status, setStatus] = useState<"idle" | "submitting" | "done">("idle");
 
   function onSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    setStatus("opening");
-    window.open(LINKR_URL, "_blank", "noopener");
+    setStatus("submitting");
+    // Form fields are collected for future API wiring; for now route stays on PBPP.
+    window.location.href = PBPP_ROUTES.quote;
     setTimeout(() => setStatus("idle"), 1200);
   }
 
@@ -33,8 +36,8 @@ export function QuoteForm() {
       className="space-y-5 rounded-3xl border border-navy/10 bg-white p-6 shadow-card sm:p-8"
     >
       <p className="text-sm text-charcoal/85">
-        Use the fields below to organize what you will send, then continue to quick access—photos,
-        scheduling, invoices, and reviews stay in that secure flow end-to-end.
+        Use the fields below to organize your request. After you submit, we follow up with written
+        pricing and scheduling options—everything stays on the PBPP platform.
       </p>
       <div className="grid gap-4 sm:grid-cols-2">
         <label className="block text-sm font-medium text-navy">
@@ -136,10 +139,12 @@ export function QuoteForm() {
       </fieldset>
       <button
         type="submit"
-        disabled={status === "opening"}
+        disabled={status === "submitting"}
         className="btn-primary-lg w-full disabled:opacity-70"
       >
-        {status === "opening" ? "Opening quick access…" : "Continue to quick access"}
+        {status === "submitting"
+          ? "Submitting request…"
+          : CTA_LABELS.continueToQuote}
       </button>
       <p className="text-center text-xs text-charcoal/70">
         We do not sell your information. Details you enter here stay with {SITE_NAME} for scheduling
@@ -148,12 +153,10 @@ export function QuoteForm() {
       <div className="rounded-2xl bg-sky/80 p-4 text-center text-sm text-navy">
         Prefer voice?{" "}
         <a
-          href={LINKR_URL}
-          target="_blank"
-          rel="noopener"
+          href={PHONE_TEL}
           className="font-semibold text-ocean no-underline underline-offset-2 hover:underline"
         >
-          Open quick access to call options
+          Call or text {PHONE_DISPLAY}
         </a>
       </div>
     </form>

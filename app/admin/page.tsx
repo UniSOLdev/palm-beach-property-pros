@@ -62,6 +62,12 @@ export default async function AdminDashboardPage() {
         <h2 className="text-sm font-semibold text-white">Workflows</h2>
         <ul className="mt-4 space-y-2 text-sm text-zinc-400">
           <li>
+            <Link href="/admin/website" className="text-sky-300 no-underline hover:underline">
+              Website manager →
+            </Link>{" "}
+            <span className="text-zinc-600">— homepage, SEO, media, navigation, and service overlays.</span>
+          </li>
+          <li>
             <Link href="/admin/invoices/new" className="text-sky-300 no-underline hover:underline">
               Create invoice →
             </Link>{" "}

@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { LINKR_URL, linkrRel } from "@/lib/linkr";
+import { getPublishedSeoForKey, getPublishedServiceOverlay } from "@/lib/cms-queries";
+import { mergeServiceWithCmsOverlay } from "@/lib/cms-service-merge";
 import { serviceLocationSeoParagraphs } from "@/lib/location-seo";
 import {
   getRelatedServices,
@@ -14,24 +16,38 @@ import { SITE_NAME } from "@/lib/site";
 
 type Props = { params: Promise<{ slug: string }> };
 
+export const revalidate = 120;
+
 export function generateStaticParams() {
   return SERVICES.map((s) => ({ slug: s.slug }));
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
-  const s = getServiceBySlug(slug);
-  if (!s) return {};
+  const base = getServiceBySlug(slug);
+  if (!base) return {};
+  const overlay = await getPublishedServiceOverlay(slug);
+  const s = mergeServiceWithCmsOverlay(base, overlay);
+  const seo = await getPublishedSeoForKey(`service:${slug}`);
   return {
-    title: `${s.name} | Palm Beach County`,
-    description: `${s.shortDescription} Licensed & insured. Request scope via ${SITE_NAME} quick access.`,
+    title: seo?.title ?? `${s.name} | Palm Beach County`,
+    description:
+      seo?.description ??
+      `${s.shortDescription} Licensed & insured. Request scope via ${SITE_NAME} quick access.`,
+    openGraph: seo?.og_image_url ? { images: [{ url: seo.og_image_url }] } : undefined,
+    robots:
+      seo?.robots_index === false || seo?.robots_follow === false
+        ? { index: seo.robots_index !== false, follow: seo.robots_follow !== false }
+        : undefined,
   };
 }
 
 export default async function ServiceDetailPage({ params }: Props) {
   const { slug } = await params;
-  const s = getServiceBySlug(slug);
-  if (!s) notFound();
+  const base = getServiceBySlug(slug);
+  if (!base) notFound();
+  const overlay = await getPublishedServiceOverlay(slug);
+  const s = mergeServiceWithCmsOverlay(base, overlay);
 
   const processSteps = s.process ?? DEFAULT_SERVICE_PROCESS;
   const locationParagraphs = serviceLocationSeoParagraphs(s.name);
@@ -85,12 +101,7 @@ export default async function ServiceDetailPage({ params }: Props) {
             Final pricing depends on property size, condition, access, and scope. Send photos for
             the fastest estimate.
           </p>
-          <a
-            href={LINKR_URL}
-            target="_blank"
-            rel={linkrRel}
-            className="btn-primary mt-5"
-          >
+          <a href={LINKR_URL} target="_blank" rel={linkrRel} className="btn-primary mt-5">
             Get a free quote
           </a>
         </section>

@@ -4,6 +4,8 @@ import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import { Inter } from "next/font/google";
 import { SiteChrome } from "@/components/site-chrome";
+import { getPublishedSiteShell, getPublishedTheme } from "@/lib/cms-queries";
+import type { MarketingRuntime } from "@/lib/cms-types";
 import { SITE_NAME, SITE_URL } from "@/lib/site";
 
 const SITE_DESCRIPTION =
@@ -32,11 +34,19 @@ const sans = Inter({
   display: "swap",
 });
 
-export default function RootLayout({ children }: { children: ReactNode }) {
+export default async function RootLayout({ children }: { children: ReactNode }) {
+  let marketing: MarketingRuntime = { shell: null, theme: null };
+  try {
+    const [shell, theme] = await Promise.all([getPublishedSiteShell(), getPublishedTheme()]);
+    marketing = { shell, theme };
+  } catch {
+    /* Supabase env or CMS tables not available — public chrome falls back to defaults */
+  }
+
   return (
     <html lang="en" className={sans.variable}>
       <body className={`${sans.className} min-h-screen antialiased`}>
-        <SiteChrome>
+        <SiteChrome marketing={marketing}>
           <main className="mx-auto w-full max-w-6xl px-6 pb-28 pt-6 md:pb-10">{children}</main>
         </SiteChrome>
       </body>

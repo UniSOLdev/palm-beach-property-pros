@@ -1,13 +1,19 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { getPublishedSeoForKey } from "@/lib/cms-queries";
 import { LINKR_URL, linkrRel } from "@/lib/linkr";
 import { SERVICES } from "@/lib/services";
 import { SITE_NAME } from "@/lib/site";
 
-export const metadata: Metadata = {
-  title: "Cleaning & Property Services",
-  description: `${SITE_NAME} — window cleaning, pressure washing, residential and commercial cleaning, detailing, carpet care, and maintenance in Palm Beach County. Licensed & insured.`,
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const seo = await getPublishedSeoForKey("services_index");
+  return {
+    title: seo?.title ?? "Cleaning & Property Services",
+    description:
+      seo?.description ??
+      `${SITE_NAME} — window cleaning, pressure washing, residential and commercial cleaning, detailing, carpet care, and maintenance in Palm Beach County. Licensed & insured.`,
+  };
+}
 
 export default function ServicesPage() {
   return (

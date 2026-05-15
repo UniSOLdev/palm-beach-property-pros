@@ -8,6 +8,12 @@ import type {
   JobRow,
 } from "@/lib/db-types";
 
+function numOrNull(v: unknown): number | null {
+  if (v == null || v === "") return null;
+  const n = Number(v);
+  return Number.isFinite(n) ? n : null;
+}
+
 export function parseCrewAssignments(raw: unknown): CrewAssignment[] {
   if (!Array.isArray(raw)) return [];
   const out: CrewAssignment[] = [];
@@ -17,7 +23,23 @@ export function parseCrewAssignments(raw: unknown): CrewAssignment[] {
     const name = String(r.name ?? "").trim();
     if (!name) continue;
     const role = r.role != null ? String(r.role).trim() : null;
-    out.push({ name, role: role || null });
+    const pay_type = r.pay_type != null ? String(r.pay_type).trim() : null;
+    out.push({
+      name,
+      role: role || null,
+      crew_member_id: r.crew_member_id ? String(r.crew_member_id) : null,
+      pay_type:
+        pay_type === "hourly" || pay_type === "flat" || pay_type === "percentage" || pay_type === "split"
+          ? pay_type
+          : null,
+      pay_rate_cents: numOrNull(r.pay_rate_cents),
+      hours: numOrNull(r.hours),
+      split_percent: numOrNull(r.split_percent),
+      is_lead: r.is_lead === true,
+      trainee_multiplier: numOrNull(r.trainee_multiplier),
+      flat_bonus_cents: numOrNull(r.flat_bonus_cents),
+      lead_bonus_percent: numOrNull(r.lead_bonus_percent),
+    });
   }
   return out;
 }

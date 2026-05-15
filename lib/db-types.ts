@@ -61,6 +61,38 @@ export type InvoiceRow = {
 export type CrewAssignment = {
   name: string;
   role: string | null;
+  crew_member_id?: string | null;
+  pay_type?: "hourly" | "flat" | "percentage" | "split" | null;
+  pay_rate_cents?: number | null;
+  hours?: number | null;
+  split_percent?: number | null;
+  is_lead?: boolean;
+  trainee_multiplier?: number | null;
+  flat_bonus_cents?: number | null;
+  lead_bonus_percent?: number | null;
+};
+
+export type CrewMemberRow = {
+  id: string;
+  full_name: string;
+  role: string;
+  status: string;
+  skill_level: string;
+  phone: string | null;
+  email: string | null;
+  notes: string | null;
+  certifications: string | null;
+  availability_notes: string | null;
+  default_pay_type: string;
+  default_pay_rate_cents: number;
+  default_pay_percent: number;
+  lead_bonus_percent: number;
+  trainee_pay_multiplier: number;
+  is_active: boolean;
+  performance_meta: Record<string, unknown>;
+  equipment_meta: Record<string, unknown>;
+  created_at: string;
+  updated_at: string;
 };
 
 export type JobRow = {

@@ -63,6 +63,12 @@ export default async function AdminDashboardPage() {
             Import expenses
           </Link>
           <Link
+            href="/admin/crew"
+            className="rounded-xl border border-white/15 px-5 py-2.5 text-sm font-semibold text-zinc-100 no-underline transition hover:bg-white/5"
+          >
+            Crew ops
+          </Link>
+          <Link
             href="/admin/supplies"
             className="rounded-xl border border-white/15 px-5 py-2.5 text-sm font-semibold text-zinc-100 no-underline transition hover:bg-white/5"
           >
@@ -123,6 +129,12 @@ export default async function AdminDashboardPage() {
               Ops inventory (depot) →
             </Link>{" "}
             <span className="text-zinc-600">— storage locations, crew loadouts, consumables & equipment.</span>
+          </li>
+          <li>
+            <Link href="/admin/crew" className="text-sky-300 no-underline hover:underline">
+              Crew operations →
+            </Link>{" "}
+            <span className="text-zinc-600">— roster, dispatch board, payout calculator, labor profitability.</span>
           </li>
           <li>
             <Link href="/admin/invoices/new" className="text-sky-300 no-underline hover:underline">

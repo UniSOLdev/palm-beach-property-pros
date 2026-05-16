@@ -2,6 +2,7 @@ export const dynamic = "force-dynamic";
 
 import { notFound } from "next/navigation";
 import { ClientEditor } from "@/components/admin/client-editor";
+import { RelatedTasksPanel } from "@/components/admin/related-tasks-panel";
 import { createServiceSupabase } from "@/lib/supabase/service";
 import type { ClientRow } from "@/lib/db-types";
 
@@ -12,5 +13,10 @@ export default async function AdminClientDetailPage({ params }: { params: Promis
   const supabase = createServiceSupabase();
   const { data } = await supabase.from("clients").select("*").eq("id", id).maybeSingle();
   if (!data) notFound();
-  return <ClientEditor client={data as ClientRow} />;
+  return (
+    <>
+      <ClientEditor client={data as ClientRow} />
+      <RelatedTasksPanel client_id={id} />
+    </>
+  );
 }

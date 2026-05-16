@@ -1,6 +1,7 @@
 export const dynamic = "force-dynamic";
 
 import Link from "next/link";
+import { TasksDashboardWidget } from "@/components/admin/tasks-dashboard-widget";
 import { loadOpsDashboardMetrics } from "@/lib/ops/analytics";
 
 export const metadata = {
@@ -113,9 +114,17 @@ export default async function AdminDashboardPage() {
         </div>
       </div>
 
+      <TasksDashboardWidget />
+
       <div className="mt-12 rounded-2xl border border-white/10 bg-gradient-to-br from-white/[0.06] to-transparent p-6 ring-1 ring-white/[0.05]">
         <h2 className="text-sm font-semibold text-white">Workflows</h2>
         <ul className="mt-4 space-y-2 text-sm text-zinc-400">
+          <li>
+            <Link href="/admin/tasks" className="text-sky-300 no-underline hover:underline">
+              Tasks / action list →
+            </Link>{" "}
+            <span className="text-zinc-600">— daily follow-ups, crew, admin, and invoice reminders.</span>
+          </li>
           <li>
             <Link href="/admin/jobs" className="text-sky-300 no-underline hover:underline">
               Jobs board →

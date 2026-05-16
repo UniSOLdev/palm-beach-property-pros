@@ -2,6 +2,7 @@ export const dynamic = "force-dynamic";
 
 import { notFound } from "next/navigation";
 import { InvoiceEditor } from "@/components/admin/invoice-editor";
+import { RelatedTasksPanel } from "@/components/admin/related-tasks-panel";
 import { createServiceSupabase } from "@/lib/supabase/service";
 import type { InvoiceRow } from "@/lib/db-types";
 
@@ -16,5 +17,11 @@ export default async function AdminInvoiceDetailPage({ params }: { params: Promi
     .eq("id", id)
     .maybeSingle();
   if (!data) notFound();
-  return <InvoiceEditor invoice={data as InvoiceRow & { clients?: { full_name: string } | null }} />;
+  const invoice = data as InvoiceRow & { clients?: { full_name: string } | null; client_id?: string | null };
+  return (
+    <>
+      <InvoiceEditor invoice={invoice} />
+      <RelatedTasksPanel invoice_id={id} client_id={invoice.client_id ?? undefined} />
+    </>
+  );
 }

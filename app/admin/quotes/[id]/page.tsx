@@ -2,6 +2,7 @@ export const dynamic = "force-dynamic";
 
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { RelatedTasksPanel } from "@/components/admin/related-tasks-panel";
 import { mapQuoteRow } from "@/lib/quote-serialization";
 import { createServiceSupabase } from "@/lib/supabase/service";
 
@@ -42,6 +43,7 @@ export default async function AdminQuoteReadPage({ params }: { params: Promise<{
       <p className="mt-6 text-xs text-zinc-600">
         Full quote editing lives in the operations console; this view confirms the record attached to a job.
       </p>
+      <RelatedTasksPanel quote_id={id} client_id={q.client_id ?? undefined} />
     </div>
   );
 }

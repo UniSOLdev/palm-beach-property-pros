@@ -2,6 +2,7 @@ export const dynamic = "force-dynamic";
 
 import { notFound } from "next/navigation";
 import { JobWorkspace } from "@/components/admin/job-workspace";
+import { RelatedTasksPanel } from "@/components/admin/related-tasks-panel";
 import { fetchRecentClientsForCombobox } from "@/lib/admin-recent-clients";
 import { fetchClientSummaryById } from "@/lib/client-queries";
 import { fetchJobDetailForAdmin } from "@/lib/job-queries";
@@ -21,5 +22,10 @@ export default async function AdminJobDetailPage({ params }: { params: Promise<{
     if (c) recentClients = [c, ...recentClients];
   }
 
-  return <JobWorkspace jobId={id} initialJob={job} recentClients={recentClients} />;
+  return (
+    <>
+      <JobWorkspace jobId={id} initialJob={job} recentClients={recentClients} />
+      <RelatedTasksPanel job_id={id} />
+    </>
+  );
 }

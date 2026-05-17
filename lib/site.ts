@@ -3,9 +3,9 @@ export const SITE_NAME = "Palm Beach Property Pros";
 export const TAGLINE =
   "One reliable local team for everything your property needs.";
 
-export const PHONE_DISPLAY = "561-629-2617";
-/** Footer SEO: dial link for displayed number. Primary CTAs use Linkr. */
-export const PHONE_TEL = "tel:15616292617";
+export const PHONE_DISPLAY = "561-764-7818";
+/** Dial link for displayed number; use on Call / click-to-call CTAs. */
+export const PHONE_TEL = "tel:15617647818";
 
 export const SERVICE_CITIES = [
   "West Palm Beach",

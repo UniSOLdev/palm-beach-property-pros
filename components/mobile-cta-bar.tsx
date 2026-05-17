@@ -1,4 +1,5 @@
 import { LINKR_URL, linkrRel } from "@/lib/linkr";
+import { PHONE_TEL } from "@/lib/site";
 
 export function MobileCtaBar() {
   return (
@@ -8,9 +9,7 @@ export function MobileCtaBar() {
         aria-label="Quick contact"
       >
         <a
-          href={LINKR_URL}
-          target="_blank"
-          rel={linkrRel}
+          href={PHONE_TEL}
           className="flex flex-col items-center justify-center rounded-lg py-2 text-xs font-semibold text-navy no-underline transition hover:bg-sky/50"
         >
           Call

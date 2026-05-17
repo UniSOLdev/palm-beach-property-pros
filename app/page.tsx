@@ -4,7 +4,7 @@ import { FaqAccordion } from "@/components/faq-accordion";
 import { FAQ_ITEMS } from "@/lib/faq";
 import { LINKR_URL, linkrRel } from "@/lib/linkr";
 import { SERVICES } from "@/lib/services";
-import { PHONE_DISPLAY, SERVICE_CITIES, SITE_NAME } from "@/lib/site";
+import { PHONE_DISPLAY, PHONE_TEL, SERVICE_CITIES, SITE_NAME } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: "Palm Beach County Window Cleaning, Pressure Washing & Property Maintenance",
@@ -63,7 +63,7 @@ export default function HomePage() {
             <a href={LINKR_URL} target="_blank" rel={linkrRel} className="btn-primary-lg">
               Get a Free Quote
             </a>
-            <a href={LINKR_URL} target="_blank" rel={linkrRel} className="btn-secondary-lg">
+            <a href={PHONE_TEL} className="btn-secondary-lg">
               Call {PHONE_DISPLAY}
             </a>
             <Link

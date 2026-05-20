@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { JobDetailView } from "@/components/admin/job-detail-view";
+import { listChangeOrdersForJob } from "@/lib/admin/actions/change-orders";
 import { getJobDetail } from "@/lib/admin/actions/jobs";
 import { listCrewOptions, listTasksForJob } from "@/lib/admin/actions/tasks";
 
@@ -35,7 +36,11 @@ export default async function JobDetailPage({ params }: { params: Promise<{ id: 
 
   if (!data) notFound();
 
-  const [jobTasks, crew] = await Promise.all([listTasksForJob(id), listCrewOptions()]);
+  const [jobTasks, crew, changeOrders] = await Promise.all([
+    listTasksForJob(id),
+    listCrewOptions(),
+    listChangeOrdersForJob(id),
+  ]);
 
-  return <JobDetailView data={data} jobTasks={jobTasks} crew={crew} />;
+  return <JobDetailView data={data} jobTasks={jobTasks} crew={crew} changeOrders={changeOrders} />;
 }

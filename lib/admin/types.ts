@@ -11,6 +11,7 @@ export type TaskRow = {
   job_id: string | null;
   client_id: string | null;
   invoice_id: string | null;
+  change_order_id: string | null;
   expense_id: string | null;
   assigned_crew_ids: string[];
   assigned_crew_member_id: string | null;
@@ -37,6 +38,7 @@ export type CreateTaskInput = {
   job_id?: string | null;
   client_id?: string | null;
   invoice_id?: string | null;
+  change_order_id?: string | null;
   expense_id?: string | null;
   assigned_crew_member_id?: string | null;
   assigned_crew_ids?: string[];

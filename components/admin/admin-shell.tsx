@@ -60,7 +60,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
         ) : null}
       </header>
 
-      <main className="mx-auto max-w-3xl px-4 pb-36 pt-4">{children}</main>
+      <main className="mx-auto max-w-3xl scroll-pt-20 px-4 pb-36 pt-4">{children}</main>
 
       {fabOpen ? (
         <div

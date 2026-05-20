@@ -12,23 +12,28 @@
 - ~~FAB dead query links~~ → tasks/expenses focus handlers
 - ~~Silent form failures~~ → inline errors on key admin forms
 - ~~Preview homepage mismatch vs production~~ → `PremiumHomePage` + dark header restored (`PUBLIC_ADMIN_SEPARATION_AUDIT.md`)
+- ~~Quote / change order builder placeholder~~ → Change orders + `/co/[publicId]` approval (`CHANGE_ORDER_REPORT.md`)
+- ~~Supplies read-only list~~ → Inventory CRUD, low-stock, job usage (`OVERNIGHT_STABILITY_REPORT.md`)
+- ~~Tasks page crash on recurring spawn~~ → Non-blocking try/catch
+- ~~Dashboard/jobs margin missing crew payouts~~ → `getCrewPayoutTotalsByJob`
+- ~~Receipt scan / auto-import~~ → Preview-confirm scanner (`RECEIPT_SCANNER_REPORT.md`); requires `OPENAI_API_KEY`
 
 ## High priority
 
-1. **Admin auth users** — Create Supabase Auth operator accounts for production use.
-2. **Public invoice RLS** — Consider tightening anon read to `public_id`-scoped access only.
-3. **Signed URL expiry** — Job photo URLs expire (~7 days); add refresh on view if long-lived links needed.
+1. **RLS on tasks/CMS/media** — Remote DB has RLS disabled on 6 tables (Supabase advisor); add policies before production (`BUG_REPORT.md` B-101).
+2. **Admin auth users** — Create Supabase Auth operator accounts for production use.
+3. **Public invoice RLS** — Consider tightening anon read to `public_id`-scoped access only.
+4. **Signed URL expiry** — Job photo URLs expire (~7 days); add refresh on view if long-lived links needed.
 
 ## Medium priority
 
 4. **Client / crew / supplies CRUD** — Crew list fixed; still no in-app create/edit forms.
-5. **Quote / change order builder** — Placeholder on job detail; DB has `quotes` table.
-6. **CMS visual editor** — JSON Site Studio only; public homepage is locked to `PremiumHomePage` until gated CMS publish exists.
-7. **Navigation + SEO admin UI** — Tables exist, no routes.
-8. **Recurring expense scheduler** — Column exists, no cron.
-9. **Crew payout calculator UI** — Display on job detail; no create form.
-10. **Legacy photo arrays** — Migrate `before_photo_urls` / `after_photo_urls` into `job_photos` or edit-only in dashboard.
-11. **Expense edit/delete** — Job detail can add expenses; no inline edit/remove yet.
+5. **CMS visual editor** — JSON Site Studio only; public homepage is locked to `PremiumHomePage` until gated CMS publish exists.
+6. **Navigation + SEO admin UI** — Tables exist, no routes.
+7. **Recurring expense scheduler** — Column exists, no cron.
+8. **Crew payout calculator UI** — Display on job detail; no create form.
+9. **Legacy photo arrays** — Migrate `before_photo_urls` / `after_photo_urls` into `job_photos` or edit-only in dashboard.
+10. **Expense edit/delete** — Job detail can add expenses; no inline edit/remove yet.
 
 ## Low priority
 

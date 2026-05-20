@@ -1,15 +1,17 @@
 import { createClient } from "@/lib/supabase/server";
+import { getCrewPayoutTotalsByJob } from "@/lib/admin/crew-payout-totals";
 import { calculateJobProfit } from "@/lib/admin/job-costing";
 import { isTaskOpen, normalizePriority } from "@/lib/admin/task-utils";
 
 export async function getDashboardStats() {
   const supabase = await createClient();
 
-  const [tasksRes, jobsRes, invoicesRes, expensesRes] = await Promise.all([
+  const [tasksRes, jobsRes, invoicesRes, expensesRes, crewPayoutMap] = await Promise.all([
     supabase.from("tasks").select("id, status, priority, due_date").eq("archived", false),
     supabase.from("jobs").select("*").eq("archived", false),
     supabase.from("invoices").select("id, payment_status, document_status").eq("archived", false),
     supabase.from("expenses").select("amount").eq("archived", false),
+    getCrewPayoutTotalsByJob(supabase),
   ]);
 
   const tasks = tasksRes.data ?? [];
@@ -38,6 +40,7 @@ export async function getDashboardStats() {
       dump_fee_cost: Number(job.dump_fee_cost ?? 0),
       truck_rental_cost: Number(job.truck_rental_cost ?? 0),
       equipment_cost: Number(job.equipment_cost ?? 0),
+      crew_payout_total: crewPayoutMap[job.id] ?? 0,
     });
     pipeline += Number(job.revenue);
     if (Number(job.revenue) > 0) {

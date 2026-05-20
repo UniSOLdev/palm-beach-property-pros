@@ -154,27 +154,16 @@ export async function addJobExpense(
     amount: number;
     payment_method: string;
     receipt_url?: string | null;
+    notes?: string | null;
   },
 ) {
-  const supabase = await createClient();
-  const { error } = await supabase.from("expenses").insert({
+  const { createExpense } = await import("@/lib/admin/actions/expenses");
+  await createExpense({
     ...input,
     job_id: jobId,
     expense_type: "Job",
     reimbursable: false,
-    reimbursed: false,
-    is_recurring: false,
   });
-  if (error) throw new Error(error.message);
-
-  const { data: job } = await supabase.from("jobs").select("job_expense_total").eq("id", jobId).single();
-  if (job) {
-    const nextTotal = Number(job.job_expense_total) + Number(input.amount);
-    await supabase.from("jobs").update({ job_expense_total: nextTotal }).eq("id", jobId);
-  }
-
-  revalidatePath(`/admin/jobs/${jobId}`);
-  revalidatePath("/admin/expenses");
 }
 
 export async function createInvoiceFromJob(jobId: string) {

@@ -14,7 +14,10 @@ import { EXPENSE_CATEGORIES, PAYMENT_METHODS } from "@/lib/admin/constants";
 import { formatCurrency, formatDate, formatPercent } from "@/lib/admin/format";
 import { calculateJobProfitDetail } from "@/lib/admin/job-profit";
 import { uploadAdminFile } from "@/lib/admin/upload";
+import { ChangeOrderJobPanel } from "@/components/admin/change-order-job-panel";
+import { ReceiptScannerFlow } from "@/components/admin/receipt-scanner-flow";
 import { TaskJobPanel } from "@/components/admin/task-job-panel";
+import type { ChangeOrderRow } from "@/lib/admin/types-change-orders";
 import type { CrewOption, TaskRow } from "@/lib/admin/types";
 import type { JobDetailPayload, JobPhotoCategory } from "@/lib/admin/types-jobs";
 
@@ -29,16 +32,19 @@ export function JobDetailView({
   data,
   jobTasks,
   crew,
+  changeOrders = [],
 }: {
   data: JobDetailPayload;
   jobTasks: TaskRow[];
   crew: CrewOption[];
+  changeOrders?: ChangeOrderRow[];
 }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [photoCategory, setPhotoCategory] = useState<JobPhotoCategory>("before");
   const [error, setError] = useState("");
   const [showExpenseForm, setShowExpenseForm] = useState(false);
+  const [showReceiptScanner, setShowReceiptScanner] = useState(false);
 
   const { job, photos, expenses, crewPayouts, crewNames } = data;
   const client = job.clients;
@@ -97,6 +103,9 @@ export function JobDetailView({
         <Stat label="Profit" value={formatCurrency(profit.profit)} highlight={profit.profit >= 0} />
         <Stat label="Margin" value={formatPercent(profit.margin)} />
       </div>
+      <p className="text-xs text-charcoal/55 leading-relaxed">
+        Job detail profit uses linked expenses and crew payouts (not the list rollup column). List/dashboard use synced job expense totals plus crew payouts.
+      </p>
 
       <section className="admin-card space-y-3">
         <h2 className="text-lg font-bold text-navy">Job details</h2>
@@ -123,6 +132,13 @@ export function JobDetailView({
           <p className="mt-2 whitespace-pre-wrap text-sm leading-relaxed text-charcoal/85">{job.internal_notes}</p>
         </section>
       ) : null}
+
+      <ChangeOrderJobPanel
+        jobId={job.id}
+        clientId={job.client_id}
+        invoiceId={job.invoice_id}
+        orders={changeOrders}
+      />
 
       <TaskJobPanel jobId={job.id} clientId={job.client_id} tasks={jobTasks} crew={crew} />
 
@@ -174,19 +190,45 @@ export function JobDetailView({
       </section>
 
       <section className="admin-card space-y-3">
-        <div className="flex items-center justify-between gap-2">
+        <div className="flex flex-wrap items-center justify-between gap-2">
           <h2 className="text-lg font-bold text-navy">Job expenses</h2>
-          <button
-            type="button"
-            className="admin-btn-secondary min-h-[44px] px-3 text-xs"
-            onClick={() => setShowExpenseForm((v) => !v)}
-          >
-            {showExpenseForm ? "Cancel" : "Add"}
-          </button>
+          <div className="flex flex-wrap gap-2">
+            <button
+              type="button"
+              className="admin-btn min-h-[48px] px-3 text-xs"
+              onClick={() => {
+                setShowReceiptScanner(true);
+                setShowExpenseForm(false);
+              }}
+            >
+              Scan receipt
+            </button>
+            <button
+              type="button"
+              className="admin-btn-secondary min-h-[48px] px-3 text-xs"
+              onClick={() => {
+                setShowExpenseForm((v) => !v);
+                setShowReceiptScanner(false);
+              }}
+            >
+              {showExpenseForm ? "Cancel" : "Manual"}
+            </button>
+          </div>
         </div>
         <p className="text-sm text-charcoal/70">
           Subtotal: <span className="font-bold text-navy">{formatCurrency(profit.linkedExpenses)}</span>
         </p>
+        {showReceiptScanner ? (
+          <ReceiptScannerFlow
+            defaultJobId={job.id}
+            storagePrefix={`jobs/${job.id}`}
+            onCancel={() => setShowReceiptScanner(false)}
+            onSaved={() => {
+              setShowReceiptScanner(false);
+              router.refresh();
+            }}
+          />
+        ) : null}
         {showExpenseForm ? (
           <form
             className="space-y-3 border-t border-navy/10 pt-3"
@@ -221,7 +263,7 @@ export function JobDetailView({
               className="admin-input"
               defaultValue={new Date().toISOString().slice(0, 10)}
             />
-            <select name="category" className="admin-input" defaultValue="Supplies">
+            <select name="category" className="admin-input" defaultValue="Misc">
               {EXPENSE_CATEGORIES.map((c) => (
                 <option key={c} value={c}>
                   {c}
@@ -287,9 +329,11 @@ export function JobDetailView({
 
       <section className="admin-card space-y-2 text-sm">
         <h2 className="text-lg font-bold text-navy">Cost breakdown</h2>
+        <p className="text-xs text-charcoal/55">Excludes double-counting: linked line-item expenses only (not jobs.job_expense_total).</p>
         <Row label="Linked expenses" value={formatCurrency(profit.linkedExpenses)} />
         <Row label="Crew payouts" value={formatCurrency(profit.crewPayouts)} />
         <Row label="Labor / materials / fuel / equipment" value={formatCurrency(profit.directCosts)} />
+        <Row label="Total cost" value={formatCurrency(profit.totalCost)} bold />
       </section>
 
       <div id="job-print-area" className="hidden print:block">
@@ -340,11 +384,11 @@ function DetailRow({ label, value }: { label: string; value: string }) {
   );
 }
 
-function Row({ label, value }: { label: string; value: string }) {
+function Row({ label, value, bold }: { label: string; value: string; bold?: boolean }) {
   return (
-    <div className="flex justify-between gap-2">
-      <span className="text-charcoal/70">{label}</span>
-      <span className="font-semibold text-navy">{value}</span>
+    <div className={`flex justify-between gap-2 ${bold ? "border-t border-navy/10 pt-2" : ""}`}>
+      <span className={bold ? "font-bold text-navy" : "text-charcoal/70"}>{label}</span>
+      <span className={`text-navy ${bold ? "text-lg font-bold" : "font-semibold"}`}>{value}</span>
     </div>
   );
 }
@@ -420,14 +464,12 @@ function JobActionBar({
             Create invoice
           </button>
         )}
-        <button
-          type="button"
-          className="admin-btn-secondary min-h-[48px] text-xs opacity-60"
-          disabled
-          title="Quote builder coming soon"
+        <Link
+          href={`/admin/change-orders/new?jobId=${jobId}`}
+          className="admin-btn-secondary min-h-[48px] text-center text-xs no-underline"
         >
-          Quote (soon)
-        </button>
+          Change order
+        </Link>
         <div className="col-span-2 sm:col-span-1">
           <PrintButton label="Print summary" className="admin-btn-secondary min-h-[48px] w-full text-xs" />
         </div>

@@ -16,15 +16,20 @@ type Expense = {
   reimbursable: boolean;
 };
 
+type JobOption = { id: string; label: string };
+
 export function ExpenseManagerClient({
   initial,
   crew,
+  jobs = [],
 }: {
   initial: Expense[];
   crew: CrewOption[];
+  jobs?: JobOption[];
 }) {
   const searchParams = useSearchParams();
   const focus = searchParams.get("focus");
-  const initialFocus = focus === "receipt" || focus === "form" ? focus : null;
-  return <ExpenseManager initial={initial} crew={crew} initialFocus={initialFocus} />;
+  const initialFocus =
+    focus === "receipt" || focus === "scan" ? "scan" : focus === "form" ? "form" : null;
+  return <ExpenseManager initial={initial} crew={crew} jobs={jobs} initialFocus={initialFocus} />;
 }

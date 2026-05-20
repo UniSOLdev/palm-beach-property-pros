@@ -28,8 +28,12 @@ export default async function WebsiteAdminPage() {
     <div className="space-y-4">
       <AdminPageHeader
         title="Site Studio"
-        subtitle="Homepage sections, galleries, SEO — database-driven CMS"
+        subtitle="CMS for future publish — does not change the live homepage"
       />
+      <p className="rounded-xl border border-ocean/25 bg-sky/30 px-4 py-3 text-sm leading-relaxed text-navy">
+        <strong>Public homepage is locked</strong> to the premium marketing page. Saving sections here updates the database only and does not affect{" "}
+        <code className="text-xs">/</code> until a gated publish workflow is built.
+      </p>
       <Link href="/admin/website/media" className="admin-btn-secondary inline-flex no-underline">
         Open media library
       </Link>

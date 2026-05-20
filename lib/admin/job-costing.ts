@@ -10,6 +10,10 @@ export type JobCostInput = {
   crew_payout_total?: number;
 };
 
+/**
+ * List/dashboard rollup: uses jobs.job_expense_total (synced when adding job expenses)
+ * plus on-job cost fields and optional crew_payout_total. Does not load expense line items.
+ */
 export function calculateJobProfit(job: JobCostInput) {
   const actualCosts =
     Number(job.job_expense_total) +

@@ -5,7 +5,7 @@
 ### Environment and database
 
 - [ ] Confirm Supabase project `palm-beach-property-pros` is **ACTIVE**
-- [ ] Migrations applied: `admin_platform_tasks_cms_media_rls`, `seed_home_cms_sections`, `job_photos_table`, `tasks_operational_fields`
+- [ ] Migrations applied: `admin_platform_tasks_cms_media_rls`, `seed_home_cms_sections`, `job_photos_table`, `tasks_operational_fields`, `change_orders_scope_approval`, `supplies_inventory_upgrade`
 - [ ] Create at least one **Supabase Auth** user (email/password) for admin access
 - [ ] Verify RLS: authenticated user can `select` from `tasks`, `invoices`, `jobs`
 
@@ -16,6 +16,8 @@ NEXT_PUBLIC_SUPABASE_URL=https://pfojtrfkeoeymmtkvijo.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=<anon or publishable key>
 # Optional for future server automations:
 SUPABASE_SERVICE_ROLE_KEY=<server only — never NEXT_PUBLIC>
+# Receipt scanner (server-side OpenAI Vision — never NEXT_PUBLIC)
+OPENAI_API_KEY=<openai_api_key>
 ```
 
 ### Build and homepage lock (run locally or in CI)
@@ -38,8 +40,13 @@ npm run build
 - [ ] `/admin` works after login (dashboard + tasks hub)
 - [ ] `/admin/jobs/[id]` works (job command center)
 - [ ] `/admin/tasks` works
+- [ ] `/admin/supplies` — add item, adjust qty, low-stock banner, log job usage
 - [ ] `/i/[publicId]` works (public invoice)
-- [ ] **Middleware only protects `/admin/*`** — `/`, `/quote`, `/services`, `/i/*` load without auth redirect
+- [ ] `/co/[publicId]` works (change order approval — sent status only)
+- [ ] `/admin/change-orders` — create from job, mark sent, copy link
+- [ ] `/admin/expenses` — scan receipt, confirm fields, save (or manual fallback without `OPENAI_API_KEY`)
+- [ ] `/admin/jobs/[id]` — scan receipt with job pre-linked
+- [ ] **Middleware only protects `/admin/*`** — `/`, `/quote`, `/services`, `/i/*`, `/co/*` load without auth redirect
 
 ---
 

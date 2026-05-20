@@ -6,7 +6,11 @@ export const dynamic = "force-dynamic";
 export const metadata = { title: "Tasks" };
 
 export default async function AdminTasksPage() {
-  await spawnRecurringTasks();
+  try {
+    await spawnRecurringTasks();
+  } catch {
+    /* non-blocking */
+  }
   const [tasks, crew] = await Promise.all([listTasks(), listCrewOptions()]);
 
   return (

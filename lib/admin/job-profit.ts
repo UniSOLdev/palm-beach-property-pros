@@ -10,7 +10,10 @@ export type JobProfitBreakdown = {
   margin: number;
 };
 
-/** Profit from job-linked expenses + crew payouts + on-job cost fields (excludes generic overhead). */
+/**
+ * Job command center profit: linked expense rows + crew payouts + on-job cost fields.
+ * Does not use jobs.job_expense_total (avoids double-count with linked expenses).
+ */
 export function calculateJobProfitDetail(input: {
   revenue: number;
   expenses: JobExpenseRow[];

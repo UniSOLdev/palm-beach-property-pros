@@ -1,15 +1,7 @@
-export const EXPENSE_CATEGORIES = [
-  "Fuel",
-  "Dump Fees",
-  "Labor",
-  "Equipment",
-  "Supplies",
-  "Chemicals",
-  "Truck Rental",
-  "Marketing",
-  "Software",
-  "Meals",
-] as const;
+import { RECEIPT_EXPENSE_CATEGORIES } from "@/lib/admin/receipt-categories";
+
+/** @deprecated use RECEIPT_EXPENSE_CATEGORIES — kept as alias for forms */
+export const EXPENSE_CATEGORIES = RECEIPT_EXPENSE_CATEGORIES;
 
 export const PAYMENT_METHODS = ["Cash", "Zelle", "Card", "Check", "Venmo", "Other"] as const;
 
@@ -25,6 +17,7 @@ export const ADMIN_NAV = [
 ] as const;
 
 export const ADMIN_MORE_NAV = [
+  { href: "/admin/change-orders", label: "Change Orders" },
   { href: "/admin/supplies", label: "Supplies" },
   { href: "/admin/crew", label: "Crew" },
   { href: "/admin/clients", label: "Clients" },
@@ -34,9 +27,10 @@ export const ADMIN_MORE_NAV = [
 
 export const QUICK_ACTIONS = [
   { href: "/admin/invoices/new", label: "New Invoice", icon: "📄" },
-  { href: "/admin/expenses?focus=receipt", label: "Upload Receipt", icon: "🧾" },
+  { href: "/admin/expenses?focus=scan", label: "Scan Receipt", icon: "🧾" },
   { href: "/admin/expenses?focus=form", label: "Add Expense", icon: "💳" },
   { href: "/admin/tasks?new=1", label: "Add Task", icon: "✓" },
   { href: "/admin/tasks?new=1", label: "Job Note", icon: "📝" },
   { href: "/admin/jobs", label: "Open Jobs", icon: "📷" },
+  { href: "/admin/supplies", label: "Supplies", icon: "📦" },
 ] as const;

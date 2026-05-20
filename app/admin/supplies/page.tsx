@@ -1,25 +1,31 @@
-import { AdminPageHeader, EmptyState } from "@/components/admin/entity-list";
-import { createClient } from "@/lib/supabase/server";
+import { SuppliesManager } from "@/components/admin/supplies-manager";
+import { AdminPageHeader } from "@/components/admin/entity-list";
+import { listJobsForSupplyUsage, listSupplies } from "@/lib/admin/actions/supplies";
+import type { SupplyRow } from "@/lib/admin/types-supplies";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Supplies" };
 
-export default async function Page() {
-  const supabase = await createClient();
-  const { data, error } = await supabase.from("supplies").select("*").eq("archived", false).order("name");
+export default async function SuppliesPage() {
+  let supplies: SupplyRow[] = [];
+  let jobs: { id: string; label: string }[] = [];
+  let loadError = "";
+
+  try {
+    [supplies, jobs] = await Promise.all([listSupplies(), listJobsForSupplyUsage()]);
+  } catch (e) {
+    loadError = e instanceof Error ? e.message : "Could not load supplies";
+    supplies = [];
+    jobs = [];
+  }
+
   return (
     <div className="space-y-4">
-      <AdminPageHeader title="Supplies" subtitle="Operational supplies" />
-      {error ? (
-        <p className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">Could not load supplies: {error.message}</p>
+      <AdminPageHeader title="Supplies" subtitle="Inventory, low-stock alerts, job usage" />
+      {loadError ? (
+        <p className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">{loadError}</p>
       ) : null}
-      <ul className="space-y-3">
-        {!data?.length ? <EmptyState>No records yet.</EmptyState> : data.map((row) => (
-          <li key={row.id} className="admin-card">
-            <p className="font-semibold text-navy">{row.name}</p>
-          </li>
-        ))}
-      </ul>
+      <SuppliesManager initial={supplies} jobs={jobs} />
     </div>
   );
 }

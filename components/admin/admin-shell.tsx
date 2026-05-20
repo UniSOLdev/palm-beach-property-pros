@@ -7,8 +7,18 @@ import { ADMIN_MORE_NAV, ADMIN_NAV, QUICK_ACTIONS } from "@/lib/admin/constants"
 
 export function AdminShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
+  const isLogin = pathname === "/admin/login";
   const [fabOpen, setFabOpen] = useState(false);
   const [moreOpen, setMoreOpen] = useState(false);
+
+  if (isLogin) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-cream via-white to-sky/20 px-4 py-8 text-charcoal">
+        <div className="mx-auto max-w-md">{children}</div>
+      </div>
+    );
+  }
+
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-cream via-white to-sky/20 text-charcoal">

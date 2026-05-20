@@ -1,4 +1,5 @@
-import { TasksBoard } from "@/components/admin/tasks-board";
+import { Suspense } from "react";
+import { TasksBoardClient } from "@/components/admin/tasks-board-client";
 import { listCrewOptions, listTasks, spawnRecurringTasks } from "@/lib/admin/actions/tasks";
 
 export const dynamic = "force-dynamic";
@@ -16,7 +17,9 @@ export default async function AdminTasksPage() {
           Daily command center — jobs, invoices, clients, and field follow-ups.
         </p>
       </div>
-      <TasksBoard initialTasks={tasks} crew={crew} />
+      <Suspense fallback={<p className="text-sm text-charcoal/60">Loading tasks…</p>}>
+        <TasksBoardClient initialTasks={tasks} crew={crew} />
+      </Suspense>
     </div>
   );
 }

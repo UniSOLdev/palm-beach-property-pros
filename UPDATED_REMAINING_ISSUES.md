@@ -1,12 +1,16 @@
 # Updated Remaining Issues
 
-*After task system integration (May 20, 2026)*
+*After production audit / stabilization (May 20, 2026)*
 
 ## Resolved
 
 - ~~Job detail + photo upload UI~~ → `/admin/jobs/[id]` with categorized uploads, expenses, invoice from job
 - ~~Invoice `job_id` wiring~~ → `createInvoiceFromJob` + `createInvoiceDraft({ job_id })`
 - ~~Central task / operations checklist~~ → `/admin/tasks` hub, dashboard sections, cross-page quick-add, job task panel, optional checklists (`TASK_SYSTEM_REPORT.md`)
+- ~~Crew page wrong table~~ → `/admin/crew` uses `crew_members`
+- ~~Login wrapped in ops shell~~ → login uses minimal layout
+- ~~FAB dead query links~~ → tasks/expenses focus handlers
+- ~~Silent form failures~~ → inline errors on key admin forms
 
 ## High priority
 
@@ -16,7 +20,7 @@
 
 ## Medium priority
 
-4. **Client / crew / supplies CRUD** — Still list-only outside job context.
+4. **Client / crew / supplies CRUD** — Crew list fixed; still no in-app create/edit forms.
 5. **Quote / change order builder** — Placeholder on job detail; DB has `quotes` table.
 6. **CMS visual editor** — JSON Site Studio only.
 7. **Navigation + SEO admin UI** — Tables exist, no routes.

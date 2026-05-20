@@ -7,12 +7,19 @@ export const dynamic = "force-dynamic";
 export default async function PublicInvoicePage({ params }: { params: Promise<{ publicId: string }> }) {
   const { publicId } = await params;
   const supabase = await createClient();
-  const { data: inv } = await supabase
+  const { data: inv, error: invError } = await supabase
     .from("invoices")
     .select("*, clients(name, address)")
     .eq("public_id", publicId)
     .eq("archived", false)
     .maybeSingle();
+  if (invError) {
+    return (
+      <main className="min-h-screen bg-cream px-4 py-10">
+        <p className="text-center text-sm text-red-700">Unable to load invoice. Please contact Palm Beach Property Pros.</p>
+      </main>
+    );
+  }
   if (!inv) notFound();
 
   const { data: items } = await supabase

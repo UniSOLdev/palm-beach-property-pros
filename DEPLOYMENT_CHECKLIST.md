@@ -46,8 +46,10 @@ npm run type-check
 - [ ] `/admin/jobs/[id]` — upload before/after photo, add job expense, create invoice  
 - [ ] `/admin/jobs/[id]/edit` — save status/revenue/cost fields  
 
-### Mobile (iPhone)
-- [ ] Bottom nav + FAB do not overlap  
+### Mobile (iPhone) — see `QA_RESULTS.md`
+- [ ] Login page has no bottom nav/FAB  
+- [ ] Bottom nav + FAB do not overlap main content  
+- [ ] FAB → Add Task opens modal; Upload Receipt focuses expense form  
 - [ ] Camera receipt capture  
 - [ ] One-handed task complete  
 - [ ] Job detail sticky action bar clears bottom nav (no overlap)  

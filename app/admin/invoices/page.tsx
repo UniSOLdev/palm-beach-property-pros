@@ -3,7 +3,7 @@ import Link from "next/link";
 import { TaskQuickAdd } from "@/components/admin/task-quick-add";
 import { AdminPageHeader, EmptyState } from "@/components/admin/entity-list";
 import { listCrewOptions } from "@/lib/admin/actions/tasks";
-import { formatCurrency, formatDate } from "@/lib/admin/format";
+import { formatDate } from "@/lib/admin/format";
 import { createClient } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";

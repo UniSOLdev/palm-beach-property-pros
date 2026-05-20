@@ -9,7 +9,19 @@ type Client = { id: string; name: string };
 export function InvoiceBuilder({ clients }: { clients: Client[] }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
+  const [error, setError] = useState("");
   const [lines, setLines] = useState([{ description: "", quantity: 1, unit_price: 0 }]);
+
+  if (clients.length === 0) {
+    return (
+      <div className="admin-card space-y-3">
+        <p className="text-sm text-charcoal/70">Add a client in Supabase before creating invoices.</p>
+        <a href="/admin/clients" className="admin-btn-secondary inline-flex no-underline">
+          View clients
+        </a>
+      </div>
+    );
+  }
 
   return (
     <form
@@ -18,17 +30,23 @@ export function InvoiceBuilder({ clients }: { clients: Client[] }) {
         e.preventDefault();
         const fd = new FormData(e.currentTarget);
         startTransition(async () => {
-          const id = await createInvoiceDraft({
-            client_id: String(fd.get("client_id")),
-            due_date: String(fd.get("due_date") || "") || undefined,
-            terms: String(fd.get("terms") || "") || undefined,
-            lines: lines.filter((l) => l.description.trim()),
-          });
-          router.push(`/admin/invoices/${id}`);
+          setError("");
+          try {
+            const id = await createInvoiceDraft({
+              client_id: String(fd.get("client_id")),
+              due_date: String(fd.get("due_date") || "") || undefined,
+              terms: String(fd.get("terms") || "") || undefined,
+              lines: lines.filter((l) => l.description.trim()),
+            });
+            router.push(`/admin/invoices/${id}`);
+          } catch (err) {
+            setError(err instanceof Error ? err.message : "Could not save invoice");
+          }
         });
       }}
     >
       <h2 className="text-lg font-bold text-navy">New invoice</h2>
+      {error ? <p className="text-sm text-red-600">{error}</p> : null}
       <label className="block text-sm font-medium text-navy">
         Client
         <select name="client_id" required className="admin-input">

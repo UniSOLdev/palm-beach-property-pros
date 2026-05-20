@@ -8,7 +8,11 @@ export const dynamic = "force-dynamic";
 export const metadata = { title: "Dashboard" };
 
 export default async function AdminDashboardPage() {
-  await spawnRecurringTasks();
+  try {
+    await spawnRecurringTasks();
+  } catch {
+    /* non-blocking: dashboard still loads if recurring spawn fails */
+  }
   const [stats, tasks, crew] = await Promise.all([
     getDashboardStats(),
     listTasks(),

@@ -166,6 +166,13 @@ export async function addJobExpense(
     is_recurring: false,
   });
   if (error) throw new Error(error.message);
+
+  const { data: job } = await supabase.from("jobs").select("job_expense_total").eq("id", jobId).single();
+  if (job) {
+    const nextTotal = Number(job.job_expense_total) + Number(input.amount);
+    await supabase.from("jobs").update({ job_expense_total: nextTotal }).eq("id", jobId);
+  }
+
   revalidatePath(`/admin/jobs/${jobId}`);
   revalidatePath("/admin/expenses");
 }

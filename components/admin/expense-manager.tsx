@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import { TaskQuickAdd } from "@/components/admin/task-quick-add";
 import { createExpense } from "@/lib/admin/actions/expenses";
 import type { CrewOption } from "@/lib/admin/types";
@@ -20,37 +20,66 @@ type Expense = {
   reimbursable: boolean;
 };
 
-export function ExpenseManager({ initial, crew }: { initial: Expense[]; crew: CrewOption[] }) {
+export function ExpenseManager({
+  initial,
+  crew,
+  initialFocus,
+}: {
+  initial: Expense[];
+  crew: CrewOption[];
+  initialFocus?: "form" | "receipt" | null;
+}) {
   const [pending, startTransition] = useTransition();
   const [receiptPreview, setReceiptPreview] = useState<string | null>(null);
+  const [error, setError] = useState("");
+  const formRef = useRef<HTMLFormElement>(null);
+  const receiptRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (initialFocus === "form") {
+      formRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+    if (initialFocus === "receipt") {
+      formRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+      receiptRef.current?.focus();
+    }
+  }, [initialFocus]);
 
   return (
     <div className="space-y-4">
+      {error ? <p className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">{error}</p> : null}
       <form
+        ref={formRef}
+        id="expense-form"
         className="admin-card space-y-3"
         onSubmit={(e) => {
           e.preventDefault();
           const fd = new FormData(e.currentTarget);
           startTransition(async () => {
-            let receipt_url: string | null = null;
-            const file = (fd.get("receipt") as File | null) ?? null;
-            if (file && file.size > 0) {
-              const uploaded = await uploadAdminFile("receipts", file, "expenses");
-              receipt_url = uploaded.publicUrl;
+            setError("");
+            try {
+              let receipt_url: string | null = null;
+              const file = (fd.get("receipt") as File | null) ?? null;
+              if (file && file.size > 0) {
+                const uploaded = await uploadAdminFile("receipts", file, "expenses");
+                receipt_url = uploaded.publicUrl;
+              }
+              await createExpense({
+                expense_date: String(fd.get("expense_date")),
+                category: String(fd.get("category")),
+                vendor: String(fd.get("vendor")),
+                description: String(fd.get("description")),
+                amount: Number(fd.get("amount")),
+                payment_method: String(fd.get("payment_method")),
+                receipt_url,
+                reimbursable: fd.get("reimbursable") === "on",
+              });
+              e.currentTarget.reset();
+              setReceiptPreview(null);
+              window.location.reload();
+            } catch (err) {
+              setError(err instanceof Error ? err.message : "Could not save expense");
             }
-            await createExpense({
-              expense_date: String(fd.get("expense_date")),
-              category: String(fd.get("category")),
-              vendor: String(fd.get("vendor")),
-              description: String(fd.get("description")),
-              amount: Number(fd.get("amount")),
-              payment_method: String(fd.get("payment_method")),
-              receipt_url,
-              reimbursable: fd.get("reimbursable") === "on",
-            });
-            e.currentTarget.reset();
-            setReceiptPreview(null);
-            window.location.reload();
           });
         }}
       >
@@ -80,6 +109,7 @@ export function ExpenseManager({ initial, crew }: { initial: Expense[]; crew: Cr
         <label className="block text-sm font-medium text-navy">
           Receipt photo
           <input
+            ref={receiptRef}
             type="file"
             name="receipt"
             accept="image/*"

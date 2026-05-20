@@ -34,9 +34,9 @@ export const ADMIN_MORE_NAV = [
 
 export const QUICK_ACTIONS = [
   { href: "/admin/invoices/new", label: "New Invoice", icon: "📄" },
-  { href: "/admin/expenses?new=receipt", label: "Upload Receipt", icon: "🧾" },
-  { href: "/admin/expenses?new=1", label: "Add Expense", icon: "💳" },
+  { href: "/admin/expenses?focus=receipt", label: "Upload Receipt", icon: "🧾" },
+  { href: "/admin/expenses?focus=form", label: "Add Expense", icon: "💳" },
   { href: "/admin/tasks?new=1", label: "Add Task", icon: "✓" },
-  { href: "/admin/jobs?note=1", label: "Job Note", icon: "📝" },
-  { href: "/admin/jobs?photos=1", label: "Before/After", icon: "📷" },
+  { href: "/admin/tasks?new=1", label: "Job Note", icon: "📝" },
+  { href: "/admin/jobs", label: "Open Jobs", icon: "📷" },
 ] as const;

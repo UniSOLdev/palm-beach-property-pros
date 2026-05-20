@@ -77,7 +77,7 @@ export function JobDetailView({
   }
 
   return (
-    <div className="space-y-4 pb-28">
+    <div className="space-y-4 pb-36">
       <div className="flex items-start justify-between gap-3">
         <div>
           <Link href="/admin/jobs" className="text-sm font-semibold text-ocean no-underline">

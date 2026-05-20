@@ -1,4 +1,5 @@
-import { ExpenseManager } from "@/components/admin/expense-manager";
+import { Suspense } from "react";
+import { ExpenseManagerClient } from "@/components/admin/expense-manager-client";
 import { TaskQuickAdd } from "@/components/admin/task-quick-add";
 import { TaskWorkflowBar } from "@/components/admin/task-workflow-bar";
 import { AdminPageHeader } from "@/components/admin/entity-list";
@@ -22,7 +23,9 @@ export default async function AdminExpensesPage() {
       <AdminPageHeader title="Expenses" subtitle="Receipts, categories, reimbursements" actionHref="/admin/tasks" actionLabel="All tasks" />
       <TaskQuickAdd crew={crew} variant="primary" label="+ Add expense task" className="w-full" defaults={{ category: "Expense/Receipt" }} />
       <TaskWorkflowBar context="expense" defaults={{ category: "Expense/Receipt" }} />
-      <ExpenseManager initial={data ?? []} crew={crew} />
+      <Suspense fallback={<p className="text-sm text-charcoal/60">Loading expenses…</p>}>
+        <ExpenseManagerClient initial={data ?? []} crew={crew} />
+      </Suspense>
     </div>
   );
 }

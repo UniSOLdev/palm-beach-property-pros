@@ -121,13 +121,22 @@ function SortableTask({
   );
 }
 
-export function TasksBoard({ initialTasks, crew }: { initialTasks: TaskRow[]; crew: CrewOption[] }) {
+export function TasksBoard({
+  initialTasks,
+  crew,
+  openNewOnMount = false,
+}: {
+  initialTasks: TaskRow[];
+  crew: CrewOption[];
+  openNewOnMount?: boolean;
+}) {
   const router = useRouter();
   const [view, setView] = useState<TaskView>("today");
   const [tasks, setTasks] = useState(initialTasks);
-  const [modalOpen, setModalOpen] = useState(false);
+  const [modalOpen, setModalOpen] = useState(openNewOnMount);
   const [editing, setEditing] = useState<TaskRow | null>(null);
   const [pending, startTransition] = useTransition();
+  const [actionError, setActionError] = useState("");
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 8 } }));
 
@@ -151,6 +160,7 @@ export function TasksBoard({ initialTasks, crew }: { initialTasks: TaskRow[]; cr
 
   return (
     <div className="space-y-4 pb-8">
+      {actionError ? <p className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">{actionError}</p> : null}
       <div className="flex gap-2 overflow-x-auto pb-1">
         {TASK_VIEWS.map((v) => (
           <button
@@ -185,9 +195,14 @@ export function TasksBoard({ initialTasks, crew }: { initialTasks: TaskRow[]; cr
                   canMoveDown={index < visible.length - 1}
                   onComplete={(id) =>
                     startTransition(async () => {
-                      await quickCompleteTask(id);
-                      setTasks((prev) => prev.map((t) => (t.id === id ? { ...t, status: "done" } : t)));
-                      router.refresh();
+                      setActionError("");
+                      try {
+                        await quickCompleteTask(id);
+                        setTasks((prev) => prev.map((t) => (t.id === id ? { ...t, status: "done" } : t)));
+                        router.refresh();
+                      } catch (err) {
+                        setActionError(err instanceof Error ? err.message : "Could not complete task");
+                      }
                     })
                   }
                   onEdit={(t) => {

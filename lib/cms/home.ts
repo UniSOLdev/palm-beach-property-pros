@@ -32,6 +32,7 @@ export const HOME_CMS_DEFAULTS: Record<string, Record<string, unknown>> = {
   results_gallery: { items: [] as { label: string; image_url?: string }[] },
 };
 
+/** Admin / Site Studio only — do not import from app/(site)/page.tsx or PremiumHomePage. */
 export async function getHomeCmsSections(): Promise<Record<string, Record<string, unknown>>> {
   try {
     const supabase = await createClient();

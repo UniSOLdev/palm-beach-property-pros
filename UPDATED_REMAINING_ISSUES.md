@@ -36,7 +36,14 @@
 13. **npm audit** — Dependency advisories from prior install.
 14. **Ops branch** — `internal-walkthrough-fe71` superseded by `/admin`.
 
+## Public homepage regression (mitigated)
+
+- **What happened:** Admin/CMS integration (`getHomeCmsSections()` in `app/(site)/page.tsx`) replaced the live premium homepage with a light “Done Right” CMS-driven layout on preview deploys.
+- **Current mitigation:** Public `/` renders the locked `PremiumHomePage` component only—no runtime CMS reads on the homepage.
+- **Guardrails:** `PUBLIC_SITE_PROTECTION.md`, `npm run verify:public-homepage`, pre-deploy checks in `DEPLOYMENT_CHECKLIST.md`.
+- **Future improvement:** Gated **publish-to-site** flow from Site Studio so CMS edits can update the marketing site only after explicit operator approval.
+
 ## Production safety
 
 - RLS remains enabled; no service role in browser.
-- Marketing site under `app/(site)/` untouched except print CSS in global stylesheet.
+- Marketing homepage is locked; other `app/(site)/` pages unchanged unless explicitly requested.

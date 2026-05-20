@@ -1,6 +1,8 @@
 
 import Link from "next/link";
+import { TaskQuickAdd } from "@/components/admin/task-quick-add";
 import { AdminPageHeader, EmptyState } from "@/components/admin/entity-list";
+import { listCrewOptions } from "@/lib/admin/actions/tasks";
 import { formatCurrency, formatDate } from "@/lib/admin/format";
 import { createClient } from "@/lib/supabase/server";
 
@@ -8,6 +10,7 @@ export const dynamic = "force-dynamic";
 export const metadata = { title: "Invoices" };
 
 export default async function AdminInvoicesPage() {
+  const crew = await listCrewOptions();
   const supabase = await createClient();
   const { data } = await supabase
     .from("invoices")
@@ -18,6 +21,7 @@ export default async function AdminInvoicesPage() {
   return (
     <div className="space-y-4">
       <AdminPageHeader title="Invoices" subtitle="Drafts, sent, payments" actionHref="/admin/invoices/new" actionLabel="New invoice" />
+      <TaskQuickAdd crew={crew} variant="secondary" label="+ Add invoice task" className="w-full" defaults={{ category: "Invoice Follow-Up" }} />
       <ul className="space-y-3">
         {!data?.length ? (
           <EmptyState>No invoices yet.</EmptyState>
@@ -33,9 +37,21 @@ export default async function AdminInvoicesPage() {
                   </div>
                   <span className="admin-chip bg-sky/50 text-navy">{inv.payment_status}</span>
                 </div>
-                <div className="mt-3 flex flex-wrap gap-3 text-sm">
+                <div className="mt-3 flex flex-wrap items-center gap-3 text-sm">
                   <Link href={`/admin/invoices/${inv.id}`} className="font-semibold text-ocean no-underline">Edit / PDF</Link>
                   <Link href={`/i/${inv.public_id}`} className="font-semibold text-ocean no-underline" target="_blank">Share link</Link>
+                  <TaskQuickAdd
+                    crew={crew}
+                    variant="compact"
+                    label="+ Task"
+                    defaults={{
+                      invoice_id: inv.id,
+                      client_id: inv.client_id,
+                      job_id: inv.job_id ?? undefined,
+                      category: "Invoice Follow-Up",
+                      title: inv.payment_status !== "Paid" ? "Follow up on unpaid invoice" : undefined,
+                    }}
+                  />
                 </div>
               </li>
             );

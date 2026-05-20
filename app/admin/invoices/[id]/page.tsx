@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { InvoiceTaskActions } from "@/components/admin/invoice-task-actions";
 import { PrintButton } from "@/components/admin/print-button";
+import { listCrewOptions } from "@/lib/admin/actions/tasks";
 import { InvoiceTemplate } from "@/components/invoice/invoice-template";
 import { duplicateInvoiceAction } from "@/lib/admin/actions/invoices";
 import { createClient } from "@/lib/supabase/server";
@@ -25,9 +27,17 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
 
   const { data: settings } = await supabase.from("business_settings").select("*").limit(1).maybeSingle();
   const client = inv.clients as { name?: string; address?: string } | null;
+  const crew = await listCrewOptions();
 
   return (
     <div className="space-y-4 print:space-y-0">
+      <InvoiceTaskActions
+        invoiceId={inv.id}
+        clientId={inv.client_id}
+        jobId={inv.job_id}
+        paymentStatus={inv.payment_status}
+        crew={crew}
+      />
       <div className="flex flex-wrap gap-2 print:hidden">
         <PrintButton />
         <Link href={`/i/${inv.public_id}`} target="_blank" className="admin-btn-secondary no-underline">

@@ -3,7 +3,7 @@
 ## High priority
 
 1. **Admin auth users** — Create Supabase Auth user(s) for operators; without login, middleware redirects all `/admin` routes.  
-2. **Job detail + photo upload UI** — `/admin/jobs/[id]` not implemented; `before_photo_urls` / `after_photo_urls` arrays exist but no field UI.  
+2. ~~**Job detail + photo upload UI**~~ — **Done.** See `JOB_DETAIL_REPORT.md`. Legacy array photos still read-only in UI.  
 3. **Public invoice RLS** — Anon can read non-archived invoices; tighten to `public_id` match via RPC if stricter security required.  
 4. **Service role for server-only ops** — Add `SUPABASE_SERVICE_ROLE_KEY` in Vercel for future server jobs; not required for current client flows.  
 

@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { calculateJobProfit } from "@/lib/admin/job-costing";
+import { isTaskOpen, normalizePriority } from "@/lib/admin/task-utils";
 
 export async function getDashboardStats() {
   const supabase = await createClient();
@@ -16,10 +17,12 @@ export async function getDashboardStats() {
   const invoices = invoicesRes.data ?? [];
   const expenses = expensesRes.data ?? [];
 
-  const openTasks = tasks.filter((t) => t.status !== "completed").length;
-  const urgentTasks = tasks.filter(
-    (t) => t.status !== "completed" && (t.priority === "urgent" || t.priority === "high"),
-  ).length;
+  const openTasks = tasks.filter((t) => isTaskOpen(t)).length;
+  const urgentTasks = tasks.filter((t) => {
+    if (!isTaskOpen(t)) return false;
+    const p = normalizePriority(t.priority);
+    return p === "urgent" || p === "high";
+  }).length;
   const activeJobs = jobs.filter((j) => !["Completed", "Cancelled"].includes(j.status)).length;
 
   let pipeline = 0;

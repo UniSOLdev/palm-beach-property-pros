@@ -9,6 +9,7 @@ function newPublicId() {
 
 export async function createInvoiceDraft(input: {
   client_id: string;
+  job_id?: string;
   due_date?: string;
   terms?: string;
   lines: { description: string; quantity: number; unit_price: number }[];
@@ -28,6 +29,7 @@ export async function createInvoiceDraft(input: {
       public_id: newPublicId(),
       invoice_number,
       client_id: input.client_id,
+      job_id: input.job_id ?? null,
       payment_status: "Unpaid",
       document_status: "draft",
       due_date: input.due_date ?? null,

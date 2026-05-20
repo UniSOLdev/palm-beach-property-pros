@@ -1,5 +1,7 @@
 import Link from "next/link";
+import { TaskQuickAdd } from "@/components/admin/task-quick-add";
 import { AdminPageHeader, EmptyState } from "@/components/admin/entity-list";
+import { listCrewOptions } from "@/lib/admin/actions/tasks";
 import { calculateJobProfit } from "@/lib/admin/job-costing";
 import { formatCurrency, formatDate, formatPercent } from "@/lib/admin/format";
 import { createClient } from "@/lib/supabase/server";
@@ -8,6 +10,7 @@ export const dynamic = "force-dynamic";
 export const metadata = { title: "Jobs" };
 
 export default async function AdminJobsPage() {
+  const crew = await listCrewOptions();
   const supabase = await createClient();
   const { data: jobs } = await supabase
     .from("jobs")
@@ -17,7 +20,13 @@ export default async function AdminJobsPage() {
 
   return (
     <div className="space-y-4">
-      <AdminPageHeader title="Jobs" subtitle="Profitability and field documentation" />
+      <AdminPageHeader
+        title="Jobs"
+        subtitle="Profitability and field documentation"
+        actionHref="/admin/tasks"
+        actionLabel="All tasks"
+      />
+      <TaskQuickAdd crew={crew} variant="primary" label="+ Add job task" className="w-full" />
       <ul className="space-y-3">
         {!jobs?.length ? (
           <EmptyState>No jobs yet. Create one from a quote or add manually in Supabase.</EmptyState>
@@ -56,9 +65,21 @@ export default async function AdminJobsPage() {
                     Profit <span className="font-semibold">{formatCurrency(profit.actualProfit)}</span>
                   </p>
                 </div>
-                <Link href={`/admin/jobs/${job.id}`} className="mt-3 inline-block text-sm font-semibold text-ocean no-underline">
-                  Job details →
-                </Link>
+                <div className="mt-3 flex flex-wrap items-center gap-3">
+                  <Link href={`/admin/jobs/${job.id}`} className="text-sm font-semibold text-ocean no-underline">
+                    Job details →
+                  </Link>
+                  <TaskQuickAdd
+                    crew={crew}
+                    variant="compact"
+                    label="+ Task"
+                    defaults={{
+                      job_id: job.id,
+                      client_id: job.client_id,
+                      category: "Job Follow-Up",
+                    }}
+                  />
+                </div>
               </li>
             );
           })

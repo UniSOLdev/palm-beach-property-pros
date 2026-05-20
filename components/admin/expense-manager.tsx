@@ -1,7 +1,9 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { TaskQuickAdd } from "@/components/admin/task-quick-add";
 import { createExpense } from "@/lib/admin/actions/expenses";
+import type { CrewOption } from "@/lib/admin/types";
 import { EXPENSE_CATEGORIES, PAYMENT_METHODS } from "@/lib/admin/constants";
 import { uploadAdminFile } from "@/lib/admin/upload";
 import { formatCurrency, formatDate } from "@/lib/admin/format";
@@ -18,7 +20,7 @@ type Expense = {
   reimbursable: boolean;
 };
 
-export function ExpenseManager({ initial }: { initial: Expense[] }) {
+export function ExpenseManager({ initial, crew }: { initial: Expense[]; crew: CrewOption[] }) {
   const [pending, startTransition] = useTransition();
   const [receiptPreview, setReceiptPreview] = useState<string | null>(null);
 
@@ -118,6 +120,18 @@ export function ExpenseManager({ initial }: { initial: Expense[] }) {
                   View receipt
                 </a>
               ) : null}
+              <div className="mt-3">
+                <TaskQuickAdd
+                  crew={crew}
+                  variant="compact"
+                  label="+ Task"
+                  defaults={{
+                    expense_id: e.id,
+                    category: "Expense/Receipt",
+                    title: e.receipt_url ? "Link expense to job if applicable" : "Attach receipt image",
+                  }}
+                />
+              </div>
             </li>
           ))
         )}

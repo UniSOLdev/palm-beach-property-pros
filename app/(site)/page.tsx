@@ -5,6 +5,7 @@ import { FAQ_ITEMS } from "@/lib/faq";
 import { HOME_SERVICE_SUMMARY } from "@/lib/home-service-summaries";
 import { LINKR_URL, linkrRel } from "@/lib/linkr";
 import { SERVICES } from "@/lib/services";
+import { getHomeCmsSections } from "@/lib/cms/home";
 import { PHONE_DISPLAY, PHONE_TEL, SERVICE_CITIES, SITE_NAME } from "@/lib/site";
 
 export const metadata: Metadata = {
@@ -92,7 +93,25 @@ function sect(delayMs: number, className: string) {
   };
 }
 
-export default function HomePage() {
+export default async function HomePage() {
+  const cms = await getHomeCmsSections();
+  const hero = cms.hero as {
+    headline: string;
+    subheadline: string;
+    trust_bullets: string[];
+  };
+  const trustBand = cms.trust_band as {
+    cities: string[];
+    items: { icon: string; label: string }[];
+  };
+  const gallery = cms.results_gallery as {
+    items: { label: string; image_url?: string }[];
+  };
+  const galleryItems =
+    gallery.items?.length > 0
+      ? gallery.items
+      : beforeAfterPlaceholders.map((p) => ({ label: p.label }));
+
   return (
     <>
       <section className="relative overflow-hidden bg-gradient-to-b from-cream via-white to-white pb-24 pt-20 md:pb-28 md:pt-24">
@@ -106,31 +125,20 @@ export default function HomePage() {
         />
         <div className="relative mx-auto max-w-6xl px-6">
           <h1 className="max-w-4xl text-4xl font-bold tracking-tight text-navy md:text-5xl lg:text-[3.25rem] lg:leading-[1.12]">
-            Palm Beach County Property Care — Done Right.
+            {hero.headline}
           </h1>
           <p className="mt-8 max-w-3xl text-lg leading-relaxed text-charcoal/75 md:text-xl md:leading-relaxed">
-            Premium window cleaning, pressure washing, detailing, and property maintenance trusted by
-            homeowners and businesses across Palm Beach County.
+            {hero.subheadline}
           </p>
           <ul className="mt-10 max-w-xl space-y-3 text-base font-medium text-charcoal/85 md:text-[1.05rem]">
-            <li className="flex gap-3">
-              <span className="text-ocean" aria-hidden>
-                ✓
-              </span>
-              Licensed &amp; Insured
-            </li>
-            <li className="flex gap-3">
-              <span className="text-ocean" aria-hidden>
-                ✓
-              </span>
-              Local Palm Beach County Team
-            </li>
-            <li className="flex gap-3">
-              <span className="text-ocean" aria-hidden>
-                ✓
-              </span>
-              Written Scope Confirmation Before Service
-            </li>
+            {hero.trust_bullets.map((line) => (
+              <li key={line} className="flex gap-3">
+                <span className="text-ocean" aria-hidden>
+                  ✓
+                </span>
+                {line}
+              </li>
+            ))}
           </ul>
           <div className="mt-12 flex max-w-xl flex-col gap-4 sm:flex-row sm:items-center sm:gap-5">
             <a href={LINKR_URL} target="_blank" rel={linkrRel} className="btn-primary-hero sm:min-w-[220px]">
@@ -149,7 +157,7 @@ export default function HomePage() {
             Serving
           </p>
           <p className="mx-auto mt-3 max-w-5xl text-center text-sm leading-relaxed text-charcoal/80 md:text-[0.95rem]">
-            {trustStripCities.join(" • ")}
+            {(trustBand.cities ?? [...trustStripCities]).join(" • ")}
           </p>
           <div
             className="mx-auto mt-8 grid max-w-4xl gap-6 border-t border-navy/[0.06] pt-8 sm:grid-cols-3 sm:gap-8"
@@ -291,13 +299,18 @@ export default function HomePage() {
             Consistent documentation standards across Palm Beach County properties.
           </p>
           <ul className="mt-14 grid gap-8 sm:grid-cols-2">
-            {beforeAfterPlaceholders.map((item) => (
+            {galleryItems.map((item) => (
               <li
                 key={item.label}
                 className="group flex flex-col overflow-hidden rounded-2xl border border-navy/10 bg-white shadow-card transition duration-300 hover:-translate-y-0.5 hover:shadow-lift"
               >
                 <div className="relative aspect-[4/3] w-full overflow-hidden bg-gradient-to-br from-sky/50 to-sand/40 transition duration-500 ease-out group-hover:scale-[1.02]">
-                  <span className="sr-only">Photo placeholder</span>
+                  {"image_url" in item && item.image_url ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={item.image_url} alt={item.label} className="h-full w-full object-cover" />
+                  ) : (
+                    <span className="sr-only">Photo placeholder</span>
+                  )}
                 </div>
                 <p className="border-t border-navy/10 bg-cream/50 px-4 py-4 text-center text-sm font-semibold text-navy">
                   {item.label}

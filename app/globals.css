@@ -23,6 +23,10 @@
   .section-soft-in {
     animation: section-soft-in 0.85s cubic-bezier(0.22, 1, 0.36, 1) both;
   }
+
+  .animate-fade-up {
+    animation: section-soft-in 0.85s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -96,5 +100,9 @@
   }
   .admin-chip {
     @apply inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold;
+  }
+
+  .glass-panel {
+    @apply rounded-2xl border border-navy/10 bg-white/80 backdrop-blur-sm;
   }
 }

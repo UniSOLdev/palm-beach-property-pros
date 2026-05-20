@@ -1,8 +1,8 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
-import { BrandLogo } from "@/components/brand-logo";
 import { LINKR_URL, linkrRel } from "@/lib/linkr";
 
 const nav = [
@@ -16,26 +16,32 @@ export function SiteHeader() {
   const [open, setOpen] = useState(false);
 
   return (
-    <header className="sticky top-0 z-40 border-b border-navy/10 bg-cream/95 shadow-md backdrop-blur-md">
+    <header className="sticky top-0 z-40 border-b border-white/[0.06] bg-graphite/75 shadow-[0_8px_32px_rgba(0,0,0,0.28)] backdrop-blur-xl backdrop-saturate-150">
       <nav
-        className="mx-auto flex w-full max-w-6xl items-center justify-between gap-4 px-6 py-4"
+        className="mx-auto flex w-full max-w-6xl items-center justify-between gap-4 py-4"
         aria-label="Primary"
       >
-        <BrandLogo variant="header" />
+        <Link href="/" className="shrink-0 no-underline" aria-label="Palm Beach Property Pros home">
+          <Image
+            src="/brand/pbpp-wordmark-light.svg"
+            alt="Palm Beach Property Pros"
+            width={280}
+            height={42}
+            priority
+            className="h-9 w-auto max-w-[min(100%,16rem)] sm:h-10"
+          />
+        </Link>
 
-        <div className="hidden items-center gap-6 text-sm font-medium text-navy md:flex">
+        <div className="hidden items-center gap-6 text-sm font-medium text-cream/90 md:flex">
           {nav.map((item) => (
             <Link
               key={item.href}
               href={item.href}
-              className="text-navy no-underline transition-colors hover:text-ocean"
+              className="text-cream/90 no-underline transition-colors hover:text-aqua"
             >
               {item.label}
             </Link>
           ))}
-        </div>
-
-        <div className="flex items-center gap-3">
           <a
             href={LINKR_URL}
             target="_blank"
@@ -44,9 +50,12 @@ export function SiteHeader() {
           >
             Call Now
           </a>
+        </div>
+
+        <div className="flex items-center gap-3 md:hidden">
           <button
             type="button"
-            className="inline-flex h-11 w-11 items-center justify-center rounded-xl border border-navy/15 text-navy shadow-sm md:hidden"
+            className="inline-flex h-11 w-11 items-center justify-center rounded-xl border border-white/15 text-cream"
             aria-expanded={open}
             aria-controls="mobile-nav"
             onClick={() => setOpen((v) => !v)}
@@ -58,9 +67,9 @@ export function SiteHeader() {
               </span>
             ) : (
               <span className="flex flex-col gap-1.5" aria-hidden>
-                <span className="block h-0.5 w-5 bg-navy" />
-                <span className="block h-0.5 w-5 bg-navy" />
-                <span className="block h-0.5 w-5 bg-navy" />
+                <span className="block h-0.5 w-5 bg-cream" />
+                <span className="block h-0.5 w-5 bg-cream" />
+                <span className="block h-0.5 w-5 bg-cream" />
               </span>
             )}
           </button>
@@ -68,16 +77,13 @@ export function SiteHeader() {
       </nav>
 
       {open ? (
-        <div
-          id="mobile-nav"
-          className="border-t border-navy/10 bg-cream px-6 pb-4 pt-2 md:hidden"
-        >
+        <div id="mobile-nav" className="border-t border-white/10 bg-graphite px-6 pb-4 pt-2 md:hidden">
           <div className="mx-auto flex max-w-6xl flex-col gap-1">
             {nav.map((item) => (
               <Link
                 key={item.href}
                 href={item.href}
-                className="rounded-lg px-3 py-3 text-base font-medium text-navy no-underline hover:bg-sky/60"
+                className="rounded-lg px-3 py-3 text-base font-medium text-cream no-underline hover:bg-white/10"
                 onClick={() => setOpen(false)}
               >
                 {item.label}
@@ -92,15 +98,13 @@ export function SiteHeader() {
             >
               Call Now
             </a>
-            <a
-              href={LINKR_URL}
-              target="_blank"
-              rel={linkrRel}
-              className="btn-secondary text-center"
+            <Link
+              href="/quote"
+              className="btn-secondary-lg mt-2 border-white/20 bg-transparent text-center text-cream hover:bg-white/10"
               onClick={() => setOpen(false)}
             >
-              Text for Quote
-            </a>
+              Get Free Quote
+            </Link>
           </div>
         </div>
       ) : null}

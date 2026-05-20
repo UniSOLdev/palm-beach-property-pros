@@ -27,7 +27,8 @@ npm run type-check
 
 ### Public site (must not regress)
 - [ ] https://www.palmbeachpropertypros.com/ loads  
-- [ ] Hero copy renders (CMS or defaults)  
+- [ ] **Preview matches production homepage:** dark nav, wordmark, “Property Care for Palm Beach Living”, hero chips, Get Free Quote + Call CTAs, “One secure operations link”  
+- [ ] Hero is **not** the light “Done Right” CMS fallback layout  
 - [ ] Quote CTAs → Linkr  
 - [ ] Mobile sticky CTA bar  
 

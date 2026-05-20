@@ -9,7 +9,7 @@ export default function SiteLayout({ children }: { children: ReactNode }) {
     <>
       <LocalBusinessJsonLd />
       <SiteHeader />
-      <main className="mx-auto w-full max-w-6xl px-6 pb-32 pt-8 md:pb-14 md:pt-10">{children}</main>
+      <main className="w-full px-6 pb-32 pt-6 md:pb-14 md:pt-8">{children}</main>
       <SiteFooter />
       <MobileCtaBar />
     </>

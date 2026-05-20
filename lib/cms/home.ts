@@ -1,14 +1,16 @@
 import { createClient } from "@/lib/supabase/server";
 
+/** Defaults for admin CMS editor — public homepage uses PremiumHomePage component. */
 export const HOME_CMS_DEFAULTS: Record<string, Record<string, unknown>> = {
   hero: {
-    headline: "Palm Beach County Property Care — Done Right.",
+    headline: "Property Care for Palm Beach Living",
     subheadline:
-      "Premium window cleaning, pressure washing, detailing, and property maintenance trusted by homeowners and businesses across Palm Beach County.",
+      "Residential, commercial, and coastal property services delivered with professional crews, modern systems, and detail-focused execution.",
     trust_bullets: [
-      "Licensed & Insured",
-      "Local Palm Beach County Team",
-      "Written Scope Confirmation Before Service",
+      "Licensed & insured",
+      "Residential & commercial",
+      "Airbnb & turnover specialists",
+      "Palm Beach County based",
     ],
   },
   trust_band: {

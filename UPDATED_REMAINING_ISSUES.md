@@ -1,6 +1,6 @@
 # Updated Remaining Issues
 
-*After production audit / stabilization (May 20, 2026)*
+*After homepage restoration + production audit (May 20, 2026)*
 
 ## Resolved
 
@@ -11,6 +11,7 @@
 - ~~Login wrapped in ops shell~~ → login uses minimal layout
 - ~~FAB dead query links~~ → tasks/expenses focus handlers
 - ~~Silent form failures~~ → inline errors on key admin forms
+- ~~Preview homepage mismatch vs production~~ → `PremiumHomePage` + dark header restored (`PUBLIC_ADMIN_SEPARATION_AUDIT.md`)
 
 ## High priority
 
@@ -22,7 +23,7 @@
 
 4. **Client / crew / supplies CRUD** — Crew list fixed; still no in-app create/edit forms.
 5. **Quote / change order builder** — Placeholder on job detail; DB has `quotes` table.
-6. **CMS visual editor** — JSON Site Studio only.
+6. **CMS visual editor** — JSON Site Studio only; public homepage is locked to `PremiumHomePage` until gated CMS publish exists.
 7. **Navigation + SEO admin UI** — Tables exist, no routes.
 8. **Recurring expense scheduler** — Column exists, no cron.
 9. **Crew payout calculator UI** — Display on job detail; no create form.

@@ -161,6 +161,45 @@ export type JobListItem = Pick<
   client_name: string | null;
 };
 
+
+export type OperationalTaskStatus = "todo" | "scheduled" | "in_progress" | "blocked" | "done" | "cancelled";
+
+export type OperationalTaskPriority = "urgent" | "high" | "normal" | "low";
+
+export type OperationalTaskComment = {
+  id: string;
+  body: string;
+  author: string;
+  created_at: string;
+};
+
+export type OperationalTaskActivity = {
+  id: string;
+  type: string;
+  label: string;
+  created_at: string;
+};
+
+export type OperationalTaskRow = {
+  id: string;
+  job_id: string;
+  client_id: string | null;
+  title: string;
+  status: OperationalTaskStatus;
+  priority: OperationalTaskPriority;
+  priority_rank: number;
+  due_at: string | null;
+  recurring_rule: string | null;
+  assigned_crew_member_id: string | null;
+  assigned_crew_name: string | null;
+  completion_photo_urls: string[];
+  comments: OperationalTaskComment[];
+  activity_log: OperationalTaskActivity[];
+  completed_at: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
 export type ExpenseImportBatchRow = {
   id: string;
   label: string | null;

@@ -12,6 +12,23 @@
   ::selection {
     @apply bg-aqua/30 text-charcoal;
   }
+  :focus-visible {
+    @apply outline outline-2 outline-offset-2 outline-aqua;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
 }
 
 @layer utilities {
@@ -22,13 +39,13 @@
 
 @layer components {
   .btn-primary {
-    @apply inline-flex items-center justify-center rounded-xl bg-graphite px-6 py-3 text-center text-sm font-semibold text-cream no-underline shadow-lift transition duration-300 hover:bg-navy hover:shadow-glow;
+    @apply inline-flex min-h-[44px] items-center justify-center rounded-xl bg-graphite px-6 py-3 text-center text-sm font-semibold text-cream no-underline shadow-lift transition duration-300 hover:bg-navy hover:shadow-glow active:scale-[0.99];
   }
   .btn-primary-lg {
     @apply inline-flex items-center justify-center rounded-xl bg-cream px-8 py-4 text-center text-base font-semibold text-graphite no-underline shadow-lift transition duration-300 hover:-translate-y-0.5 hover:bg-white hover:shadow-glow;
   }
   .btn-secondary {
-    @apply inline-flex items-center justify-center rounded-xl border border-silver/40 bg-white/40 px-6 py-3 text-center text-sm font-semibold text-graphite no-underline shadow-card backdrop-blur-sm transition duration-300 hover:border-aqua/50 hover:bg-white/70;
+    @apply inline-flex min-h-[44px] items-center justify-center rounded-xl border border-silver/40 bg-white/40 px-6 py-3 text-center text-sm font-semibold text-graphite no-underline shadow-card backdrop-blur-sm transition duration-300 hover:border-aqua/50 hover:bg-white/70 active:scale-[0.99];
   }
   .btn-secondary-lg {
     @apply inline-flex items-center justify-center rounded-xl border border-silver/50 bg-white/50 px-8 py-4 text-center text-base font-semibold text-graphite no-underline shadow-card backdrop-blur-sm transition duration-300 hover:border-aqua/50 hover:bg-white/80;

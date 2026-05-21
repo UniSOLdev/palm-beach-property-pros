@@ -6,9 +6,34 @@ import type { ClientSummary } from "@/components/admin/client-combobox";
 import { ClientCombobox } from "@/components/admin/client-combobox";
 import { JobFileUpload } from "@/components/admin/job-file-upload";
 import { NewClientModal } from "@/components/admin/new-client-modal";
-import type { CrewAssignment, JobDetailPayload } from "@/lib/db-types";
+import type {
+  CrewAssignment,
+  JobDetailPayload,
+  OperationalTaskPriority,
+  OperationalTaskRow,
+  OperationalTaskStatus,
+} from "@/lib/db-types";
 
 type QuoteOption = { id: string; reference_code: string | null; status: string; client_id: string | null };
+
+const TASK_STATUSES: OperationalTaskStatus[] = ["todo", "scheduled", "in_progress", "blocked", "done", "cancelled"];
+const TASK_PRIORITIES: OperationalTaskPriority[] = ["urgent", "high", "normal", "low"];
+
+const taskStatusClasses: Record<OperationalTaskStatus, string> = {
+  todo: "border-zinc-500/30 bg-zinc-500/10 text-zinc-200",
+  scheduled: "border-sky-400/30 bg-sky-500/10 text-sky-200",
+  in_progress: "border-amber-400/30 bg-amber-500/10 text-amber-100",
+  blocked: "border-red-400/30 bg-red-500/10 text-red-100",
+  done: "border-emerald-400/30 bg-emerald-500/10 text-emerald-100",
+  cancelled: "border-zinc-600/30 bg-zinc-700/20 text-zinc-400",
+};
+
+const taskPriorityClasses: Record<OperationalTaskPriority, string> = {
+  urgent: "border-red-400/40 bg-red-500/15 text-red-100",
+  high: "border-orange-400/35 bg-orange-500/10 text-orange-100",
+  normal: "border-sky-400/30 bg-sky-500/10 text-sky-100",
+  low: "border-zinc-500/30 bg-zinc-500/10 text-zinc-300",
+};
 type InvoiceOption = {
   id: string;
   title: string | null;
@@ -44,6 +69,17 @@ function fromDatetimeLocalValue(s: string): string | null {
   return d.toISOString();
 }
 
+function shortDateTime(iso: string | null): string {
+  if (!iso) return "No due time";
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return "No due time";
+  return new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" }).format(d);
+}
+
+function titleCaseToken(value: string): string {
+  return value.replace(/_/g, " ").replace(/\b\w/g, (m) => m.toUpperCase());
+}
+
 function dollarsFromCents(cents: number): string {
   return (cents / 100).toFixed(2);
 }
@@ -70,6 +106,12 @@ export function JobWorkspace({ jobId, initialJob, recentClients }: Props) {
   const [invoiceOptions, setInvoiceOptions] = useState<InvoiceOption[]>([]);
   const [revenueInput, setRevenueInput] = useState(dollarsFromCents(initialJob.revenue_cents));
   const [completedInput, setCompletedInput] = useState(toDatetimeLocalValue(initialJob.completed_at));
+  const [tasks, setTasks] = useState<OperationalTaskRow[]>([]);
+  const [taskState, setTaskState] = useState<"loading" | "idle" | "saving" | "error">("loading");
+  const [taskError, setTaskError] = useState<string | null>(null);
+  const [draggedTaskId, setDraggedTaskId] = useState<string | null>(null);
+  const [newTask, setNewTask] = useState({ title: "", priority: "normal" as OperationalTaskPriority });
+  const [taskDrafts, setTaskDrafts] = useState<Record<string, { comment: string; photoUrl: string }>>({});
 
   const clientValue = useMemo(() => embedToClientSummary(job.clients), [job.clients]);
 
@@ -95,6 +137,33 @@ export function JobWorkspace({ jobId, initialJob, recentClients }: Props) {
       cancelled = true;
     };
   }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    setTaskState("loading");
+    (async () => {
+      try {
+        const res = await fetch(`/api/admin/jobs/${jobId}/tasks`);
+        const data = await res.json();
+        if (cancelled) return;
+        if (!res.ok) {
+          setTaskState("error");
+          setTaskError(data.error ?? "Could not load tasks");
+          return;
+        }
+        setTasks((data.tasks as OperationalTaskRow[]) ?? []);
+        setTaskState("idle");
+      } catch {
+        if (!cancelled) {
+          setTaskState("error");
+          setTaskError("Network error loading tasks");
+        }
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [jobId]);
 
   useEffect(() => {
     function onBeforeUnload(e: BeforeUnloadEvent) {
@@ -219,6 +288,118 @@ export function JobWorkspace({ jobId, initialJob, recentClients }: Props) {
     const next = job.crew_assignments.map((c, idx) => (idx === i ? { ...c, ...patch } : c));
     applyJobPatch({ crew_assignments: next });
   }
+
+  function updateTaskLocal(taskId: string, patch: Partial<OperationalTaskRow>) {
+    setTasks((rows) => rows.map((task) => (task.id === taskId ? { ...task, ...patch } : task)));
+    setTaskError(null);
+  }
+
+  async function createTask() {
+    const title = newTask.title.trim();
+    if (!title) return;
+    setTaskState("saving");
+    setTaskError(null);
+    try {
+      const res = await fetch(`/api/admin/jobs/${jobId}/tasks`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title,
+          priority: newTask.priority,
+          client_id: job.client_id,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? "Could not create task");
+      setTasks((rows) => [...rows, data.task as OperationalTaskRow]);
+      setNewTask({ title: "", priority: "normal" });
+      setTaskState("idle");
+    } catch (e) {
+      setTaskState("error");
+      setTaskError(e instanceof Error ? e.message : "Could not create task");
+    }
+  }
+
+  async function saveTask(task: OperationalTaskRow, overrides: Partial<OperationalTaskRow> = {}) {
+    const next = { ...task, ...overrides };
+    const draft = taskDrafts[task.id] ?? { comment: "", photoUrl: "" };
+    const photoUrl = draft.photoUrl.trim();
+    const photos = photoUrl ? [...next.completion_photo_urls, photoUrl] : next.completion_photo_urls;
+
+    updateTaskLocal(task.id, { ...overrides, completion_photo_urls: photos });
+    setTaskState("saving");
+    try {
+      const res = await fetch(`/api/admin/jobs/${jobId}/tasks/${task.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: next.title,
+          status: next.status,
+          priority: next.priority,
+          due_at: next.due_at,
+          recurring_rule: next.recurring_rule,
+          assigned_crew_member_id: next.assigned_crew_member_id,
+          assigned_crew_name: next.assigned_crew_name,
+          completion_photo_urls: photos,
+          comment_body: draft.comment,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? "Could not save task");
+      setTasks((rows) => rows.map((row) => (row.id === task.id ? (data.task as OperationalTaskRow) : row)));
+      setTaskDrafts((drafts) => ({ ...drafts, [task.id]: { comment: "", photoUrl: "" } }));
+      setTaskState("idle");
+    } catch (e) {
+      setTaskState("error");
+      setTaskError(e instanceof Error ? e.message : "Could not save task");
+      setTasks((rows) => rows.map((row) => (row.id === task.id ? task : row)));
+    }
+  }
+
+  async function reorderTasks(sourceId: string, targetId: string) {
+    if (sourceId === targetId) return;
+    const current = tasks;
+    const sourceIndex = current.findIndex((task) => task.id === sourceId);
+    const targetIndex = current.findIndex((task) => task.id === targetId);
+    if (sourceIndex < 0 || targetIndex < 0) return;
+    const next = [...current];
+    const [moved] = next.splice(sourceIndex, 1);
+    next.splice(targetIndex, 0, moved);
+    setTasks(next.map((task, index) => ({ ...task, priority_rank: index + 1 })));
+    setDraggedTaskId(null);
+    try {
+      const res = await fetch(`/api/admin/jobs/${jobId}/tasks`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ordered_ids: next.map((task) => task.id) }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? "Could not reorder tasks");
+      setTasks((data.tasks as OperationalTaskRow[]) ?? next);
+    } catch (e) {
+      setTasks(current);
+      setTaskState("error");
+      setTaskError(e instanceof Error ? e.message : "Could not reorder tasks");
+    }
+  }
+
+  async function deleteTask(task: OperationalTaskRow) {
+    const previous = tasks;
+    setTasks((rows) => rows.filter((row) => row.id !== task.id));
+    try {
+      const res = await fetch(`/api/admin/jobs/${jobId}/tasks/${task.id}`, { method: "DELETE" });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? "Could not delete task");
+    } catch (e) {
+      setTasks(previous);
+      setTaskState("error");
+      setTaskError(e instanceof Error ? e.message : "Could not delete task");
+    }
+  }
+
+  const taskCompletion = tasks.length === 0
+    ? 0
+    : Math.round((tasks.filter((task) => task.status === "done").length / tasks.length) * 100);
 
   return (
     <div className="mx-auto max-w-4xl space-y-6">
@@ -433,6 +614,256 @@ export function JobWorkspace({ jobId, initialJob, recentClients }: Props) {
             <p className="mt-2 text-xs text-zinc-500">Invoice linked — save to refresh.</p>
           ) : null}
         </div>
+      </section>
+
+      <section className="rounded-2xl border border-white/10 bg-white/[0.03] p-5 ring-1 ring-white/[0.05]">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <h2 className="text-xs font-semibold uppercase tracking-wider text-zinc-500">Field task command center</h2>
+            <p className="mt-1 text-xs text-zinc-500">Drag to reprioritize. Quick-complete works well from an iPhone in the field.</p>
+          </div>
+          <div className="rounded-full border border-emerald-400/25 bg-emerald-500/10 px-3 py-1 text-xs font-semibold text-emerald-100">
+            {taskCompletion}% complete
+          </div>
+        </div>
+
+        {taskError ? (
+          <p className="mt-4 rounded-xl border border-red-400/30 bg-red-500/10 px-3 py-2 text-sm text-red-100">
+            {taskError}
+          </p>
+        ) : null}
+
+        <div className="mt-4 grid gap-3 rounded-2xl border border-white/10 bg-black/20 p-3 sm:grid-cols-[1fr_9rem_auto]">
+          <input
+            className="min-h-[44px] rounded-xl border border-white/10 bg-black/30 px-3 text-sm text-white outline-none focus:border-sky-400/40"
+            placeholder="Add a field task, checklist item, or follow-up"
+            value={newTask.title}
+            onChange={(e) => setNewTask((draft) => ({ ...draft, title: e.target.value }))}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                void createTask();
+              }
+            }}
+          />
+          <select
+            className="min-h-[44px] rounded-xl border border-white/10 bg-black/30 px-3 text-sm text-white outline-none focus:border-sky-400/40"
+            value={newTask.priority}
+            onChange={(e) => setNewTask((draft) => ({ ...draft, priority: e.target.value as OperationalTaskPriority }))}
+          >
+            {TASK_PRIORITIES.map((priority) => (
+              <option key={priority} value={priority}>
+                {titleCaseToken(priority)}
+              </option>
+            ))}
+          </select>
+          <button
+            type="button"
+            onClick={() => void createTask()}
+            disabled={!newTask.title.trim() || taskState === "saving"}
+            className="min-h-[44px] rounded-xl bg-sky-500/90 px-4 text-sm font-semibold text-sky-950 transition hover:bg-sky-400 disabled:opacity-50"
+          >
+            Add task
+          </button>
+        </div>
+
+        {taskState === "loading" ? (
+          <div className="mt-4 rounded-2xl border border-white/10 bg-black/20 p-4 text-sm text-zinc-500">Loading tasks…</div>
+        ) : tasks.length === 0 ? (
+          <div className="mt-4 rounded-2xl border border-dashed border-white/15 bg-black/20 p-5 text-sm text-zinc-400">
+            No field tasks yet. Add arrival photos, gate/access notes, service checkpoints, or invoice follow-up.
+          </div>
+        ) : (
+          <div className="mt-4 space-y-3">
+            {tasks.map((task) => {
+              const draft = taskDrafts[task.id] ?? { comment: "", photoUrl: "" };
+              return (
+                <article
+                  key={task.id}
+                  draggable
+                  onDragStart={() => setDraggedTaskId(task.id)}
+                  onDragOver={(e) => e.preventDefault()}
+                  onDrop={() => draggedTaskId && void reorderTasks(draggedTaskId, task.id)}
+                  className={`rounded-2xl border bg-black/25 p-4 transition ${
+                    draggedTaskId === task.id ? "border-sky-400/60 opacity-70" : "border-white/10"
+                  }`}
+                >
+                  <div className="flex flex-wrap items-start justify-between gap-3">
+                    <div className="min-w-0 flex-1">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className="cursor-grab select-none text-zinc-600" aria-hidden>
+                          ::
+                        </span>
+                        <span className={`rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${taskPriorityClasses[task.priority]}`}>
+                          {task.priority}
+                        </span>
+                        <span className={`rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${taskStatusClasses[task.status]}`}>
+                          {titleCaseToken(task.status)}
+                        </span>
+                        {task.recurring_rule ? (
+                          <span className="rounded-full border border-violet-400/30 bg-violet-500/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-violet-100">
+                            {task.recurring_rule}
+                          </span>
+                        ) : null}
+                      </div>
+                      <input
+                        className="mt-3 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-sm font-semibold text-white outline-none focus:border-sky-400/40"
+                        value={task.title}
+                        onChange={(e) => updateTaskLocal(task.id, { title: e.target.value })}
+                        onBlur={() => void saveTask(tasks.find((row) => row.id === task.id) ?? task)}
+                      />
+                      <p className="mt-2 text-xs text-zinc-500">
+                        {shortDateTime(task.due_at)}
+                        {task.assigned_crew_name ? ` · ${task.assigned_crew_name}` : " · Unassigned"}
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => void saveTask(task, { status: task.status === "done" ? "in_progress" : "done" })}
+                      className="min-h-[44px] rounded-xl bg-emerald-400 px-4 text-sm font-semibold text-emerald-950 transition hover:bg-emerald-300"
+                    >
+                      {task.status === "done" ? "Reopen" : "Complete"}
+                    </button>
+                  </div>
+
+                  <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                    <label className="text-xs text-zinc-500">
+                      Status
+                      <select
+                        className="mt-1 min-h-[44px] w-full rounded-xl border border-white/10 bg-black/30 px-3 text-sm text-white outline-none focus:border-sky-400/40"
+                        value={task.status}
+                        onChange={(e) => void saveTask(task, { status: e.target.value as OperationalTaskStatus })}
+                      >
+                        {TASK_STATUSES.map((status) => (
+                          <option key={status} value={status}>
+                            {titleCaseToken(status)}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                    <label className="text-xs text-zinc-500">
+                      Priority
+                      <select
+                        className="mt-1 min-h-[44px] w-full rounded-xl border border-white/10 bg-black/30 px-3 text-sm text-white outline-none focus:border-sky-400/40"
+                        value={task.priority}
+                        onChange={(e) => void saveTask(task, { priority: e.target.value as OperationalTaskPriority })}
+                      >
+                        {TASK_PRIORITIES.map((priority) => (
+                          <option key={priority} value={priority}>
+                            {titleCaseToken(priority)}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                    <label className="text-xs text-zinc-500">
+                      Due time
+                      <input
+                        type="datetime-local"
+                        className="mt-1 min-h-[44px] w-full rounded-xl border border-white/10 bg-black/30 px-3 text-sm text-white outline-none focus:border-sky-400/40"
+                        value={toDatetimeLocalValue(task.due_at)}
+                        onChange={(e) => void saveTask(task, { due_at: fromDatetimeLocalValue(e.target.value) })}
+                      />
+                    </label>
+                    <label className="text-xs text-zinc-500">
+                      Recurring
+                      <select
+                        className="mt-1 min-h-[44px] w-full rounded-xl border border-white/10 bg-black/30 px-3 text-sm text-white outline-none focus:border-sky-400/40"
+                        value={task.recurring_rule ?? ""}
+                        onChange={(e) => void saveTask(task, { recurring_rule: e.target.value || null })}
+                      >
+                        <option value="">One-time</option>
+                        <option value="daily">Daily</option>
+                        <option value="weekly">Weekly</option>
+                        <option value="monthly">Monthly</option>
+                        <option value="seasonal">Seasonal</option>
+                      </select>
+                    </label>
+                  </div>
+
+                  <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                    <label className="text-xs text-zinc-500">
+                      Assigned crew
+                      <input
+                        list={`crew-${task.id}`}
+                        className="mt-1 min-h-[44px] w-full rounded-xl border border-white/10 bg-black/30 px-3 text-sm text-white outline-none focus:border-sky-400/40"
+                        value={task.assigned_crew_name ?? ""}
+                        onChange={(e) => updateTaskLocal(task.id, { assigned_crew_name: e.target.value || null })}
+                        onBlur={() => void saveTask(tasks.find((row) => row.id === task.id) ?? task)}
+                        placeholder="Crew member or subcontractor"
+                      />
+                      <datalist id={`crew-${task.id}`}>
+                        {job.crew_assignments.map((crew) => (
+                          <option key={`${task.id}-${crew.name}`} value={crew.name} />
+                        ))}
+                      </datalist>
+                    </label>
+                    <label className="text-xs text-zinc-500">
+                      Completion photo URL
+                      <div className="mt-1 flex gap-2">
+                        <input
+                          className="min-h-[44px] min-w-0 flex-1 rounded-xl border border-white/10 bg-black/30 px-3 text-sm text-white outline-none focus:border-sky-400/40"
+                          value={draft.photoUrl}
+                          onChange={(e) => setTaskDrafts((drafts) => ({ ...drafts, [task.id]: { ...draft, photoUrl: e.target.value } }))}
+                          placeholder="Paste upload/share URL"
+                        />
+                        <button
+                          type="button"
+                          className="min-h-[44px] rounded-xl border border-white/10 px-3 text-xs font-semibold text-zinc-300 hover:bg-white/5"
+                          onClick={() => void saveTask(task)}
+                        >
+                          Attach
+                        </button>
+                      </div>
+                    </label>
+                  </div>
+
+                  {task.completion_photo_urls.length > 0 ? (
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      {task.completion_photo_urls.map((url) => (
+                        <a key={url} href={url} target="_blank" rel="noopener" className="rounded-lg border border-white/10 px-2 py-1 text-xs text-sky-300 no-underline hover:bg-white/5">
+                          Photo
+                        </a>
+                      ))}
+                    </div>
+                  ) : null}
+
+                  <div className="mt-3 grid gap-2 sm:grid-cols-[1fr_auto]">
+                    <input
+                      className="min-h-[44px] rounded-xl border border-white/10 bg-black/30 px-3 text-sm text-white outline-none focus:border-sky-400/40"
+                      value={draft.comment}
+                      onChange={(e) => setTaskDrafts((drafts) => ({ ...drafts, [task.id]: { ...draft, comment: e.target.value } }))}
+                      placeholder="Add a field note or client update"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => void saveTask(task)}
+                      className="min-h-[44px] rounded-xl border border-white/10 px-4 text-sm font-semibold text-zinc-200 hover:bg-white/5"
+                    >
+                      Save note
+                    </button>
+                  </div>
+
+                  {task.comments.length > 0 ? (
+                    <div className="mt-3 space-y-2 rounded-xl border border-white/10 bg-black/20 p-3">
+                      {task.comments.slice(-3).map((comment) => (
+                        <p key={comment.id} className="text-xs text-zinc-400">
+                          <span className="font-semibold text-zinc-300">{comment.author}:</span> {comment.body}
+                        </p>
+                      ))}
+                    </div>
+                  ) : null}
+
+                  <div className="mt-3 flex items-center justify-between gap-3">
+                    <p className="text-[11px] text-zinc-600">Updated {shortDateTime(task.updated_at)}</p>
+                    <button type="button" onClick={() => void deleteTask(task)} className="min-h-[44px] rounded-xl px-3 text-xs font-semibold text-red-300 hover:bg-red-500/10">
+                      Delete
+                    </button>
+                  </div>
+                </article>
+              );
+            })}
+          </div>
+        )}
       </section>
 
       <section className="rounded-2xl border border-white/10 bg-white/[0.03] p-5 ring-1 ring-white/[0.05]">

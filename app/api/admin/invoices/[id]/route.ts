@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import type { InvoiceLineItem } from "@/lib/db-types";
 import { isAdminAuthenticated } from "@/lib/admin-auth";
 import { invoiceTotalsFromLines } from "@/lib/invoice-math";
+import { logOperationalActivity } from "@/lib/ops/activity";
 import { createServiceSupabase } from "@/lib/supabase/service";
 
 type Ctx = { params: Promise<{ id: string }> };
@@ -65,6 +66,23 @@ export async function PATCH(req: Request, { params }: Ctx) {
     const supabase = createServiceSupabase();
     const { data, error } = await supabase.from("invoices").update(patch).eq("id", id).select("*").single();
     if (error) throw error;
+
+    const { data: job } = await supabase
+      .from("jobs")
+      .select("id, client_id")
+      .eq("invoice_id", id)
+      .maybeSingle();
+    const status = String(data.status ?? "draft");
+    await logOperationalActivity(supabase, {
+      event_type: status.toLowerCase() === "paid" ? "invoice.paid" : "invoice.updated",
+      title: status.toLowerCase() === "paid" ? "Invoice marked paid" : "Invoice updated",
+      body: `${String(data.title ?? "Invoice")} · ${status}`,
+      job_id: job?.id ? String(job.id) : null,
+      client_id: data.client_id ? String(data.client_id) : (job?.client_id ? String(job.client_id) : null),
+      invoice_id: id,
+      href: data.public_token ? `/invoice/${data.public_token}` : "/admin/invoices",
+    });
+
     return NextResponse.json({ invoice: data });
   } catch (e) {
     const message = e instanceof Error ? e.message : "Database error";

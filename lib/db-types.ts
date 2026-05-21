@@ -200,6 +200,38 @@ export type OperationalTaskRow = {
   updated_at: string;
 };
 
+
+export type OperationalActivityRow = {
+  id: string;
+  event_type: string;
+  title: string;
+  body: string | null;
+  actor_name: string;
+  job_id: string | null;
+  client_id: string | null;
+  task_id: string | null;
+  invoice_id: string | null;
+  expense_id: string | null;
+  href: string | null;
+  metadata: Record<string, unknown>;
+  created_at: string;
+};
+
+export type TaskTemplateRow = {
+  id: string;
+  name: string;
+  service_type: string | null;
+  title: string;
+  priority: OperationalTaskPriority;
+  recurring_rule: string | null;
+  operational_notes: string | null;
+  attachment_prompt: string | null;
+  sort_order: number;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+};
+
 export type ExpenseImportBatchRow = {
   id: string;
   label: string | null;

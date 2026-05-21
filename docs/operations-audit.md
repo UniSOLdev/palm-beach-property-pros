@@ -77,10 +77,35 @@ Audited the merged PBPP operations platform across:
 10. **CMS drag/drop sections:** CMS routes exist; homepage section drag/drop ordering should be added in the editor as a dedicated follow-up.
 11. **Supabase RLS policy hardening:** Tables have RLS enabled and server uses service role. If browser-side Supabase clients are introduced, explicit least-privilege policies must be added before exposure.
 
+## 2026-05-21 follow-up pass
+
+### Additional fixes
+
+- Added `public.operational_activity` for relational activity events with job/client/task/invoice/expense links, actor attribution, metadata, timestamps, and dashboard/job feed support.
+- Added `public.task_templates` for reusable operational task templates such as arrival photos, payment collection, review request, pressure washing prep, and dump trailer logistics.
+- Added task template APIs and wired templates into the job workspace task command center.
+- Added job-specific activity and profitability APIs.
+- Added activity logging for job creation/update, task creation/update/completion/reordering/deletion, invoice updates/payment status changes, and file/photo uploads.
+- Converted `/admin/jobs/[id]` into a tabbed operational hub: Overview, Tasks, Crew, Profit, Activity, and Notes.
+- Added task search, status filtering, template insertion, and activity refresh after task mutations.
+- Added job profitability cards and expense/category breakdowns sourced from relational job expense records.
+- Updated dashboard activity to prefer relational operational activity records, falling back to synthesized activity only when no events exist yet.
+
+### Remaining TODOs refined
+
+- Add direct task-level upload binding from Storage files to task `completion_photo_urls` instead of URL paste.
+- Add invoice due dates and automatic overdue status transitions.
+- Add full e-signature capture for public estimates/scope changes.
+- Add expense mutation logging outside CSV import once manual expense CRUD is expanded.
+- Add gesture-level swipe actions after deciding whether to keep custom pointer handling or introduce a small gesture utility.
+
 ## Verification performed
 
 - Baseline after merging platform foundation: `npm run type-check` passed.
 - Baseline after merging platform foundation: `npm run build` passed.
-- Final after this audit/fix pass: `npm run type-check` passed.
-- Final after this audit/fix pass: `npm run build` passed.
-- Final after this audit/fix pass: `npm run lint` passed (with the Next.js deprecation notice for `next lint`).
+- Final after first audit/fix pass: `npm run type-check` passed.
+- Final after first audit/fix pass: `npm run build` passed.
+- Final after first audit/fix pass: `npm run lint` passed (with the Next.js deprecation notice for `next lint`).
+- Follow-up connected-systems pass: `npm run type-check` passed.
+- Follow-up connected-systems pass: `npm run build` passed.
+- Follow-up connected-systems pass: `npm run lint` passed (with the Next.js deprecation notice for `next lint`).

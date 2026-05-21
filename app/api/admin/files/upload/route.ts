@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { isAdminAuthenticated } from "@/lib/admin-auth";
+import { logOperationalActivity } from "@/lib/ops/activity";
 import { createServiceSupabase } from "@/lib/supabase/service";
 
 const MAX_BYTES = 50 * 1024 * 1024;
@@ -54,6 +55,16 @@ export async function POST(req: Request) {
     if (dbErr) throw dbErr;
 
     const { data: signed } = await supabase.storage.from("ops-files").createSignedUrl(path, 3600);
+    const { data: job } = await supabase.from("jobs").select("client_id").eq("id", jobId).maybeSingle();
+    await logOperationalActivity(supabase, {
+      event_type: fileType === "photo" ? "photo.uploaded" : "file.uploaded",
+      title: fileType === "photo" ? "Photo uploaded" : "File uploaded",
+      body: file.name,
+      job_id: jobId,
+      client_id: job?.client_id ? String(job.client_id) : null,
+      href: `/admin/jobs/${jobId}`,
+      metadata: { file_id: row.id, file_type: fileType, storage_path: path },
+    });
 
     return NextResponse.json({ file: row, signed_url: signed?.signedUrl ?? null });
   } catch (e) {

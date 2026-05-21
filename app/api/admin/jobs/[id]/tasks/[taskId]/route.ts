@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { isAdminAuthenticated } from "@/lib/admin-auth";
+import { logOperationalActivity } from "@/lib/ops/activity";
 import {
   appendTaskActivity,
   appendTaskComment,
@@ -97,7 +98,19 @@ export async function PUT(req: Request, { params }: Ctx) {
       .single();
 
     if (error) throw error;
-    return NextResponse.json({ task: mapOperationalTaskRow(data as Record<string, unknown>) });
+    const task = mapOperationalTaskRow(data as Record<string, unknown>);
+    const eventType = nextStatus === "done" && currentStatus !== "done" ? "task.completed" : "task.updated";
+    await logOperationalActivity(supabase, {
+      event_type: eventType,
+      title: eventType === "task.completed" ? `Task completed: ${task.title}` : `Task updated: ${task.title}`,
+      body: `Status: ${task.status.replace(/_/g, " ")}`,
+      job_id: id,
+      client_id: task.client_id,
+      task_id: task.id,
+      href: `/admin/jobs/${id}`,
+      metadata: { priority: task.priority },
+    });
+    return NextResponse.json({ task });
   } catch (e) {
     const message = e instanceof Error ? e.message : "Database error";
     return NextResponse.json({ error: message }, { status: 503 });
@@ -119,6 +132,13 @@ export async function DELETE(_req: Request, { params }: Ctx) {
       .eq("job_id", id)
       .eq("id", taskId);
     if (error) throw error;
+    await logOperationalActivity(supabase, {
+      event_type: "task.deleted",
+      title: "Task deleted",
+      job_id: id,
+      task_id: taskId,
+      href: `/admin/jobs/${id}`,
+    });
     return NextResponse.json({ ok: true });
   } catch (e) {
     const message = e instanceof Error ? e.message : "Database error";

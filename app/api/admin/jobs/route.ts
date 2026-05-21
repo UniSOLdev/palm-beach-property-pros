@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { isAdminAuthenticated } from "@/lib/admin-auth";
 import { JOB_DETAIL_SELECT } from "@/lib/job-queries";
+import { logOperationalActivity } from "@/lib/ops/activity";
 import { mapJobDetailPayload, mapJobListItem } from "@/lib/job-serialization";
 import { createServiceSupabase } from "@/lib/supabase/service";
 
@@ -81,7 +82,15 @@ export async function POST(req: Request) {
       .single();
 
     if (error) throw error;
-    return NextResponse.json({ job: mapJobDetailPayload(data as Record<string, unknown>) });
+    const job = mapJobDetailPayload(data as Record<string, unknown>);
+    await logOperationalActivity(supabase, {
+      event_type: "job.created",
+      title: `Job created: ${job.title}`,
+      job_id: job.id,
+      client_id: job.client_id,
+      href: `/admin/jobs/${job.id}`,
+    });
+    return NextResponse.json({ job });
   } catch (e) {
     const message = e instanceof Error ? e.message : "Database error";
     return NextResponse.json({ error: message }, { status: 503 });

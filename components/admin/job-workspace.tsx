@@ -9,9 +9,11 @@ import { NewClientModal } from "@/components/admin/new-client-modal";
 import type {
   CrewAssignment,
   JobDetailPayload,
+  OperationalActivityRow,
   OperationalTaskPriority,
   OperationalTaskRow,
   OperationalTaskStatus,
+  TaskTemplateRow,
 } from "@/lib/db-types";
 
 type QuoteOption = { id: string; reference_code: string | null; status: string; client_id: string | null };
@@ -33,6 +35,27 @@ const taskPriorityClasses: Record<OperationalTaskPriority, string> = {
   high: "border-orange-400/35 bg-orange-500/10 text-orange-100",
   normal: "border-sky-400/30 bg-sky-500/10 text-sky-100",
   low: "border-zinc-500/30 bg-zinc-500/10 text-zinc-300",
+};
+
+type JobWorkspaceTab = "overview" | "tasks" | "crew" | "profit" | "activity" | "notes";
+
+const WORKSPACE_TABS: { id: JobWorkspaceTab; label: string }[] = [
+  { id: "overview", label: "Overview" },
+  { id: "tasks", label: "Tasks" },
+  { id: "crew", label: "Crew" },
+  { id: "profit", label: "Profit" },
+  { id: "activity", label: "Activity" },
+  { id: "notes", label: "Notes" },
+];
+
+type ProfitabilitySummary = {
+  revenue_cents: number;
+  invoice_total_cents: number;
+  expense_cents: number;
+  net_profit_cents: number;
+  margin_percent: number;
+  expenses: { id: string; category: string | null; vendor: string | null; amount_cents: number; expense_date: string }[];
+  categories: Record<string, number>;
 };
 type InvoiceOption = {
   id: string;
@@ -80,6 +103,10 @@ function titleCaseToken(value: string): string {
   return value.replace(/_/g, " ").replace(/\b\w/g, (m) => m.toUpperCase());
 }
 
+function formatMoney(cents: number): string {
+  return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(cents / 100);
+}
+
 function dollarsFromCents(cents: number): string {
   return (cents / 100).toFixed(2);
 }
@@ -112,6 +139,13 @@ export function JobWorkspace({ jobId, initialJob, recentClients }: Props) {
   const [draggedTaskId, setDraggedTaskId] = useState<string | null>(null);
   const [newTask, setNewTask] = useState({ title: "", priority: "normal" as OperationalTaskPriority });
   const [taskDrafts, setTaskDrafts] = useState<Record<string, { comment: string; photoUrl: string }>>({});
+  const [activeTab, setActiveTab] = useState<JobWorkspaceTab>("overview");
+  const [taskQuery, setTaskQuery] = useState("");
+  const [taskFilter, setTaskFilter] = useState<OperationalTaskStatus | "all">("all");
+  const [taskTemplates, setTaskTemplates] = useState<TaskTemplateRow[]>([]);
+  const [selectedTemplateId, setSelectedTemplateId] = useState("");
+  const [profitability, setProfitability] = useState<ProfitabilitySummary | null>(null);
+  const [activity, setActivity] = useState<OperationalActivityRow[]>([]);
 
   const clientValue = useMemo(() => embedToClientSummary(job.clients), [job.clients]);
 
@@ -164,6 +198,33 @@ export function JobWorkspace({ jobId, initialJob, recentClients }: Props) {
       cancelled = true;
     };
   }, [jobId]);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const [templateRes, profitRes, activityRes] = await Promise.all([
+          fetch(`/api/admin/task-templates?service_type=${encodeURIComponent(job.service_type ?? "")}`),
+          fetch(`/api/admin/jobs/${jobId}/profitability`),
+          fetch(`/api/admin/jobs/${jobId}/activity`),
+        ]);
+        const [templateData, profitData, activityData] = await Promise.all([
+          templateRes.json(),
+          profitRes.json(),
+          activityRes.json(),
+        ]);
+        if (cancelled) return;
+        if (templateRes.ok) setTaskTemplates((templateData.templates as TaskTemplateRow[]) ?? []);
+        if (profitRes.ok) setProfitability(profitData as ProfitabilitySummary);
+        if (activityRes.ok) setActivity((activityData.activity as OperationalActivityRow[]) ?? []);
+      } catch {
+        /* non-critical panels should not block job editing */
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [jobId, job.service_type]);
 
   useEffect(() => {
     function onBeforeUnload(e: BeforeUnloadEvent) {
@@ -294,8 +355,18 @@ export function JobWorkspace({ jobId, initialJob, recentClients }: Props) {
     setTaskError(null);
   }
 
-  async function createTask() {
-    const title = newTask.title.trim();
+  async function refreshActivity() {
+    try {
+      const res = await fetch(`/api/admin/jobs/${jobId}/activity`);
+      const data = await res.json();
+      if (res.ok) setActivity((data.activity as OperationalActivityRow[]) ?? []);
+    } catch {
+      /* activity is informational */
+    }
+  }
+
+  async function createTask(template?: TaskTemplateRow) {
+    const title = (template?.title ?? newTask.title).trim();
     if (!title) return;
     setTaskState("saving");
     setTaskError(null);
@@ -305,15 +376,25 @@ export function JobWorkspace({ jobId, initialJob, recentClients }: Props) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           title,
-          priority: newTask.priority,
+          priority: template?.priority ?? newTask.priority,
+          recurring_rule: template?.recurring_rule ?? null,
           client_id: job.client_id,
         }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "Could not create task");
-      setTasks((rows) => [...rows, data.task as OperationalTaskRow]);
+      const created = data.task as OperationalTaskRow;
+      setTasks((rows) => [...rows, created]);
+      if (template?.operational_notes) {
+        setTaskDrafts((drafts) => ({
+          ...drafts,
+          [created.id]: { comment: template.operational_notes ?? "", photoUrl: "" },
+        }));
+      }
       setNewTask({ title: "", priority: "normal" });
+      setSelectedTemplateId("");
       setTaskState("idle");
+      void refreshActivity();
     } catch (e) {
       setTaskState("error");
       setTaskError(e instanceof Error ? e.message : "Could not create task");
@@ -349,6 +430,7 @@ export function JobWorkspace({ jobId, initialJob, recentClients }: Props) {
       setTasks((rows) => rows.map((row) => (row.id === task.id ? (data.task as OperationalTaskRow) : row)));
       setTaskDrafts((drafts) => ({ ...drafts, [task.id]: { comment: "", photoUrl: "" } }));
       setTaskState("idle");
+      void refreshActivity();
     } catch (e) {
       setTaskState("error");
       setTaskError(e instanceof Error ? e.message : "Could not save task");
@@ -376,6 +458,7 @@ export function JobWorkspace({ jobId, initialJob, recentClients }: Props) {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "Could not reorder tasks");
       setTasks((data.tasks as OperationalTaskRow[]) ?? next);
+      void refreshActivity();
     } catch (e) {
       setTasks(current);
       setTaskState("error");
@@ -390,12 +473,24 @@ export function JobWorkspace({ jobId, initialJob, recentClients }: Props) {
       const res = await fetch(`/api/admin/jobs/${jobId}/tasks/${task.id}`, { method: "DELETE" });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "Could not delete task");
+      void refreshActivity();
     } catch (e) {
       setTasks(previous);
       setTaskState("error");
       setTaskError(e instanceof Error ? e.message : "Could not delete task");
     }
   }
+
+  const filteredTasks = tasks.filter((task) => {
+    const matchesStatus = taskFilter === "all" || task.status === taskFilter;
+    const q = taskQuery.trim().toLowerCase();
+    const matchesQuery = !q || [task.title, task.assigned_crew_name, task.recurring_rule, task.priority, task.status]
+      .filter(Boolean)
+      .some((value) => String(value).toLowerCase().includes(q));
+    return matchesStatus && matchesQuery;
+  });
+
+  const selectedTemplate = taskTemplates.find((template) => template.id === selectedTemplateId) ?? null;
 
   const taskCompletion = tasks.length === 0
     ? 0
@@ -444,13 +539,30 @@ export function JobWorkspace({ jobId, initialJob, recentClients }: Props) {
         </div>
       </div>
 
+      <nav className="sticky top-0 z-20 -mx-1 flex gap-2 overflow-x-auto rounded-2xl border border-white/10 bg-[#07090d]/90 p-1 backdrop-blur-xl" aria-label="Job workspace sections">
+        {WORKSPACE_TABS.map((tab) => (
+          <button
+            key={tab.id}
+            type="button"
+            onClick={() => setActiveTab(tab.id)}
+            className={`min-h-[44px] shrink-0 rounded-xl px-4 text-sm font-semibold transition ${
+              activeTab === tab.id
+                ? "bg-sky-500/20 text-sky-100 ring-1 ring-sky-400/40"
+                : "text-zinc-400 hover:bg-white/5 hover:text-zinc-200"
+            }`}
+          >
+            {tab.label}
+          </button>
+        ))}
+      </nav>
+
       {errorMsg ? (
         <div className="rounded-xl border border-red-400/30 bg-red-500/10 px-4 py-3 text-sm text-red-100">
           {errorMsg}
         </div>
       ) : null}
 
-      <section className="rounded-2xl border border-white/10 bg-white/[0.03] p-5 ring-1 ring-white/[0.06]">
+      <section className={`${activeTab === "overview" ? "" : "hidden"} rounded-2xl border border-white/10 bg-white/[0.03] p-5 ring-1 ring-white/[0.06]`}>
         <h2 className="text-xs font-semibold uppercase tracking-wider text-zinc-500">Client</h2>
         <p className="mt-1 text-xs text-zinc-500">
           Client is validated against linked quote and invoice—relations stay aligned with Supabase.
@@ -483,7 +595,7 @@ export function JobWorkspace({ jobId, initialJob, recentClients }: Props) {
         />
       </section>
 
-      <section className="grid gap-5 md:grid-cols-2">
+      <section className={`${activeTab === "overview" ? "grid" : "hidden"} gap-5 md:grid-cols-2`}>
         <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-5 ring-1 ring-white/[0.05]">
           <h2 className="text-xs font-semibold uppercase tracking-wider text-zinc-500">Core</h2>
           <label className="mt-4 block text-xs text-zinc-500">Title</label>
@@ -616,7 +728,7 @@ export function JobWorkspace({ jobId, initialJob, recentClients }: Props) {
         </div>
       </section>
 
-      <section className="rounded-2xl border border-white/10 bg-white/[0.03] p-5 ring-1 ring-white/[0.05]">
+      <section className={`${activeTab === "tasks" ? "" : "hidden"} rounded-2xl border border-white/10 bg-white/[0.03] p-5 ring-1 ring-white/[0.05]`}>
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
             <h2 className="text-xs font-semibold uppercase tracking-wider text-zinc-500">Field task command center</h2>
@@ -667,15 +779,62 @@ export function JobWorkspace({ jobId, initialJob, recentClients }: Props) {
           </button>
         </div>
 
+        <div className="mt-3 grid gap-3 lg:grid-cols-[1fr_12rem_12rem_auto]">
+          <input
+            className="min-h-[44px] rounded-xl border border-white/10 bg-black/30 px-3 text-sm text-white outline-none focus:border-sky-400/40"
+            placeholder="Search tasks, crew, status, recurring rules…"
+            value={taskQuery}
+            onChange={(e) => setTaskQuery(e.target.value)}
+          />
+          <select
+            className="min-h-[44px] rounded-xl border border-white/10 bg-black/30 px-3 text-sm text-white outline-none focus:border-sky-400/40"
+            value={taskFilter}
+            onChange={(e) => setTaskFilter(e.target.value as OperationalTaskStatus | "all")}
+          >
+            <option value="all">All statuses</option>
+            {TASK_STATUSES.map((status) => (
+              <option key={status} value={status}>
+                {titleCaseToken(status)}
+              </option>
+            ))}
+          </select>
+          <select
+            className="min-h-[44px] rounded-xl border border-white/10 bg-black/30 px-3 text-sm text-white outline-none focus:border-sky-400/40"
+            value={selectedTemplateId}
+            onChange={(e) => setSelectedTemplateId(e.target.value)}
+          >
+            <option value="">Task template</option>
+            {taskTemplates.map((template) => (
+              <option key={template.id} value={template.id}>
+                {template.name}
+              </option>
+            ))}
+          </select>
+          <button
+            type="button"
+            disabled={!selectedTemplate}
+            onClick={() => selectedTemplate && void createTask(selectedTemplate)}
+            className="min-h-[44px] rounded-xl border border-white/10 px-4 text-sm font-semibold text-zinc-200 transition hover:bg-white/5 disabled:opacity-50"
+          >
+            Use template
+          </button>
+        </div>
+
+        {selectedTemplate?.operational_notes ? (
+          <p className="mt-2 rounded-xl border border-violet-400/25 bg-violet-500/10 px-3 py-2 text-xs text-violet-100">
+            {selectedTemplate.operational_notes}
+          </p>
+        ) : null}
+
         {taskState === "loading" ? (
           <div className="mt-4 rounded-2xl border border-white/10 bg-black/20 p-4 text-sm text-zinc-500">Loading tasks…</div>
-        ) : tasks.length === 0 ? (
+        ) : filteredTasks.length === 0 ? (
           <div className="mt-4 rounded-2xl border border-dashed border-white/15 bg-black/20 p-5 text-sm text-zinc-400">
-            No field tasks yet. Add arrival photos, gate/access notes, service checkpoints, or invoice follow-up.
+            No matching field tasks. Clear the search/filter or add a task/template for this job.
           </div>
         ) : (
           <div className="mt-4 space-y-3">
-            {tasks.map((task) => {
+            {filteredTasks.map((task) => {
               const draft = taskDrafts[task.id] ?? { comment: "", photoUrl: "" };
               return (
                 <article
@@ -866,7 +1025,7 @@ export function JobWorkspace({ jobId, initialJob, recentClients }: Props) {
         )}
       </section>
 
-      <section className="rounded-2xl border border-white/10 bg-white/[0.03] p-5 ring-1 ring-white/[0.05]">
+      <section className={`${activeTab === "crew" ? "" : "hidden"} rounded-2xl border border-white/10 bg-white/[0.03] p-5 ring-1 ring-white/[0.05]`}>
         <div className="flex items-center justify-between gap-2">
           <h2 className="text-xs font-semibold uppercase tracking-wider text-zinc-500">Crew</h2>
           <button
@@ -919,7 +1078,98 @@ export function JobWorkspace({ jobId, initialJob, recentClients }: Props) {
         </div>
       </section>
 
-      <section className="rounded-2xl border border-white/10 bg-white/[0.03] p-5 ring-1 ring-white/[0.05]">
+      <section className={`${activeTab === "profit" ? "" : "hidden"} rounded-2xl border border-white/10 bg-white/[0.03] p-5 ring-1 ring-white/[0.05]`}>
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <h2 className="text-xs font-semibold uppercase tracking-wider text-zinc-500">Profitability summary</h2>
+            <p className="mt-1 text-xs text-zinc-500">Revenue, job-linked expenses, and net margin update from relational records.</p>
+          </div>
+          <Link href="/admin/expenses/import" className="min-h-[44px] rounded-xl border border-white/10 px-4 py-2 text-sm font-semibold text-zinc-200 no-underline hover:bg-white/5">
+            Import expenses
+          </Link>
+        </div>
+        {!profitability ? (
+          <div className="mt-4 rounded-2xl border border-white/10 bg-black/20 p-4 text-sm text-zinc-500">Loading profitability…</div>
+        ) : (
+          <>
+            <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+              <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
+                <p className="text-[11px] font-semibold uppercase tracking-wide text-zinc-500">Revenue</p>
+                <p className="mt-1 text-xl font-semibold text-white">{formatMoney(profitability.revenue_cents)}</p>
+              </div>
+              <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
+                <p className="text-[11px] font-semibold uppercase tracking-wide text-zinc-500">Expenses</p>
+                <p className="mt-1 text-xl font-semibold text-white">{formatMoney(profitability.expense_cents)}</p>
+              </div>
+              <div className="rounded-2xl border border-emerald-400/20 bg-emerald-500/10 p-4">
+                <p className="text-[11px] font-semibold uppercase tracking-wide text-emerald-200/80">Net profit</p>
+                <p className="mt-1 text-xl font-semibold text-white">{formatMoney(profitability.net_profit_cents)}</p>
+              </div>
+              <div className="rounded-2xl border border-sky-400/20 bg-sky-500/10 p-4">
+                <p className="text-[11px] font-semibold uppercase tracking-wide text-sky-200/80">Margin</p>
+                <p className="mt-1 text-xl font-semibold text-white">{profitability.margin_percent}%</p>
+              </div>
+            </div>
+
+            <div className="mt-5 grid gap-4 lg:grid-cols-2">
+              <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
+                <h3 className="text-sm font-semibold text-white">Cost categories</h3>
+                <div className="mt-3 space-y-2">
+                  {Object.entries(profitability.categories).length === 0 ? (
+                    <p className="text-sm text-zinc-500">No job-specific expenses attached yet.</p>
+                  ) : Object.entries(profitability.categories).map(([category, cents]) => (
+                    <div key={category} className="flex items-center justify-between gap-3 rounded-xl bg-white/[0.03] px-3 py-2 text-sm">
+                      <span className="text-zinc-300">{category}</span>
+                      <span className="font-semibold text-white">{formatMoney(cents)}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
+                <h3 className="text-sm font-semibold text-white">Recent job expenses</h3>
+                <div className="mt-3 space-y-2">
+                  {profitability.expenses.length === 0 ? (
+                    <p className="text-sm text-zinc-500">Attach imported expenses to this job for real margin tracking.</p>
+                  ) : profitability.expenses.slice(0, 6).map((expense) => (
+                    <div key={expense.id} className="flex items-center justify-between gap-3 rounded-xl bg-white/[0.03] px-3 py-2 text-sm">
+                      <span className="min-w-0 truncate text-zinc-300">{expense.vendor ?? expense.category ?? "Expense"}</span>
+                      <span className="font-semibold text-white">{formatMoney(expense.amount_cents)}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </>
+        )}
+      </section>
+
+      <section className={`${activeTab === "activity" ? "" : "hidden"} rounded-2xl border border-white/10 bg-white/[0.03] p-5 ring-1 ring-white/[0.05]`}>
+        <h2 className="text-xs font-semibold uppercase tracking-wider text-zinc-500">Operational activity timeline</h2>
+        <p className="mt-1 text-xs text-zinc-500">Task, job, invoice, photo, and expense events appear here with actor attribution.</p>
+        <div className="mt-5 space-y-3">
+          {activity.length === 0 ? (
+            <div className="rounded-2xl border border-dashed border-white/15 bg-black/20 p-5 text-sm text-zinc-400">
+              Activity will populate as this job is updated, tasks are completed, photos are uploaded, and expenses are attached.
+            </div>
+          ) : activity.map((item) => (
+            <div key={item.id} className="relative rounded-2xl border border-white/10 bg-black/20 p-4 pl-5">
+              <span className="absolute left-0 top-5 h-3 w-3 -translate-x-1/2 rounded-full bg-sky-400 shadow-[0_0_18px_rgba(56,189,248,0.6)]" aria-hidden />
+              <div className="flex flex-wrap items-start justify-between gap-2">
+                <div>
+                  <p className="text-sm font-semibold text-white">{item.title}</p>
+                  {item.body ? <p className="mt-1 text-xs text-zinc-500">{item.body}</p> : null}
+                </div>
+                <span className="rounded-full border border-white/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-zinc-400">
+                  {item.actor_name}
+                </span>
+              </div>
+              <p className="mt-2 text-[11px] text-zinc-600">{shortDateTime(item.created_at)} · {item.event_type.replace(/\./g, " ")}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section className={`${activeTab === "notes" ? "" : "hidden"} rounded-2xl border border-white/10 bg-white/[0.03] p-5 ring-1 ring-white/[0.05]`}>
         <h2 className="text-xs font-semibold uppercase tracking-wider text-zinc-500">Notes & follow-up</h2>
         <label className="mt-4 block text-xs text-zinc-500">Customer / job notes</label>
         <textarea
@@ -950,7 +1200,7 @@ export function JobWorkspace({ jobId, initialJob, recentClients }: Props) {
         </label>
       </section>
 
-      <JobFileUpload jobId={jobId} />
+      {activeTab === "notes" ? <JobFileUpload jobId={jobId} /> : null}
     </div>
   );
 }

@@ -3,6 +3,7 @@ import { isAdminAuthenticated } from "@/lib/admin-auth";
 import { JOB_DETAIL_SELECT } from "@/lib/job-queries";
 import { mapJobDetailPayload, parseCrewAssignments } from "@/lib/job-serialization";
 import { resolveJobClientAndValidate } from "@/lib/job-relations";
+import { logOperationalActivity } from "@/lib/ops/activity";
 import { createServiceSupabase } from "@/lib/supabase/service";
 
 type Ctx = { params: Promise<{ id: string }> };
@@ -159,7 +160,18 @@ export async function PUT(req: Request, { params }: Ctx) {
       );
     }
 
-    return NextResponse.json({ job: mapJobDetailPayload(data as Record<string, unknown>) });
+    const job = mapJobDetailPayload(data as Record<string, unknown>);
+    await logOperationalActivity(supabase, {
+      event_type: "job.updated",
+      title: `Job updated: ${job.title}`,
+      body: `Status: ${job.status.replace(/_/g, " ")}`,
+      job_id: job.id,
+      client_id: job.client_id,
+      invoice_id: job.invoice_id,
+      href: `/admin/jobs/${job.id}`,
+    });
+
+    return NextResponse.json({ job });
   } catch (e) {
     const message = e instanceof Error ? e.message : "Database error";
     return NextResponse.json({ error: message }, { status: 503 });

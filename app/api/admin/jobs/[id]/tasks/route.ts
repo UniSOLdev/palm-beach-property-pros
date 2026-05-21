@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { isAdminAuthenticated } from "@/lib/admin-auth";
+import { logOperationalActivity } from "@/lib/ops/activity";
 import { mapOperationalTaskRow, normalizeTaskPriority } from "@/lib/task-serialization";
 import { createServiceSupabase } from "@/lib/supabase/service";
 
@@ -94,7 +95,17 @@ export async function POST(req: Request, { params }: Ctx) {
       .single();
 
     if (error) throw error;
-    return NextResponse.json({ task: mapOperationalTaskRow(data as Record<string, unknown>) }, { status: 201 });
+    const task = mapOperationalTaskRow(data as Record<string, unknown>);
+    await logOperationalActivity(supabase, {
+      event_type: "task.created",
+      title: `Task created: ${task.title}`,
+      body: `Priority: ${task.priority}`,
+      job_id: id,
+      client_id: task.client_id,
+      task_id: task.id,
+      href: `/admin/jobs/${id}`,
+    });
+    return NextResponse.json({ task }, { status: 201 });
   } catch (e) {
     const message = e instanceof Error ? e.message : "Database error";
     return NextResponse.json({ error: message }, { status: 503 });
@@ -139,6 +150,14 @@ export async function PATCH(req: Request, { params }: Ctx) {
       .order("priority_rank", { ascending: true })
       .order("created_at", { ascending: true });
     if (error) throw error;
+
+    await logOperationalActivity(supabase, {
+      event_type: "task.reordered",
+      title: "Task priority order updated",
+      job_id: id,
+      href: `/admin/jobs/${id}`,
+      metadata: { count: orderedIds.length },
+    });
 
     return NextResponse.json({ tasks: (data ?? []).map((row) => mapOperationalTaskRow(row as Record<string, unknown>)) });
   } catch (e) {

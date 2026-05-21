@@ -4,6 +4,7 @@ import type {
   OperationalTaskPriority,
   OperationalTaskRow,
   OperationalTaskStatus,
+  TaskTemplateRow,
 } from "@/lib/db-types";
 
 export const TASK_STATUSES = ["todo", "scheduled", "in_progress", "blocked", "done", "cancelled"] as const;
@@ -105,6 +106,24 @@ export function mapOperationalTaskRow(data: Record<string, unknown>): Operationa
     comments: parseTaskComments(data.comments),
     activity_log: parseTaskActivity(data.activity_log),
     completed_at: data.completed_at != null ? String(data.completed_at) : null,
+    created_at: String(data.created_at ?? ""),
+    updated_at: String(data.updated_at ?? data.created_at ?? ""),
+  };
+}
+
+
+export function mapTaskTemplateRow(data: Record<string, unknown>): TaskTemplateRow {
+  return {
+    id: String(data.id),
+    name: String(data.name ?? "Template"),
+    service_type: data.service_type != null ? String(data.service_type) : null,
+    title: String(data.title ?? "Task"),
+    priority: normalizeTaskPriority(data.priority),
+    recurring_rule: data.recurring_rule != null ? String(data.recurring_rule) : null,
+    operational_notes: data.operational_notes != null ? String(data.operational_notes) : null,
+    attachment_prompt: data.attachment_prompt != null ? String(data.attachment_prompt) : null,
+    sort_order: Number(data.sort_order) || 0,
+    is_active: data.is_active !== false,
     created_at: String(data.created_at ?? ""),
     updated_at: String(data.updated_at ?? data.created_at ?? ""),
   };

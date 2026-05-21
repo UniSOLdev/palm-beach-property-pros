@@ -1,3 +1,4 @@
+import { fetchRecentOperationalActivity } from "@/lib/ops/activity";
 import { createServiceSupabase } from "@/lib/supabase/service";
 
 export type OpsActivityItem = {
@@ -60,7 +61,7 @@ function sameLocalDay(a: Date, b: Date): boolean {
 export async function loadOpsDashboardMetrics(): Promise<OpsDashboardMetrics> {
   const supabase = createServiceSupabase();
 
-  const [clientsRes, jobsRes, invoicesRes, crewRes, expenseTotalsRes, expenseRecentRes, inventoryRes, tasksRes] =
+  const [clientsRes, jobsRes, invoicesRes, crewRes, expenseTotalsRes, expenseRecentRes, inventoryRes, tasksRes, activityRows] =
     await Promise.all([
       supabase.from("clients").select("id", { count: "exact", head: true }),
       supabase.from("jobs").select("id, title, job_number, status, revenue_cents, property_address, created_at, updated_at"),
@@ -70,6 +71,7 @@ export async function loadOpsDashboardMetrics(): Promise<OpsDashboardMetrics> {
       supabase.from("expenses").select("id, vendor, category, amount_cents, created_at").order("created_at", { ascending: false }).limit(8),
       supabase.from("inventory_items").select("quantity, reorder_level"),
       supabase.from("operational_tasks").select("id, job_id, title, status, priority, due_at, updated_at"),
+      fetchRecentOperationalActivity(supabase, 12).catch(() => []),
     ]);
 
   const jobs = jobsRes.data ?? [];
@@ -150,7 +152,19 @@ export async function loadOpsDashboardMetrics(): Promise<OpsDashboardMetrics> {
     occurred_at: String(expense.created_at ?? ""),
   }));
 
-  const recent_activity = [...jobActivity, ...invoiceActivity, ...taskActivity, ...expenseActivity]
+  const relationalActivity: OpsActivityItem[] = activityRows.map((item) => ({
+    id: item.id,
+    type: item.event_type.startsWith("invoice") ? "invoice"
+      : item.event_type.startsWith("expense") ? "expense"
+        : item.event_type.startsWith("task") ? "task"
+          : "job",
+    label: item.title,
+    meta: `${item.actor_name} · ${item.event_type.replace(/\./g, " ")}`,
+    href: item.href ?? (item.job_id ? `/admin/jobs/${item.job_id}` : "/admin"),
+    occurred_at: item.created_at,
+  }));
+
+  const recent_activity = (relationalActivity.length > 0 ? relationalActivity : [...jobActivity, ...invoiceActivity, ...taskActivity, ...expenseActivity])
     .filter((item) => item.occurred_at)
     .sort((a, b) => b.occurred_at.localeCompare(a.occurred_at))
     .slice(0, 10);

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import type { InvoiceLineItem } from "@/lib/db-types";
 import { isAdminAuthenticated } from "@/lib/admin-auth";
 import { invoiceTotalsFromLines } from "@/lib/invoice-math";
+import { replaceInvoiceLineItems } from "@/lib/invoice-workflow";
 import { createServiceSupabase } from "@/lib/supabase/service";
 
 export async function GET(req: Request) {
@@ -41,6 +42,13 @@ export async function POST(req: Request) {
     status?: string;
     tax_cents?: number;
     line_items?: InvoiceLineItem[];
+    service_address?: string | null;
+    prepared_by?: string | null;
+    issue_date?: string | null;
+    due_date?: string | null;
+    invoice_number?: string | null;
+    scope_notes?: string | null;
+    client_message?: string | null;
   };
   try {
     body = await req.json();
@@ -64,11 +72,25 @@ export async function POST(req: Request) {
         subtotal_cents,
         tax_cents,
         total_cents,
+        service_address: body.service_address?.trim() || null,
+        prepared_by: body.prepared_by?.trim() || "Palm Beach Property Pros",
+        issue_date: body.issue_date || new Date().toISOString().slice(0, 10),
+        due_date: body.due_date || null,
+        invoice_number: body.invoice_number?.trim() || null,
+        scope_notes: body.scope_notes?.trim() || null,
+        client_message: body.client_message?.trim() || null,
       })
       .select("id, public_token, client_id, total_cents, created_at")
       .single();
 
     if (error) throw error;
+    await replaceInvoiceLineItems(supabase, String(data.id), line_items);
+    await supabase.from("invoice_audit_events").insert({
+      invoice_id: data.id,
+      event_type: "invoice.created",
+      summary: "Invoice created",
+      after_snapshot: data,
+    });
     return NextResponse.json({ invoice: data });
   } catch (e) {
     const message = e instanceof Error ? e.message : "Database error";

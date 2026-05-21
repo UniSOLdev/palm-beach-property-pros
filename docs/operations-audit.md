@@ -121,6 +121,26 @@ The strongest existing PBPP pattern is the dark coastal admin shell with persist
 - Existing mobile bottom operations nav pattern.
 - Existing Supabase schema and relational workflow work from earlier passes.
 
+## 2026-05-21 invoice workflow pass
+
+### Invoice reference implementation
+
+The provided detailed service invoice was used as the primary workflow/design reference without copying it literally. The system now models the same professional service-business clarity dynamically: structured client/service metadata, itemized services, agreed adjustments, payments received, balance due, and scope explanation notes.
+
+### Added invoice infrastructure
+
+- Added relational `invoice_line_items`, `invoice_payments`, `invoice_scope_changes`, `invoice_templates`, and `invoice_audit_events` tables.
+- Added invoice metadata columns for invoice number, service address, prepared by, issue/due dates, scope notes, client message, revision number, and soft delete timestamp.
+- Added reusable invoice template API for saving/loading common service presets.
+- Updated invoice create/edit APIs to maintain relational line items, payments, scope changes, audit events, automatic partial/paid status, revisions, and activity logging.
+- Updated public invoice payloads to include payments, scope changes, payment totals, balances, and service metadata.
+
+### UI consolidation
+
+- Rebuilt admin invoice editing around service templates, line item clarity, agreed price adjustments, payment entries, and client transparency notes.
+- Rebuilt public and print invoice views as branded responsive PBPP service documents with clear totals, payment tracking, balance status, and scope explanation.
+- Preserved existing public invoice URLs and print/PDF browser workflow.
+
 ## Verification performed
 
 - Baseline after merging platform foundation: `npm run type-check` passed.
@@ -135,3 +155,6 @@ The strongest existing PBPP pattern is the dark coastal admin shell with persist
 - Consolidation pass: `npm run build` passed.
 - Consolidation pass: `npm run lint` passed (with the Next.js deprecation notice for `next lint`).
 - Consolidation pass: `git diff --check` passed.
+- Invoice workflow pass: `npm run type-check` passed.
+- Invoice workflow pass: `npm run build` passed.
+- Invoice workflow pass: `npm run lint` passed (with the Next.js deprecation notice for `next lint`).

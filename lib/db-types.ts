@@ -54,8 +54,70 @@ export type InvoiceRow = {
   quote_id: string | null;
   quote_reference_code: string | null;
   converted_from_quote_at: string | null;
+  invoice_number: string | null;
+  service_address: string | null;
+  prepared_by: string;
+  issue_date: string | null;
+  due_date: string | null;
+  scope_notes: string | null;
+  client_message: string | null;
+  revision_number: number;
+  soft_deleted_at: string | null;
   created_at: string;
   updated_at: string;
+};
+
+
+export type InvoicePaymentRow = {
+  id: string;
+  invoice_id: string;
+  payment_date: string;
+  method: "cash" | "zelle" | "card" | "check" | "venmo" | "other";
+  description: string | null;
+  amount_cents: number;
+  reference: string | null;
+  received_by: string;
+  created_at: string;
+  updated_at: string;
+};
+
+export type InvoiceScopeChangeRow = {
+  id: string;
+  invoice_id: string;
+  change_type: "addition" | "removal" | "adjustment" | "note";
+  title: string;
+  description: string | null;
+  amount_cents: number;
+  before_total_cents: number | null;
+  after_total_cents: number | null;
+  acknowledged_at: string | null;
+  acknowledged_by: string | null;
+  created_by: string;
+  created_at: string;
+};
+
+export type InvoiceTemplateRow = {
+  id: string;
+  name: string;
+  service_type: string | null;
+  description: string | null;
+  line_items: InvoiceLineItem[];
+  scope_notes: string | null;
+  default_terms: string | null;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+};
+
+export type InvoiceAuditEventRow = {
+  id: string;
+  invoice_id: string;
+  event_type: string;
+  actor_name: string;
+  summary: string;
+  before_snapshot: Record<string, unknown> | null;
+  after_snapshot: Record<string, unknown> | null;
+  created_at: string;
 };
 
 export type CrewAssignment = {

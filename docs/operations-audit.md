@@ -141,6 +141,18 @@ The provided detailed service invoice was used as the primary workflow/design re
 - Rebuilt public and print invoice views as branded responsive PBPP service documents with clear totals, payment tracking, balance status, and scope explanation.
 - Preserved existing public invoice URLs and print/PDF browser workflow.
 
+## 2026-05-21 backend stabilization pass
+
+### Data architecture fixes
+
+- Added an operational data stabilization migration for relational crew assignments, mileage logs, inventory movements, receipt upload projection, estimate projection, soft deletes, update triggers, service-role RLS policies, and analytics views.
+- Added job/invoice/task/file/expense relationship hardening: invoice-to-job links, task before/after file links, task operational notes, expense receipt file links, and file-to-task/expense links.
+- Added production analytics views for invoice payment totals, unpaid invoices, revenue by month, expense categories, job profitability, crew utilization, mileage totals, inventory alerts, and operational KPIs.
+- Refreshed expense rollup views so soft-deleted expenses are excluded from totals.
+- Hardened Supabase service client environment validation with clearer production errors.
+- Updated job profitability API to read from the database rollup view instead of duplicating profit logic in the route.
+- Updated dashboard analytics to prefer the operational KPI view while preserving existing fallbacks.
+
 ## Verification performed
 
 - Baseline after merging platform foundation: `npm run type-check` passed.
@@ -158,3 +170,6 @@ The provided detailed service invoice was used as the primary workflow/design re
 - Invoice workflow pass: `npm run type-check` passed.
 - Invoice workflow pass: `npm run build` passed.
 - Invoice workflow pass: `npm run lint` passed (with the Next.js deprecation notice for `next lint`).
+- Backend stabilization pass: `npm run type-check` passed.
+- Backend stabilization pass: `npm run build` passed.
+- Backend stabilization pass: `npm run lint` passed (with the Next.js deprecation notice for `next lint`).

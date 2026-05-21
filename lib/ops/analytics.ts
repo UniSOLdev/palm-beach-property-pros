@@ -61,7 +61,7 @@ function sameLocalDay(a: Date, b: Date): boolean {
 export async function loadOpsDashboardMetrics(): Promise<OpsDashboardMetrics> {
   const supabase = createServiceSupabase();
 
-  const [clientsRes, jobsRes, invoicesRes, crewRes, expenseTotalsRes, expenseRecentRes, inventoryRes, tasksRes, activityRows] =
+  const [clientsRes, jobsRes, invoicesRes, crewRes, expenseTotalsRes, expenseRecentRes, inventoryRes, tasksRes, kpiRes, activityRows] =
     await Promise.all([
       supabase.from("clients").select("id", { count: "exact", head: true }),
       supabase.from("jobs").select("id, title, job_number, status, revenue_cents, property_address, created_at, updated_at"),
@@ -71,6 +71,7 @@ export async function loadOpsDashboardMetrics(): Promise<OpsDashboardMetrics> {
       supabase.from("expenses").select("id, vendor, category, amount_cents, created_at").order("created_at", { ascending: false }).limit(8),
       supabase.from("inventory_items").select("quantity, reorder_level"),
       supabase.from("operational_tasks").select("id, job_id, title, status, priority, due_at, updated_at"),
+      supabase.from("operational_kpis_v").select("*").maybeSingle(),
       fetchRecentOperationalActivity(supabase, 12).catch(() => []),
     ]);
 
@@ -78,25 +79,33 @@ export async function loadOpsDashboardMetrics(): Promise<OpsDashboardMetrics> {
   const invoices = invoicesRes.data ?? [];
   const tasks = tasksRes.data ?? [];
   const expenses = expenseRecentRes.data ?? [];
+  const kpis = (kpiRes.data ?? null) as null | {
+    active_jobs?: number;
+    open_tasks?: number;
+    blocked_tasks?: number;
+    unpaid_balance_cents?: number;
+    inventory_alert_count?: number;
+    month_revenue_cents?: number;
+  };
 
-  const active_jobs = jobs.filter((j) => !["completed", "cancelled", "archived"].includes(j.status ?? "")).length;
+  const active_jobs = kpis?.active_jobs ?? jobs.filter((j) => !["completed", "cancelled", "archived"].includes(j.status ?? "")).length;
   const job_revenue_cents = jobs.reduce((s, j) => s + cents(j.revenue_cents), 0);
   const invoice_revenue_cents = invoices.reduce((s, i) => s + cents(i.total_cents), 0);
   const paid_invoice_cents = invoices.filter((i) => isPaidInvoiceStatus(i.status)).reduce((s, i) => s + cents(i.total_cents), 0);
-  const open_invoice_cents = invoices.filter((i) => isOpenInvoiceStatus(i.status)).reduce((s, i) => s + cents(i.total_cents), 0);
+  const open_invoice_cents = kpis?.unpaid_balance_cents ?? invoices.filter((i) => isOpenInvoiceStatus(i.status)).reduce((s, i) => s + cents(i.total_cents), 0);
   const expense_cents = Number((expenseTotalsRes.data as { total_cents?: number } | null)?.total_cents ?? 0);
   const expense_count = Number((expenseTotalsRes.data as { expense_count?: number } | null)?.expense_count ?? 0);
   const profit_signal_cents = paid_invoice_cents - expense_cents;
   const profit_margin_percent = paid_invoice_cents > 0 ? Math.round((profit_signal_cents / paid_invoice_cents) * 1000) / 10 : 0;
   const today = new Date();
 
-  const low_stock =
+  const low_stock = kpis?.inventory_alert_count ??
     inventoryRes.data?.filter(
       (r) => Number(r.reorder_level) > 0 && Number(r.quantity) <= Number(r.reorder_level),
     ).length ?? 0;
 
-  const open_tasks = tasks.filter((task) => !["done", "cancelled"].includes(String(task.status ?? ""))).length;
-  const blocked_tasks = tasks.filter((task) => String(task.status ?? "") === "blocked").length;
+  const open_tasks = kpis?.open_tasks ?? tasks.filter((task) => !["done", "cancelled"].includes(String(task.status ?? ""))).length;
+  const blocked_tasks = kpis?.blocked_tasks ?? tasks.filter((task) => String(task.status ?? "") === "blocked").length;
   const tasks_due_today = tasks.filter((task) => {
     if (!task.due_at || ["done", "cancelled"].includes(String(task.status ?? ""))) return false;
     const due = new Date(task.due_at);

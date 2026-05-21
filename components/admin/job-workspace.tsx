@@ -497,19 +497,19 @@ export function JobWorkspace({ jobId, initialJob, recentClients }: Props) {
     : Math.round((tasks.filter((task) => task.status === "done").length / tasks.length) * 100);
 
   return (
-    <div className="mx-auto max-w-4xl space-y-6">
+    <div className="admin-page-narrow">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-sky-400/90">Job</p>
-          <h1 className="mt-1 text-2xl font-semibold tracking-tight text-white">
+          <p className="admin-kicker">Job</p>
+          <h1 className="admin-title mt-1">
             {job.job_number ? (
-              <span className="text-zinc-400">{job.job_number}</span>
+              <span className="text-silver">{job.job_number}</span>
             ) : (
-              <span className="text-zinc-500">No job #</span>
+              <span className="text-silver">No job #</span>
             )}{" "}
-            <span className="text-white">· {job.title}</span>
+            <span className="text-cream">· {job.title}</span>
           </h1>
-          <p className="mt-1 font-mono text-xs text-zinc-500">{job.id}</p>
+          <p className="mt-1 font-mono text-xs text-silver/70">{job.id}</p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
           {dirty ? (
@@ -526,20 +526,20 @@ export function JobWorkspace({ jobId, initialJob, recentClients }: Props) {
             type="button"
             onClick={() => void save()}
             disabled={saveState === "saving"}
-            className="rounded-xl bg-sky-500/90 px-5 py-2.5 text-sm font-semibold text-sky-950 shadow-lg shadow-sky-900/30 transition hover:bg-sky-400 disabled:opacity-50"
+            className="admin-action-primary disabled:opacity-50"
           >
             Save changes
           </button>
           <Link
             href="/admin/jobs"
-            className="rounded-xl border border-white/15 px-4 py-2.5 text-sm text-zinc-300 no-underline hover:bg-white/5"
+            className="admin-action-secondary"
           >
             All jobs
           </Link>
         </div>
       </div>
 
-      <nav className="sticky top-0 z-20 -mx-1 flex gap-2 overflow-x-auto rounded-2xl border border-white/10 bg-[#07090d]/90 p-1 backdrop-blur-xl" aria-label="Job workspace sections">
+      <nav className="admin-shell-panel sticky top-0 z-20 -mx-1 flex gap-2 overflow-x-auto rounded-2xl border p-1" aria-label="Job workspace sections">
         {WORKSPACE_TABS.map((tab) => (
           <button
             key={tab.id}
@@ -547,8 +547,8 @@ export function JobWorkspace({ jobId, initialJob, recentClients }: Props) {
             onClick={() => setActiveTab(tab.id)}
             className={`min-h-[44px] shrink-0 rounded-xl px-4 text-sm font-semibold transition ${
               activeTab === tab.id
-                ? "bg-sky-500/20 text-sky-100 ring-1 ring-sky-400/40"
-                : "text-zinc-400 hover:bg-white/5 hover:text-zinc-200"
+                ? "bg-aqua/20 text-cream ring-1 ring-aqua/40"
+                : "text-silver hover:bg-white/5 hover:text-cream"
             }`}
           >
             {tab.label}
@@ -562,9 +562,9 @@ export function JobWorkspace({ jobId, initialJob, recentClients }: Props) {
         </div>
       ) : null}
 
-      <section className={`${activeTab === "overview" ? "" : "hidden"} rounded-2xl border border-white/10 bg-white/[0.03] p-5 ring-1 ring-white/[0.06]`}>
-        <h2 className="text-xs font-semibold uppercase tracking-wider text-zinc-500">Client</h2>
-        <p className="mt-1 text-xs text-zinc-500">
+      <section className={`${activeTab === "overview" ? "" : "hidden"} admin-card`}>
+        <h2 className="admin-kicker">Client</h2>
+        <p className="mt-1 text-xs text-silver">
           Client is validated against linked quote and invoice—relations stay aligned with Supabase.
         </p>
         <div className="mt-4">
@@ -596,17 +596,17 @@ export function JobWorkspace({ jobId, initialJob, recentClients }: Props) {
       </section>
 
       <section className={`${activeTab === "overview" ? "grid" : "hidden"} gap-5 md:grid-cols-2`}>
-        <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-5 ring-1 ring-white/[0.05]">
-          <h2 className="text-xs font-semibold uppercase tracking-wider text-zinc-500">Core</h2>
-          <label className="mt-4 block text-xs text-zinc-500">Title</label>
+        <div className="admin-card">
+          <h2 className="admin-kicker">Core</h2>
+          <label className="mt-4 block text-xs text-silver">Title</label>
           <input
-            className="mt-1 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-sm text-white outline-none focus:border-sky-400/40"
+            className="admin-field mt-1 w-full py-2"
             value={job.title}
             onChange={(e) => applyJobPatch({ title: e.target.value })}
           />
-          <label className="mt-3 block text-xs text-zinc-500">Status</label>
+          <label className="mt-3 block text-xs text-silver">Status</label>
           <select
-            className="mt-1 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-sm text-white outline-none focus:border-sky-400/40"
+            className="admin-field mt-1 w-full py-2"
             value={job.status}
             onChange={(e) => applyJobPatch({ status: e.target.value })}
           >
@@ -618,21 +618,21 @@ export function JobWorkspace({ jobId, initialJob, recentClients }: Props) {
               </option>
             ))}
           </select>
-          <label className="mt-3 block text-xs text-zinc-500">Service type</label>
+          <label className="mt-3 block text-xs text-silver">Service type</label>
           <input
-            className="mt-1 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-sm text-white outline-none focus:border-sky-400/40"
+            className="admin-field mt-1 w-full py-2"
             value={job.service_type ?? ""}
             onChange={(e) => applyJobPatch({ service_type: e.target.value || null })}
           />
-          <label className="mt-3 block text-xs text-zinc-500">Property address</label>
+          <label className="mt-3 block text-xs text-silver">Property address</label>
           <input
-            className="mt-1 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-sm text-white outline-none focus:border-sky-400/40"
+            className="admin-field mt-1 w-full py-2"
             value={job.property_address ?? ""}
             onChange={(e) => applyJobPatch({ property_address: e.target.value || null })}
           />
-          <label className="mt-3 block text-xs text-zinc-500">Revenue ($)</label>
+          <label className="mt-3 block text-xs text-silver">Revenue ($)</label>
           <input
-            className="mt-1 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-sm text-white outline-none focus:border-sky-400/40"
+            className="admin-field mt-1 w-full py-2"
             inputMode="decimal"
             value={revenueInput}
             onChange={(e) => {
@@ -640,9 +640,9 @@ export function JobWorkspace({ jobId, initialJob, recentClients }: Props) {
               setDirty(true);
             }}
           />
-          <label className="mt-3 block text-xs text-zinc-500">Payment method</label>
+          <label className="mt-3 block text-xs text-silver">Payment method</label>
           <select
-            className="mt-1 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-sm text-white outline-none focus:border-sky-400/40"
+            className="admin-field mt-1 w-full py-2"
             value={job.payment_method ?? ""}
             onChange={(e) => applyJobPatch({ payment_method: e.target.value || null })}
           >
@@ -653,10 +653,10 @@ export function JobWorkspace({ jobId, initialJob, recentClients }: Props) {
               </option>
             ))}
           </select>
-          <label className="mt-3 block text-xs text-zinc-500">Completed at</label>
+          <label className="mt-3 block text-xs text-silver">Completed at</label>
           <input
             type="datetime-local"
-            className="mt-1 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-sm text-white outline-none focus:border-sky-400/40"
+            className="admin-field mt-1 w-full py-2"
             value={completedInput}
             onChange={(e) => {
               setCompletedInput(e.target.value);
@@ -665,11 +665,11 @@ export function JobWorkspace({ jobId, initialJob, recentClients }: Props) {
           />
         </div>
 
-        <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-5 ring-1 ring-white/[0.05]">
-          <h2 className="text-xs font-semibold uppercase tracking-wider text-zinc-500">Relations</h2>
-          <label className="mt-4 block text-xs text-zinc-500">Quote</label>
+        <div className="admin-card">
+          <h2 className="admin-kicker">Relations</h2>
+          <label className="mt-4 block text-xs text-silver">Quote</label>
           <select
-            className="mt-1 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-sm text-white outline-none focus:border-sky-400/40"
+            className="admin-field mt-1 w-full py-2"
             value={job.quote_id ?? ""}
             onChange={(e) => void onQuoteChange(e.target.value)}
           >
@@ -693,12 +693,12 @@ export function JobWorkspace({ jobId, initialJob, recentClients }: Props) {
               </Link>
             </div>
           ) : job.quote_id ? (
-            <p className="mt-2 text-xs text-zinc-500">Quote linked — save to refresh badge.</p>
+            <p className="mt-2 text-xs text-silver">Quote linked — save to refresh badge.</p>
           ) : null}
 
-          <label className="mt-5 block text-xs text-zinc-500">Invoice</label>
+          <label className="mt-5 block text-xs text-silver">Invoice</label>
           <select
-            className="mt-1 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-sm text-white outline-none focus:border-sky-400/40"
+            className="admin-field mt-1 w-full py-2"
             value={job.invoice_id ?? ""}
             onChange={(e) => void onInvoiceChange(e.target.value)}
           >
@@ -723,16 +723,16 @@ export function JobWorkspace({ jobId, initialJob, recentClients }: Props) {
               </Link>
             </div>
           ) : job.invoice_id ? (
-            <p className="mt-2 text-xs text-zinc-500">Invoice linked — save to refresh.</p>
+            <p className="mt-2 text-xs text-silver">Invoice linked — save to refresh.</p>
           ) : null}
         </div>
       </section>
 
-      <section className={`${activeTab === "tasks" ? "" : "hidden"} rounded-2xl border border-white/10 bg-white/[0.03] p-5 ring-1 ring-white/[0.05]`}>
+      <section className={`${activeTab === "tasks" ? "" : "hidden"} admin-card`}>
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
-            <h2 className="text-xs font-semibold uppercase tracking-wider text-zinc-500">Field task command center</h2>
-            <p className="mt-1 text-xs text-zinc-500">Drag to reprioritize. Quick-complete works well from an iPhone in the field.</p>
+            <h2 className="admin-kicker">Field task workflow</h2>
+            <p className="mt-1 text-xs text-silver">Drag to reprioritize. Quick-complete works well from an iPhone in the field.</p>
           </div>
           <div className="rounded-full border border-emerald-400/25 bg-emerald-500/10 px-3 py-1 text-xs font-semibold text-emerald-100">
             {taskCompletion}% complete
@@ -745,9 +745,9 @@ export function JobWorkspace({ jobId, initialJob, recentClients }: Props) {
           </p>
         ) : null}
 
-        <div className="mt-4 grid gap-3 rounded-2xl border border-white/10 bg-black/20 p-3 sm:grid-cols-[1fr_9rem_auto]">
+        <div className="mt-4 grid gap-3 admin-card-flat p-3 sm:grid-cols-[1fr_9rem_auto]">
           <input
-            className="min-h-[44px] rounded-xl border border-white/10 bg-black/30 px-3 text-sm text-white outline-none focus:border-sky-400/40"
+            className="admin-field"
             placeholder="Add a field task, checklist item, or follow-up"
             value={newTask.title}
             onChange={(e) => setNewTask((draft) => ({ ...draft, title: e.target.value }))}
@@ -759,7 +759,7 @@ export function JobWorkspace({ jobId, initialJob, recentClients }: Props) {
             }}
           />
           <select
-            className="min-h-[44px] rounded-xl border border-white/10 bg-black/30 px-3 text-sm text-white outline-none focus:border-sky-400/40"
+            className="admin-field"
             value={newTask.priority}
             onChange={(e) => setNewTask((draft) => ({ ...draft, priority: e.target.value as OperationalTaskPriority }))}
           >
@@ -773,7 +773,7 @@ export function JobWorkspace({ jobId, initialJob, recentClients }: Props) {
             type="button"
             onClick={() => void createTask()}
             disabled={!newTask.title.trim() || taskState === "saving"}
-            className="min-h-[44px] rounded-xl bg-sky-500/90 px-4 text-sm font-semibold text-sky-950 transition hover:bg-sky-400 disabled:opacity-50"
+            className="admin-action-primary disabled:opacity-50"
           >
             Add task
           </button>
@@ -781,13 +781,13 @@ export function JobWorkspace({ jobId, initialJob, recentClients }: Props) {
 
         <div className="mt-3 grid gap-3 lg:grid-cols-[1fr_12rem_12rem_auto]">
           <input
-            className="min-h-[44px] rounded-xl border border-white/10 bg-black/30 px-3 text-sm text-white outline-none focus:border-sky-400/40"
+            className="admin-field"
             placeholder="Search tasks, crew, status, recurring rules…"
             value={taskQuery}
             onChange={(e) => setTaskQuery(e.target.value)}
           />
           <select
-            className="min-h-[44px] rounded-xl border border-white/10 bg-black/30 px-3 text-sm text-white outline-none focus:border-sky-400/40"
+            className="admin-field"
             value={taskFilter}
             onChange={(e) => setTaskFilter(e.target.value as OperationalTaskStatus | "all")}
           >
@@ -799,7 +799,7 @@ export function JobWorkspace({ jobId, initialJob, recentClients }: Props) {
             ))}
           </select>
           <select
-            className="min-h-[44px] rounded-xl border border-white/10 bg-black/30 px-3 text-sm text-white outline-none focus:border-sky-400/40"
+            className="admin-field"
             value={selectedTemplateId}
             onChange={(e) => setSelectedTemplateId(e.target.value)}
           >
@@ -814,7 +814,7 @@ export function JobWorkspace({ jobId, initialJob, recentClients }: Props) {
             type="button"
             disabled={!selectedTemplate}
             onClick={() => selectedTemplate && void createTask(selectedTemplate)}
-            className="min-h-[44px] rounded-xl border border-white/10 px-4 text-sm font-semibold text-zinc-200 transition hover:bg-white/5 disabled:opacity-50"
+            className="admin-action-secondary disabled:opacity-50"
           >
             Use template
           </button>
@@ -827,9 +827,9 @@ export function JobWorkspace({ jobId, initialJob, recentClients }: Props) {
         ) : null}
 
         {taskState === "loading" ? (
-          <div className="mt-4 rounded-2xl border border-white/10 bg-black/20 p-4 text-sm text-zinc-500">Loading tasks…</div>
+          <div className="admin-card-soft mt-4 text-sm text-silver">Loading tasks…</div>
         ) : filteredTasks.length === 0 ? (
-          <div className="mt-4 rounded-2xl border border-dashed border-white/15 bg-black/20 p-5 text-sm text-zinc-400">
+          <div className="mt-4 rounded-2xl border border-dashed border-white/15 bg-white/[0.035] p-5 text-sm text-silver">
             No matching field tasks. Clear the search/filter or add a task/template for this job.
           </div>
         ) : (
@@ -866,12 +866,12 @@ export function JobWorkspace({ jobId, initialJob, recentClients }: Props) {
                         ) : null}
                       </div>
                       <input
-                        className="mt-3 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-sm font-semibold text-white outline-none focus:border-sky-400/40"
+                        className="admin-field mt-3 w-full py-2 font-semibold"
                         value={task.title}
                         onChange={(e) => updateTaskLocal(task.id, { title: e.target.value })}
                         onBlur={() => void saveTask(tasks.find((row) => row.id === task.id) ?? task)}
                       />
-                      <p className="mt-2 text-xs text-zinc-500">
+                      <p className="mt-2 text-xs text-silver">
                         {shortDateTime(task.due_at)}
                         {task.assigned_crew_name ? ` · ${task.assigned_crew_name}` : " · Unassigned"}
                       </p>
@@ -879,17 +879,17 @@ export function JobWorkspace({ jobId, initialJob, recentClients }: Props) {
                     <button
                       type="button"
                       onClick={() => void saveTask(task, { status: task.status === "done" ? "in_progress" : "done" })}
-                      className="min-h-[44px] rounded-xl bg-emerald-400 px-4 text-sm font-semibold text-emerald-950 transition hover:bg-emerald-300"
+                      className="inline-flex min-h-[44px] items-center justify-center rounded-xl bg-leaf px-4 text-sm font-semibold text-cream transition hover:brightness-110"
                     >
                       {task.status === "done" ? "Reopen" : "Complete"}
                     </button>
                   </div>
 
                   <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-                    <label className="text-xs text-zinc-500">
+                    <label className="text-xs text-silver">
                       Status
                       <select
-                        className="mt-1 min-h-[44px] w-full rounded-xl border border-white/10 bg-black/30 px-3 text-sm text-white outline-none focus:border-sky-400/40"
+                        className="admin-field mt-1 w-full"
                         value={task.status}
                         onChange={(e) => void saveTask(task, { status: e.target.value as OperationalTaskStatus })}
                       >
@@ -900,10 +900,10 @@ export function JobWorkspace({ jobId, initialJob, recentClients }: Props) {
                         ))}
                       </select>
                     </label>
-                    <label className="text-xs text-zinc-500">
+                    <label className="text-xs text-silver">
                       Priority
                       <select
-                        className="mt-1 min-h-[44px] w-full rounded-xl border border-white/10 bg-black/30 px-3 text-sm text-white outline-none focus:border-sky-400/40"
+                        className="admin-field mt-1 w-full"
                         value={task.priority}
                         onChange={(e) => void saveTask(task, { priority: e.target.value as OperationalTaskPriority })}
                       >
@@ -914,19 +914,19 @@ export function JobWorkspace({ jobId, initialJob, recentClients }: Props) {
                         ))}
                       </select>
                     </label>
-                    <label className="text-xs text-zinc-500">
+                    <label className="text-xs text-silver">
                       Due time
                       <input
                         type="datetime-local"
-                        className="mt-1 min-h-[44px] w-full rounded-xl border border-white/10 bg-black/30 px-3 text-sm text-white outline-none focus:border-sky-400/40"
+                        className="admin-field mt-1 w-full"
                         value={toDatetimeLocalValue(task.due_at)}
                         onChange={(e) => void saveTask(task, { due_at: fromDatetimeLocalValue(e.target.value) })}
                       />
                     </label>
-                    <label className="text-xs text-zinc-500">
+                    <label className="text-xs text-silver">
                       Recurring
                       <select
-                        className="mt-1 min-h-[44px] w-full rounded-xl border border-white/10 bg-black/30 px-3 text-sm text-white outline-none focus:border-sky-400/40"
+                        className="admin-field mt-1 w-full"
                         value={task.recurring_rule ?? ""}
                         onChange={(e) => void saveTask(task, { recurring_rule: e.target.value || null })}
                       >
@@ -940,11 +940,11 @@ export function JobWorkspace({ jobId, initialJob, recentClients }: Props) {
                   </div>
 
                   <div className="mt-3 grid gap-3 sm:grid-cols-2">
-                    <label className="text-xs text-zinc-500">
+                    <label className="text-xs text-silver">
                       Assigned crew
                       <input
                         list={`crew-${task.id}`}
-                        className="mt-1 min-h-[44px] w-full rounded-xl border border-white/10 bg-black/30 px-3 text-sm text-white outline-none focus:border-sky-400/40"
+                        className="admin-field mt-1 w-full"
                         value={task.assigned_crew_name ?? ""}
                         onChange={(e) => updateTaskLocal(task.id, { assigned_crew_name: e.target.value || null })}
                         onBlur={() => void saveTask(tasks.find((row) => row.id === task.id) ?? task)}
@@ -956,18 +956,18 @@ export function JobWorkspace({ jobId, initialJob, recentClients }: Props) {
                         ))}
                       </datalist>
                     </label>
-                    <label className="text-xs text-zinc-500">
+                    <label className="text-xs text-silver">
                       Completion photo URL
                       <div className="mt-1 flex gap-2">
                         <input
-                          className="min-h-[44px] min-w-0 flex-1 rounded-xl border border-white/10 bg-black/30 px-3 text-sm text-white outline-none focus:border-sky-400/40"
+                          className="admin-field min-w-0 flex-1"
                           value={draft.photoUrl}
                           onChange={(e) => setTaskDrafts((drafts) => ({ ...drafts, [task.id]: { ...draft, photoUrl: e.target.value } }))}
                           placeholder="Paste upload/share URL"
                         />
                         <button
                           type="button"
-                          className="min-h-[44px] rounded-xl border border-white/10 px-3 text-xs font-semibold text-zinc-300 hover:bg-white/5"
+                          className="admin-action-secondary px-3 text-xs"
                           onClick={() => void saveTask(task)}
                         >
                           Attach
@@ -988,7 +988,7 @@ export function JobWorkspace({ jobId, initialJob, recentClients }: Props) {
 
                   <div className="mt-3 grid gap-2 sm:grid-cols-[1fr_auto]">
                     <input
-                      className="min-h-[44px] rounded-xl border border-white/10 bg-black/30 px-3 text-sm text-white outline-none focus:border-sky-400/40"
+                      className="admin-field"
                       value={draft.comment}
                       onChange={(e) => setTaskDrafts((drafts) => ({ ...drafts, [task.id]: { ...draft, comment: e.target.value } }))}
                       placeholder="Add a field note or client update"
@@ -996,14 +996,14 @@ export function JobWorkspace({ jobId, initialJob, recentClients }: Props) {
                     <button
                       type="button"
                       onClick={() => void saveTask(task)}
-                      className="min-h-[44px] rounded-xl border border-white/10 px-4 text-sm font-semibold text-zinc-200 hover:bg-white/5"
+                      className="admin-action-secondary"
                     >
                       Save note
                     </button>
                   </div>
 
                   {task.comments.length > 0 ? (
-                    <div className="mt-3 space-y-2 rounded-xl border border-white/10 bg-black/20 p-3">
+                    <div className="mt-3 space-y-2 admin-card-flat p-3">
                       {task.comments.slice(-3).map((comment) => (
                         <p key={comment.id} className="text-xs text-zinc-400">
                           <span className="font-semibold text-zinc-300">{comment.author}:</span> {comment.body}
@@ -1025,9 +1025,9 @@ export function JobWorkspace({ jobId, initialJob, recentClients }: Props) {
         )}
       </section>
 
-      <section className={`${activeTab === "crew" ? "" : "hidden"} rounded-2xl border border-white/10 bg-white/[0.03] p-5 ring-1 ring-white/[0.05]`}>
+      <section className={`${activeTab === "crew" ? "" : "hidden"} admin-card`}>
         <div className="flex items-center justify-between gap-2">
-          <h2 className="text-xs font-semibold uppercase tracking-wider text-zinc-500">Crew</h2>
+          <h2 className="admin-kicker">Crew</h2>
           <button
             type="button"
             className="text-xs font-semibold text-sky-300 hover:underline"
@@ -1044,19 +1044,19 @@ export function JobWorkspace({ jobId, initialJob, recentClients }: Props) {
         </div>
         <div className="mt-4 space-y-3">
           {job.crew_assignments.length === 0 ? (
-            <p className="text-sm text-zinc-500">No crew assigned yet.</p>
+            <p className="text-sm text-silver">No crew assigned yet.</p>
           ) : null}
           {job.crew_assignments.map((m, i) => (
-            <div key={i} className="flex flex-wrap gap-2 rounded-xl border border-white/10 bg-black/20 p-3">
+            <div key={i} className="flex flex-wrap gap-2 admin-card-flat p-3">
               <input
                 placeholder="Name"
-                className="min-w-[8rem] flex-1 rounded-lg border border-white/10 bg-transparent px-2 py-1.5 text-sm text-white outline-none focus:border-sky-400/40"
+                className="admin-field min-w-[8rem] flex-1 py-1.5"
                 value={m.name}
                 onChange={(e) => updateCrew(i, { name: e.target.value })}
               />
               <input
                 placeholder="Role (optional)"
-                className="min-w-[6rem] flex-1 rounded-lg border border-white/10 bg-transparent px-2 py-1.5 text-sm text-white outline-none focus:border-sky-400/40"
+                className="admin-field min-w-[6rem] flex-1 py-1.5"
                 value={m.role ?? ""}
                 onChange={(e) => updateCrew(i, { role: e.target.value || null })}
               />
@@ -1078,62 +1078,62 @@ export function JobWorkspace({ jobId, initialJob, recentClients }: Props) {
         </div>
       </section>
 
-      <section className={`${activeTab === "profit" ? "" : "hidden"} rounded-2xl border border-white/10 bg-white/[0.03] p-5 ring-1 ring-white/[0.05]`}>
+      <section className={`${activeTab === "profit" ? "" : "hidden"} admin-card`}>
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
-            <h2 className="text-xs font-semibold uppercase tracking-wider text-zinc-500">Profitability summary</h2>
-            <p className="mt-1 text-xs text-zinc-500">Revenue, job-linked expenses, and net margin update from relational records.</p>
+            <h2 className="admin-kicker">Profitability summary</h2>
+            <p className="mt-1 text-xs text-silver">Revenue, job-linked expenses, and net margin update from relational records.</p>
           </div>
           <Link href="/admin/expenses/import" className="min-h-[44px] rounded-xl border border-white/10 px-4 py-2 text-sm font-semibold text-zinc-200 no-underline hover:bg-white/5">
             Import expenses
           </Link>
         </div>
         {!profitability ? (
-          <div className="mt-4 rounded-2xl border border-white/10 bg-black/20 p-4 text-sm text-zinc-500">Loading profitability…</div>
+          <div className="admin-card-soft mt-4 text-sm text-silver">Loading profitability…</div>
         ) : (
           <>
             <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-              <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
-                <p className="text-[11px] font-semibold uppercase tracking-wide text-zinc-500">Revenue</p>
-                <p className="mt-1 text-xl font-semibold text-white">{formatMoney(profitability.revenue_cents)}</p>
+              <div className="admin-card-flat p-4">
+                <p className="text-[11px] font-semibold uppercase tracking-wide text-silver">Revenue</p>
+                <p className="mt-1 text-xl font-semibold text-cream">{formatMoney(profitability.revenue_cents)}</p>
               </div>
-              <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
-                <p className="text-[11px] font-semibold uppercase tracking-wide text-zinc-500">Expenses</p>
-                <p className="mt-1 text-xl font-semibold text-white">{formatMoney(profitability.expense_cents)}</p>
+              <div className="admin-card-flat p-4">
+                <p className="text-[11px] font-semibold uppercase tracking-wide text-silver">Expenses</p>
+                <p className="mt-1 text-xl font-semibold text-cream">{formatMoney(profitability.expense_cents)}</p>
               </div>
               <div className="rounded-2xl border border-emerald-400/20 bg-emerald-500/10 p-4">
                 <p className="text-[11px] font-semibold uppercase tracking-wide text-emerald-200/80">Net profit</p>
-                <p className="mt-1 text-xl font-semibold text-white">{formatMoney(profitability.net_profit_cents)}</p>
+                <p className="mt-1 text-xl font-semibold text-cream">{formatMoney(profitability.net_profit_cents)}</p>
               </div>
               <div className="rounded-2xl border border-sky-400/20 bg-sky-500/10 p-4">
                 <p className="text-[11px] font-semibold uppercase tracking-wide text-sky-200/80">Margin</p>
-                <p className="mt-1 text-xl font-semibold text-white">{profitability.margin_percent}%</p>
+                <p className="mt-1 text-xl font-semibold text-cream">{profitability.margin_percent}%</p>
               </div>
             </div>
 
             <div className="mt-5 grid gap-4 lg:grid-cols-2">
-              <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
-                <h3 className="text-sm font-semibold text-white">Cost categories</h3>
+              <div className="admin-card-flat p-4">
+                <h3 className="text-sm font-semibold text-cream">Cost categories</h3>
                 <div className="mt-3 space-y-2">
                   {Object.entries(profitability.categories).length === 0 ? (
-                    <p className="text-sm text-zinc-500">No job-specific expenses attached yet.</p>
+                    <p className="text-sm text-silver">No job-specific expenses attached yet.</p>
                   ) : Object.entries(profitability.categories).map(([category, cents]) => (
                     <div key={category} className="flex items-center justify-between gap-3 rounded-xl bg-white/[0.03] px-3 py-2 text-sm">
                       <span className="text-zinc-300">{category}</span>
-                      <span className="font-semibold text-white">{formatMoney(cents)}</span>
+                      <span className="font-semibold text-cream">{formatMoney(cents)}</span>
                     </div>
                   ))}
                 </div>
               </div>
-              <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
-                <h3 className="text-sm font-semibold text-white">Recent job expenses</h3>
+              <div className="admin-card-flat p-4">
+                <h3 className="text-sm font-semibold text-cream">Recent job expenses</h3>
                 <div className="mt-3 space-y-2">
                   {profitability.expenses.length === 0 ? (
-                    <p className="text-sm text-zinc-500">Attach imported expenses to this job for real margin tracking.</p>
+                    <p className="text-sm text-silver">Attach imported expenses to this job for real margin tracking.</p>
                   ) : profitability.expenses.slice(0, 6).map((expense) => (
                     <div key={expense.id} className="flex items-center justify-between gap-3 rounded-xl bg-white/[0.03] px-3 py-2 text-sm">
                       <span className="min-w-0 truncate text-zinc-300">{expense.vendor ?? expense.category ?? "Expense"}</span>
-                      <span className="font-semibold text-white">{formatMoney(expense.amount_cents)}</span>
+                      <span className="font-semibold text-cream">{formatMoney(expense.amount_cents)}</span>
                     </div>
                   ))}
                 </div>
@@ -1143,21 +1143,21 @@ export function JobWorkspace({ jobId, initialJob, recentClients }: Props) {
         )}
       </section>
 
-      <section className={`${activeTab === "activity" ? "" : "hidden"} rounded-2xl border border-white/10 bg-white/[0.03] p-5 ring-1 ring-white/[0.05]`}>
-        <h2 className="text-xs font-semibold uppercase tracking-wider text-zinc-500">Operational activity timeline</h2>
-        <p className="mt-1 text-xs text-zinc-500">Task, job, invoice, photo, and expense events appear here with actor attribution.</p>
+      <section className={`${activeTab === "activity" ? "" : "hidden"} admin-card`}>
+        <h2 className="admin-kicker">Operational activity timeline</h2>
+        <p className="mt-1 text-xs text-silver">Task, job, invoice, photo, and expense events appear here with actor attribution.</p>
         <div className="mt-5 space-y-3">
           {activity.length === 0 ? (
-            <div className="rounded-2xl border border-dashed border-white/15 bg-black/20 p-5 text-sm text-zinc-400">
+            <div className="rounded-2xl border border-dashed border-white/15 bg-white/[0.035] p-5 text-sm text-silver">
               Activity will populate as this job is updated, tasks are completed, photos are uploaded, and expenses are attached.
             </div>
           ) : activity.map((item) => (
-            <div key={item.id} className="relative rounded-2xl border border-white/10 bg-black/20 p-4 pl-5">
+            <div key={item.id} className="relative admin-card-flat p-4 pl-5">
               <span className="absolute left-0 top-5 h-3 w-3 -translate-x-1/2 rounded-full bg-sky-400 shadow-[0_0_18px_rgba(56,189,248,0.6)]" aria-hidden />
               <div className="flex flex-wrap items-start justify-between gap-2">
                 <div>
-                  <p className="text-sm font-semibold text-white">{item.title}</p>
-                  {item.body ? <p className="mt-1 text-xs text-zinc-500">{item.body}</p> : null}
+                  <p className="text-sm font-semibold text-cream">{item.title}</p>
+                  {item.body ? <p className="mt-1 text-xs text-silver">{item.body}</p> : null}
                 </div>
                 <span className="rounded-full border border-white/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-zinc-400">
                   {item.actor_name}
@@ -1169,23 +1169,23 @@ export function JobWorkspace({ jobId, initialJob, recentClients }: Props) {
         </div>
       </section>
 
-      <section className={`${activeTab === "notes" ? "" : "hidden"} rounded-2xl border border-white/10 bg-white/[0.03] p-5 ring-1 ring-white/[0.05]`}>
-        <h2 className="text-xs font-semibold uppercase tracking-wider text-zinc-500">Notes & follow-up</h2>
-        <label className="mt-4 block text-xs text-zinc-500">Customer / job notes</label>
+      <section className={`${activeTab === "notes" ? "" : "hidden"} admin-card`}>
+        <h2 className="admin-kicker">Notes & follow-up</h2>
+        <label className="mt-4 block text-xs text-silver">Customer / job notes</label>
         <textarea
-          className="mt-1 min-h-[5rem] w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-sm text-white outline-none focus:border-sky-400/40"
+          className="admin-field mt-1 min-h-[5rem] w-full py-2"
           value={job.notes ?? ""}
           onChange={(e) => applyJobPatch({ notes: e.target.value || null })}
         />
-        <label className="mt-3 block text-xs text-zinc-500">Internal notes</label>
+        <label className="mt-3 block text-xs text-silver">Internal notes</label>
         <textarea
-          className="mt-1 min-h-[4rem] w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-sm text-white outline-none focus:border-sky-400/40"
+          className="admin-field mt-1 min-h-[4rem] w-full py-2"
           value={job.internal_notes ?? ""}
           onChange={(e) => applyJobPatch({ internal_notes: e.target.value || null })}
         />
-        <label className="mt-3 block text-xs text-zinc-500">Referral source</label>
+        <label className="mt-3 block text-xs text-silver">Referral source</label>
         <input
-          className="mt-1 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-sm text-white outline-none focus:border-sky-400/40"
+          className="admin-field mt-1 w-full py-2"
           value={job.referral_source ?? ""}
           onChange={(e) => applyJobPatch({ referral_source: e.target.value || null })}
         />

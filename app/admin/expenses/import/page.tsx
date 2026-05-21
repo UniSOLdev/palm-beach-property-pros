@@ -10,7 +10,7 @@ export const metadata = {
 
 export default function AdminExpenseImportPage() {
   return (
-    <div className="mx-auto max-w-6xl space-y-8">
+    <div className="admin-page">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.22em] text-sky-400/90">PBPP finance rail</p>

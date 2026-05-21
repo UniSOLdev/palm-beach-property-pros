@@ -99,6 +99,28 @@ Audited the merged PBPP operations platform across:
 - Add expense mutation logging outside CSV import once manual expense CRUD is expanded.
 - Add gesture-level swipe actions after deciding whether to keep custom pointer handling or introduce a small gesture utility.
 
+## 2026-05-21 consolidation pass
+
+### Design/architecture audit outcome
+
+The strongest existing PBPP pattern is the dark coastal admin shell with persistent desktop navigation, mobile bottom operations nav, and job-centered workflows. The weakest pattern was visual drift from iterative merges: raw black/zinc panels, inconsistent page widths, duplicated dashboard card treatments, and dashboard/job workspace surfaces using different button/input/card language.
+
+### Consolidation changes
+
+- Added shared admin presentation primitives in `app/globals.css`: `admin-bg`, `admin-shell-panel`, page width wrappers, cards, fields, pills, and primary/secondary actions.
+- Consolidated the admin shell and mobile operations nav onto the same navy/aqua/cream coastal luxury palette.
+- Reworked the dashboard styling into one calmer executive operations view focused on today's jobs, tasks, payments, crew, profit, alerts, and activity.
+- Standardized key admin route width wrappers to `admin-page` / `admin-page-narrow` instead of one-off `max-w-*` directions.
+- Brought `/admin/jobs/[id]` under the same admin card/action/input primitives while preserving the existing job workflow tabs and task/profit/activity functionality.
+- Renamed prototype-ish dashboard language toward field workflow language where appropriate.
+
+### Preserved workflows
+
+- Existing auth/admin shell route structure.
+- Existing jobs, tasks, invoices, expenses, crew, inventory, CMS, file upload, dashboard metrics, and activity workflows.
+- Existing mobile bottom operations nav pattern.
+- Existing Supabase schema and relational workflow work from earlier passes.
+
 ## Verification performed
 
 - Baseline after merging platform foundation: `npm run type-check` passed.
@@ -109,3 +131,7 @@ Audited the merged PBPP operations platform across:
 - Follow-up connected-systems pass: `npm run type-check` passed.
 - Follow-up connected-systems pass: `npm run build` passed.
 - Follow-up connected-systems pass: `npm run lint` passed (with the Next.js deprecation notice for `next lint`).
+- Consolidation pass: `npm run type-check` passed.
+- Consolidation pass: `npm run build` passed.
+- Consolidation pass: `npm run lint` passed (with the Next.js deprecation notice for `next lint`).
+- Consolidation pass: `git diff --check` passed.

@@ -104,7 +104,7 @@ export default async function AdminExpensesPage({ searchParams }: PageProps) {
   const maxMonth = monthly.reduce((m, r) => Math.max(m, Number(r.total_cents)), 0) || 1;
 
   return (
-    <div className="mx-auto max-w-6xl space-y-10">
+    <div className="admin-page">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight text-white">Expense intelligence</h1>

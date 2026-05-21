@@ -18,7 +18,7 @@ const links = [
 
 export default function WebsiteManagerLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="mx-auto max-w-6xl space-y-8">
+    <div className="admin-page">
       <div>
         <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-violet-400/90">Website manager</p>
         <h1 className="mt-1 text-2xl font-semibold tracking-tight text-white">PBPP marketing CMS</h1>

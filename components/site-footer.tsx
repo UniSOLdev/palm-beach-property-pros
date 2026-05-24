@@ -1,8 +1,7 @@
 import Link from "next/link";
 import { BrandLogo } from "@/components/brand-logo";
-import { LINKR_URL, linkrRel } from "@/lib/linkr";
 import { SERVICES } from "@/lib/services";
-import { PHONE_DISPLAY, PHONE_TEL, SERVICE_CITIES, SITE_NAME } from "@/lib/site";
+import { PHONE_DISPLAY, PHONE_TEL, QUOTE_PATH, SERVICE_CITIES, SITE_NAME } from "@/lib/site";
 
 const coreCities = SERVICE_CITIES.filter((c) => !c.toLowerCase().startsWith("and nearby"));
 
@@ -82,13 +81,18 @@ export function SiteFooter() {
                   </a>
                 </li>
                 <li>
-                  <a
-                    href={LINKR_URL}
-                    target="_blank"
-                    rel={linkrRel}
+                  <Link
+                    href={QUOTE_PATH}
                     className="text-cream/90 no-underline underline-offset-2 hover:text-white hover:underline"
                   >
-                    Book service · Pay invoice · Leave a review
+                    Book service
+                  </Link>
+                  {" · "}
+                  <a
+                    href={PHONE_TEL}
+                    className="text-cream/90 no-underline underline-offset-2 hover:text-white hover:underline"
+                  >
+                    Billing questions
                   </a>
                 </li>
                 <li className="text-cream/75">

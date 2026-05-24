@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { LINKR_URL, linkrRel } from "@/lib/linkr";
 import { SERVICES } from "@/lib/services";
-import { SITE_NAME } from "@/lib/site";
+import { QUOTE_PATH, SITE_NAME } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: "Cleaning & Property Services",
@@ -19,21 +18,16 @@ export default function ServicesPage() {
             One local team for cleaning, detailing, and property care
           </h1>
           <p className="mt-4 max-w-2xl text-lg leading-relaxed text-charcoal/85">
-            Browse services by property type, then open our quick access page to request pricing,
-            book work, pay invoices, or leave a review.
+            Browse services by property type, then request pricing, book work, and manage invoices
+            through Palm Beach Property Pros.
           </p>
           <div className="mt-8 flex flex-wrap gap-3">
-            <a href={LINKR_URL} target="_blank" rel={linkrRel} className="btn-primary">
+            <Link href={QUOTE_PATH} className="btn-primary">
               Get a free quote
-            </a>
-            <a
-              href={LINKR_URL}
-              target="_blank"
-              rel={linkrRel}
-              className="btn-secondary border-ocean/40"
-            >
+            </Link>
+            <Link href={QUOTE_PATH} className="btn-secondary border-ocean/40">
               Book service
-            </a>
+            </Link>
           </div>
 
           <div className="mt-14 grid gap-6 sm:grid-cols-2">
@@ -54,14 +48,12 @@ export default function ServicesPage() {
                   >
                     Learn more
                   </Link>
-                  <a
-                    href={LINKR_URL}
-                    target="_blank"
-                    rel={linkrRel}
+                  <Link
+                    href={`${QUOTE_PATH}?service=${encodeURIComponent(s.name)}`}
                     className="btn-secondary px-4 py-2 text-xs sm:text-sm"
                   >
                     Request pricing
-                  </a>
+                  </Link>
                 </div>
               </article>
             ))}

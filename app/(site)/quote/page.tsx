@@ -1,15 +1,20 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { QuoteForm } from "./quote-form";
-import { LINKR_URL, linkrRel } from "@/lib/linkr";
-import { SITE_NAME } from "@/lib/site";
+import { PHONE_DISPLAY, PHONE_TEL, SITE_NAME } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: "Request Your Free Quote",
-  description: `Request a free quote from ${SITE_NAME}. Send photos, receive pricing quickly, and book through our secure quick access page—no obligation.`,
+  description: `Request a free quote from ${SITE_NAME}. Send photos, receive pricing quickly, and book through our secure online quote form—no obligation.`,
 };
 
-export default function QuotePage() {
+type Props = {
+  searchParams: Promise<{ service?: string }>;
+};
+
+export default async function QuotePage({ searchParams }: Props) {
+  const { service } = await searchParams;
+
   return (
     <div className="bg-cream">
       <section className="mx-auto max-w-6xl px-6 py-16">
@@ -29,17 +34,12 @@ export default function QuotePage() {
           <Link href="/services" className="text-sm font-semibold text-ocean hover:underline">
             View services
           </Link>
-          <a
-            href={LINKR_URL}
-            target="_blank"
-            rel={linkrRel}
-            className="btn-primary px-5 py-2.5 text-sm sm:inline-flex"
-          >
-            Open quick access page
+          <a href={PHONE_TEL} className="btn-primary px-5 py-2.5 text-sm sm:inline-flex">
+            Call {PHONE_DISPLAY}
           </a>
         </div>
         <div className="mt-10">
-          <QuoteForm />
+          <QuoteForm defaultService={service} />
         </div>
       </section>
     </div>

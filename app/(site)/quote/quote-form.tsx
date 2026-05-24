@@ -1,8 +1,8 @@
 "use client";
 
 import { FormEvent, useState } from "react";
-import { LINKR_URL } from "@/lib/linkr";
-import { SITE_NAME } from "@/lib/site";
+import { submitQuoteRequest } from "@/lib/site/actions/submit-quote-request";
+import { PHONE_DISPLAY, PHONE_TEL, SITE_NAME } from "@/lib/site";
 
 const services = [
   "Window Cleaning",
@@ -17,15 +17,56 @@ const services = [
   "Multiple / Not sure",
 ] as const;
 
-export function QuoteForm() {
-  const [status, setStatus] = useState<"idle" | "opening">("idle");
+type QuoteFormProps = {
+  defaultService?: string;
+};
 
-  function onSubmit(e: FormEvent<HTMLFormElement>) {
+export function QuoteForm({ defaultService }: QuoteFormProps) {
+  const [status, setStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  async function onSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    setStatus("opening");
-    window.open(LINKR_URL, "_blank", "noopener");
-    setTimeout(() => setStatus("idle"), 1200);
+    setStatus("submitting");
+    setErrorMessage(null);
+
+    const formData = new FormData(e.currentTarget);
+    const result = await submitQuoteRequest(formData);
+
+    if (result.ok) {
+      setStatus("success");
+      e.currentTarget.reset();
+      return;
+    }
+
+    setStatus("error");
+    setErrorMessage(result.error);
   }
+
+  if (status === "success") {
+    return (
+      <div className="space-y-4 rounded-xl border border-leaf/30 bg-white p-6 shadow-md sm:p-8">
+        <h2 className="text-xl font-bold text-navy">Request received</h2>
+        <p className="text-sm leading-relaxed text-charcoal/85">
+          Thank you for reaching out to {SITE_NAME}. We will review your details and follow up using
+          your preferred contact method. For urgent scheduling, call{" "}
+          <a href={PHONE_TEL} className="font-semibold text-ocean no-underline hover:underline">
+            {PHONE_DISPLAY}
+          </a>
+          .
+        </p>
+        <button
+          type="button"
+          onClick={() => setStatus("idle")}
+          className="btn-secondary px-5 py-2.5 text-sm"
+        >
+          Submit another request
+        </button>
+      </div>
+    );
+  }
+
+  const matchedService = services.find((s) => s === defaultService) ?? "";
 
   return (
     <form
@@ -33,8 +74,8 @@ export function QuoteForm() {
       className="space-y-5 rounded-xl border border-navy/10 bg-white p-6 shadow-md sm:p-8"
     >
       <p className="text-sm text-charcoal/85">
-        Use the fields below to organize what you will send, then continue to quick access—photos,
-        scheduling, invoices, and reviews stay in that secure flow end-to-end.
+        Share your property details below. Our team uses this information to prepare scope-based
+        pricing—photos, scheduling, invoices, and approvals all stay on {SITE_NAME}.
       </p>
       <div className="grid gap-4 sm:grid-cols-2">
         <label className="block text-sm font-medium text-navy">
@@ -71,6 +112,7 @@ export function QuoteForm() {
         <select
           required
           name="service"
+          defaultValue={matchedService}
           className="mt-1 w-full rounded-xl border border-navy/15 bg-cream px-3 py-2.5 text-charcoal outline-none ring-ocean/30 focus:ring-2"
         >
           <option value="">Select…</option>
@@ -134,12 +176,15 @@ export function QuoteForm() {
           </label>
         </div>
       </fieldset>
+      {errorMessage ? (
+        <p className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-800">{errorMessage}</p>
+      ) : null}
       <button
         type="submit"
-        disabled={status === "opening"}
+        disabled={status === "submitting"}
         className="btn-primary-lg w-full disabled:opacity-70"
       >
-        {status === "opening" ? "Opening quick access…" : "Continue to quick access"}
+        {status === "submitting" ? "Submitting…" : "Submit quote request"}
       </button>
       <p className="text-center text-xs text-charcoal/70">
         We do not sell your information. Details you enter here stay with {SITE_NAME} for scheduling
@@ -148,12 +193,10 @@ export function QuoteForm() {
       <div className="rounded-2xl bg-sky/80 p-4 text-center text-sm text-navy">
         Prefer voice?{" "}
         <a
-          href={LINKR_URL}
-          target="_blank"
-          rel="noopener"
+          href={PHONE_TEL}
           className="font-semibold text-ocean no-underline underline-offset-2 hover:underline"
         >
-          Open quick access to call options
+          Call {PHONE_DISPLAY}
         </a>
       </div>
     </form>

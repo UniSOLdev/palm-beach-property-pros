@@ -64,7 +64,7 @@ export const SERVICES: ServiceDefinition[] = [
       },
       {
         q: "What is the fastest way to get pricing?",
-        a: "Send photos of each elevation and note approximate pane counts through our quick access page. We reply with a scope-based estimate.",
+        a: "Send photos of each elevation and note approximate pane counts through our quote form. We reply with a scope-based estimate.",
       },
     ],
   },
@@ -106,7 +106,7 @@ export const SERVICES: ServiceDefinition[] = [
       },
       {
         q: "How do I request a walkthrough or quote?",
-        a: "Use our quick access page to share photos, square footage, and priorities. We confirm scope and pricing before the first visit.",
+        a: "Use our quote form to share photos, square footage, and priorities. We confirm scope and pricing before the first visit.",
       },
     ],
   },
@@ -221,7 +221,7 @@ export const SERVICES: ServiceDefinition[] = [
     faq: [
       {
         q: "Do you service vehicles onsite?",
-        a: "Service location depends on package and access. Share your address and vehicle type on our quick access page and we will confirm the setup.",
+        a: "Service location depends on package and access. Share your address and vehicle type on our quote form and we will confirm the setup.",
       },
       {
         q: "How long does a detail take?",
@@ -354,7 +354,7 @@ export const SERVICES: ServiceDefinition[] = [
       },
       {
         q: "How do I request service?",
-        a: "Send a task list and photos through our quick access page. We confirm feasibility, timing, and pricing before work begins.",
+        a: "Send a task list and photos through our quote form. We confirm feasibility, timing, and pricing before work begins.",
       },
     ],
   },
@@ -392,7 +392,7 @@ export const SERVICES: ServiceDefinition[] = [
       },
       {
         q: "How do I book recurring turnovers?",
-        a: "Use our quick access page to share your calendar cadence and unit details. We set a recurring slot when availability matches.",
+        a: "Use our quote form to share your calendar cadence and unit details. We set a recurring slot when availability matches.",
       },
     ],
   },

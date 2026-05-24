@@ -1,4 +1,3 @@
-import { LINKR_URL } from "@/lib/linkr";
 import { PHONE_DISPLAY, SITE_NAME, SITE_URL } from "@/lib/site";
 
 export function LocalBusinessJsonLd() {
@@ -7,7 +6,6 @@ export function LocalBusinessJsonLd() {
     "@type": "LocalBusiness",
     name: SITE_NAME,
     url: SITE_URL,
-    sameAs: [LINKR_URL],
     telephone: PHONE_DISPLAY,
     areaServed: {
       "@type": "AdministrativeArea",

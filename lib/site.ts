@@ -4,8 +4,12 @@ export const TAGLINE =
   "One reliable local team for everything your property needs.";
 
 export const PHONE_DISPLAY = "561-629-2617";
-/** Footer SEO: dial link for displayed number. Primary CTAs use Linkr. */
 export const PHONE_TEL = "tel:15616292617";
+export const SMS_TEL = "sms:15616292617";
+
+/** Primary public client flows — all on PBPP domain. */
+export const QUOTE_PATH = "/quote" as const;
+export const INVOICE_PATH_PREFIX = "/i" as const;
 
 export const SERVICE_CITIES = [
   "West Palm Beach",

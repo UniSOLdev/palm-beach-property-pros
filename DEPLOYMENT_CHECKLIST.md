@@ -56,7 +56,7 @@ npm run build
 
 - [ ] https://www.palmbeachpropertypros.com/ loads
 - [ ] Preview/production homepage: dark nav, wordmark, premium hero (see pre-deploy visual list)
-- [ ] Quote CTAs → Linkr or `/quote` as designed
+- [ ] Quote CTAs → `/quote` only
 - [ ] Mobile sticky CTA bar
 
 ### Admin

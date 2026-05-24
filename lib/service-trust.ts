@@ -8,7 +8,7 @@ export const SERVICE_TRUST_BULLETS = [
 ] as const;
 
 export const DEFAULT_SERVICE_PROCESS = [
-  "Request scope — send photos and key details through our quick access page.",
+    "Request scope — send photos and key details through our online quote form.",
   "Review & pricing — we confirm access, timing, and pricing before work begins.",
   "Service day — our crew arrives prepared and follows the agreed checklist.",
   "Walkthrough — we verify results with you or your onsite contact before closing the visit.",

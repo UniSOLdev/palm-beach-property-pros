@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { LINKR_URL, linkrRel } from "@/lib/linkr";
 import { serviceLocationSeoParagraphs } from "@/lib/location-seo";
 import {
   getRelatedServices,
@@ -10,7 +9,7 @@ import {
   type ServiceSlug,
 } from "@/lib/services";
 import { DEFAULT_SERVICE_PROCESS, SERVICE_TRUST_BULLETS } from "@/lib/service-trust";
-import { SITE_NAME } from "@/lib/site";
+import { QUOTE_PATH, SITE_NAME } from "@/lib/site";
 
 type Props = { params: Promise<{ slug: string }> };
 
@@ -24,7 +23,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!s) return {};
   return {
     title: `${s.name} | Palm Beach County`,
-    description: `${s.shortDescription} Licensed & insured. Request scope via ${SITE_NAME} quick access.`,
+    description: `${s.shortDescription} Licensed & insured. Request scope via our online quote form.`,
   };
 }
 
@@ -36,6 +35,7 @@ export default async function ServiceDetailPage({ params }: Props) {
   const processSteps = s.process ?? DEFAULT_SERVICE_PROCESS;
   const locationParagraphs = serviceLocationSeoParagraphs(s.name);
   const related = getRelatedServices(s.slug as ServiceSlug, 3);
+  const quoteHref = `${QUOTE_PATH}?service=${encodeURIComponent(s.name)}`;
 
   return (
     <div className="bg-cream">
@@ -85,14 +85,9 @@ export default async function ServiceDetailPage({ params }: Props) {
             Final pricing depends on property size, condition, access, and scope. Send photos for
             the fastest estimate.
           </p>
-          <a
-            href={LINKR_URL}
-            target="_blank"
-            rel={linkrRel}
-            className="btn-primary mt-5"
-          >
+          <Link href={quoteHref} className="btn-primary mt-5">
             Get a free quote
-          </a>
+          </Link>
         </section>
 
         <section className="mt-10 max-w-3xl">
@@ -151,16 +146,11 @@ export default async function ServiceDetailPage({ params }: Props) {
         <div className="mt-12 max-w-3xl rounded-xl bg-navy p-8 text-center text-cream shadow-md">
           <p className="text-lg font-semibold">Book service or request pricing</p>
           <p className="mt-2 text-sm text-cream/85">
-            Use our quick access page for quotes, scheduling, invoices, and reviews.
+            Quotes, scheduling, invoices, and approvals are handled on Palm Beach Property Pros.
           </p>
-          <a
-            href={LINKR_URL}
-            target="_blank"
-            rel={linkrRel}
-            className="btn-inverse-lg mt-6 w-full text-base sm:w-auto"
-          >
-            Open quick access page
-          </a>
+          <Link href={quoteHref} className="btn-inverse-lg mt-6 w-full text-base sm:w-auto">
+            Request a quote
+          </Link>
         </div>
       </article>
     </div>

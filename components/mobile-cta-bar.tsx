@@ -1,5 +1,5 @@
-import { LINKR_URL, linkrRel } from "@/lib/linkr";
-import { PHONE_TEL } from "@/lib/site";
+import Link from "next/link";
+import { PHONE_TEL, QUOTE_PATH, SMS_TEL } from "@/lib/site";
 
 export function MobileCtaBar() {
   return (
@@ -15,21 +15,17 @@ export function MobileCtaBar() {
           Call
         </a>
         <a
-          href={LINKR_URL}
-          target="_blank"
-          rel={linkrRel}
+          href={SMS_TEL}
           className="flex flex-col items-center justify-center rounded-xl py-2.5 text-xs font-semibold text-ocean no-underline shadow-sm transition duration-300 hover:bg-sky/60 hover:shadow-sm"
         >
           Text
         </a>
-        <a
-          href={LINKR_URL}
-          target="_blank"
-          rel={linkrRel}
+        <Link
+          href={QUOTE_PATH}
           className="flex flex-col items-center justify-center rounded-xl bg-gradient-to-br from-navy to-ocean py-2.5 text-xs font-semibold text-white no-underline shadow-md ring-1 ring-white/10 transition duration-300 hover:shadow-lg hover:brightness-105"
         >
           Get Quote
-        </a>
+        </Link>
       </nav>
     </div>
   );

@@ -2,7 +2,6 @@ import Image from "next/image";
 import Link from "next/link";
 import { FaqAccordion } from "@/components/faq-accordion";
 import { FAQ_ITEMS } from "@/lib/faq";
-import { LINKR_URL, linkrRel } from "@/lib/linkr";
 import { PHONE_DISPLAY, PHONE_TEL, SITE_NAME } from "@/lib/site";
 
 const HERO_IMAGE =
@@ -141,14 +140,14 @@ export function PremiumHomePage() {
 
       <section className="animate-fade-up border-y border-navy/10 bg-white/60 py-10 backdrop-blur-sm">
         <div className="mx-auto flex max-w-4xl flex-col gap-4 text-center">
-          <h2 className="text-lg font-semibold tracking-tight text-navy">One secure operations link</h2>
+          <h2 className="text-lg font-semibold tracking-tight text-navy">One secure client platform</h2>
           <p className="text-sm leading-relaxed text-charcoal/85 sm:text-base">
-            Quotes, scheduling, invoices, payment, and review requests stay in a single client
-            flow—so nothing gets lost between crews and your property stakeholders.
+            Quotes, scheduling, invoices, payment, and approvals stay on Palm Beach Property Pros—so
+            nothing gets lost between crews and your property stakeholders.
           </p>
-          <a href={LINKR_URL} target="_blank" rel={linkrRel} className="btn-primary mx-auto mt-2">
-            Open client portal
-          </a>
+          <Link href="/quote" className="btn-primary mx-auto mt-2">
+            Request a quote
+          </Link>
         </div>
       </section>
 

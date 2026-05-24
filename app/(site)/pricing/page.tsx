@@ -1,11 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { LINKR_URL, linkrRel } from "@/lib/linkr";
-import { SITE_NAME } from "@/lib/site";
+import { QUOTE_PATH, SITE_NAME } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: "Service Pricing",
-  description: `${SITE_NAME} starting prices for window cleaning, pressure washing, detailing, residential cleaning, and more in Palm Beach County. Scope-based quotes through quick access.`,
+  description: `${SITE_NAME} starting prices for window cleaning, pressure washing, detailing, residential cleaning, and more in Palm Beach County. Scope-based quotes through our online form.`,
 };
 
 const overview = [
@@ -118,16 +117,11 @@ export default function PricingPage() {
         <div className="mt-12 rounded-xl bg-navy p-8 text-center text-cream shadow-md">
           <p className="text-lg font-semibold">Request your written estimate</p>
           <p className="mt-2 text-sm text-cream/85">
-            Open quick access to send photos, select services, and receive pricing.
+            Submit your property details to send photos, select services, and receive pricing.
           </p>
-          <a
-            href={LINKR_URL}
-            target="_blank"
-            rel={linkrRel}
-            className="btn-inverse-lg mt-6 w-full text-base sm:w-auto"
-          >
-            Open quick access page
-          </a>
+          <Link href={QUOTE_PATH} className="btn-inverse-lg mt-6 w-full text-base sm:w-auto">
+            Request a quote
+          </Link>
           <Link
             href="/quote"
             className="mt-6 inline-block text-sm font-semibold text-sky no-underline underline-offset-2 hover:underline"

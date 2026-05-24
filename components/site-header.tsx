@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
-import { LINKR_URL, linkrRel } from "@/lib/linkr";
+import { PHONE_TEL } from "@/lib/site";
 
 const nav = [
   { href: "/services", label: "Services" },
@@ -42,12 +42,7 @@ export function SiteHeader() {
               {item.label}
             </Link>
           ))}
-          <a
-            href={LINKR_URL}
-            target="_blank"
-            rel={linkrRel}
-            className="btn-primary hidden sm:inline-flex"
-          >
+          <a href={PHONE_TEL} className="btn-primary hidden sm:inline-flex">
             Call Now
           </a>
         </div>
@@ -90,9 +85,7 @@ export function SiteHeader() {
               </Link>
             ))}
             <a
-              href={LINKR_URL}
-              target="_blank"
-              rel={linkrRel}
+              href={PHONE_TEL}
               className="btn-primary mt-2 text-center"
               onClick={() => setOpen(false)}
             >

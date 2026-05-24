@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
-import { LINKR_URL, linkrRel } from "@/lib/linkr";
-import { SERVICE_CITIES, SITE_NAME } from "@/lib/site";
+import Link from "next/link";
+import { QUOTE_PATH, SERVICE_CITIES, SITE_NAME } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: "Service Area – Palm Beach County",
-  description: `${SITE_NAME} serves West Palm Beach, Palm Beach Gardens, Jupiter, Delray Beach, and communities countywide. Request scheduling via quick access.`,
+  description: `${SITE_NAME} serves West Palm Beach, Palm Beach Gardens, Jupiter, Delray Beach, and communities countywide. Request scheduling via our quote form.`,
 };
 
 const bullets = SERVICE_CITIES.filter((c) => !c.toLowerCase().startsWith("and nearby"));
@@ -45,14 +45,9 @@ export default function ServiceAreaPage() {
         </p>
 
         <div className="mt-10">
-          <a
-            href={LINKR_URL}
-            target="_blank"
-            rel={linkrRel}
-            className="btn-primary w-full sm:w-auto"
-          >
+          <Link href={QUOTE_PATH} className="btn-primary w-full sm:w-auto">
             Request service or a quote
-          </a>
+          </Link>
         </div>
       </section>
     </div>

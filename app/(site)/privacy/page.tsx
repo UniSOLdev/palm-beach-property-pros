@@ -4,7 +4,7 @@ import Link from "next/link";
 export const metadata: Metadata = {
   title: "Privacy Policy",
   description:
-    "How Palm Beach Property Pros handles information submitted through this website and our quick access partner page.",
+    "How Palm Beach Property Pros handles information submitted through this website and our quote forms.",
 };
 
 export default function PrivacyPage() {
@@ -21,7 +21,7 @@ export default function PrivacyPage() {
           </p>
           <h2 className="mt-8 text-lg font-bold text-navy">Information you submit</h2>
           <p>
-            When you contact us—through site pages or our third-party quick access page—you may
+            When you contact us—through site pages or our quote forms—you may
             provide your name, phone number, email address, property address or city, service
             interests, and photos. We use that information solely to estimate scope, schedule work,
             and communicate about your project.

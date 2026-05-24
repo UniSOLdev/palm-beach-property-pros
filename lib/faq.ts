@@ -4,7 +4,7 @@ export const FAQ_ITEMS: FaqItem[] = [
   {
     question: "Do you offer free quotes?",
     answer:
-      "Yes. Use our quick access page to request a quote with photos and property details. Estimates are provided at no obligation.",
+      "Yes. Use our online quote form to request a quote with photos and property details. Estimates are provided at no obligation.",
   },
   {
     question: "What areas do you serve?",
@@ -14,7 +14,7 @@ export const FAQ_ITEMS: FaqItem[] = [
   {
     question: "Can I send photos for an estimate?",
     answer:
-      "Photos are the fastest path to accurate pricing. Share images of each area through our quick access page along with approximate square footage and timing needs.",
+      "Photos are the fastest path to accurate pricing. Share images of each area through our quote form along with approximate square footage and timing needs.",
   },
   {
     question: "Do you work with property managers and Airbnbs?",
@@ -34,7 +34,7 @@ export const FAQ_ITEMS: FaqItem[] = [
   {
     question: "How soon can I schedule?",
     answer:
-      "Scheduling depends on scope and current workload. Submit dates and photos through quick access and we will return available windows.",
+      "Scheduling depends on scope and current workload. Submit dates and photos through our quote form and we will return available windows.",
   },
   {
     question: "Do you handle residential and commercial properties?",

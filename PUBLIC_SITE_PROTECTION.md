@@ -49,7 +49,7 @@ components/invoice/             ← public invoice template (/i/*)
 lib/services.ts
 lib/faq.ts
 lib/site.ts
-lib/linkr.ts
+lib/site.ts
 lib/home-service-summaries.ts
 
 public/brand/

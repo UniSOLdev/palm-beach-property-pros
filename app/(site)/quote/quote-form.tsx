@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import { submitQuoteRequest } from "@/lib/site/actions/submit-quote-request";
 import { PHONE_DISPLAY, PHONE_TEL, SITE_NAME } from "@/lib/site";
 
@@ -24,6 +24,11 @@ type QuoteFormProps = {
 export function QuoteForm({ defaultService }: QuoteFormProps) {
   const [status, setStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [referrer, setReferrer] = useState("");
+
+  useEffect(() => {
+    setReferrer(document.referrer || "");
+  }, []);
 
   async function onSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -71,8 +76,12 @@ export function QuoteForm({ defaultService }: QuoteFormProps) {
   return (
     <form
       onSubmit={onSubmit}
+      encType="multipart/form-data"
       className="space-y-5 rounded-xl border border-navy/10 bg-white p-6 shadow-md sm:p-8"
     >
+      <input type="hidden" name="source" value="website" />
+      <input type="hidden" name="referrer" value={referrer} />
+
       <p className="text-sm text-charcoal/85">
         Share your property details below. Our team uses this information to prepare scope-based
         pricing—photos, scheduling, invoices, and approvals all stay on {SITE_NAME}.
@@ -123,11 +132,20 @@ export function QuoteForm({ defaultService }: QuoteFormProps) {
           ))}
         </select>
       </label>
+      <label className="block text-sm font-medium text-navy">
+        Property address
+        <input
+          required
+          name="address"
+          autoComplete="street-address"
+          placeholder="Street address or property location"
+          className="mt-1 w-full rounded-xl border border-navy/15 bg-cream px-3 py-2.5 text-charcoal outline-none ring-ocean/30 focus:ring-2"
+        />
+      </label>
       <div className="grid gap-4 sm:grid-cols-2">
         <label className="block text-sm font-medium text-navy">
           City
           <input
-            required
             name="city"
             className="mt-1 w-full rounded-xl border border-navy/15 bg-cream px-3 py-2.5 text-charcoal outline-none ring-ocean/30 focus:ring-2"
           />
@@ -135,7 +153,6 @@ export function QuoteForm({ defaultService }: QuoteFormProps) {
         <label className="block text-sm font-medium text-navy">
           Property type
           <select
-            required
             name="propertyType"
             className="mt-1 w-full rounded-xl border border-navy/15 bg-cream px-3 py-2.5 text-charcoal outline-none ring-ocean/30 focus:ring-2"
           >
@@ -151,12 +168,40 @@ export function QuoteForm({ defaultService }: QuoteFormProps) {
         </label>
       </div>
       <label className="block text-sm font-medium text-navy">
-        Notes
+        Details / message
         <textarea
-          name="notes"
+          name="message"
           rows={4}
           className="mt-1 w-full rounded-xl border border-navy/15 bg-cream px-3 py-2.5 text-charcoal outline-none ring-ocean/30 focus:ring-2"
           placeholder="Square footage, number of windows, timing constraints, access instructions…"
+        />
+      </label>
+      <div className="grid gap-4 sm:grid-cols-2">
+        <label className="block text-sm font-medium text-navy">
+          Preferred date <span className="font-normal text-charcoal/60">(optional)</span>
+          <input
+            name="preferredDate"
+            type="date"
+            className="mt-1 w-full rounded-xl border border-navy/15 bg-cream px-3 py-2.5 text-charcoal outline-none ring-ocean/30 focus:ring-2"
+          />
+        </label>
+        <label className="block text-sm font-medium text-navy">
+          Preferred time <span className="font-normal text-charcoal/60">(optional)</span>
+          <input
+            name="preferredTime"
+            placeholder="Morning, afternoon, after 2pm…"
+            className="mt-1 w-full rounded-xl border border-navy/15 bg-cream px-3 py-2.5 text-charcoal outline-none ring-ocean/30 focus:ring-2"
+          />
+        </label>
+      </div>
+      <label className="block text-sm font-medium text-navy">
+        Photos <span className="font-normal text-charcoal/60">(optional, up to 5)</span>
+        <input
+          name="photos"
+          type="file"
+          accept="image/jpeg,image/png,image/webp,image/heic,image/heif"
+          multiple
+          className="mt-1 w-full rounded-xl border border-navy/15 bg-cream px-3 py-2.5 text-sm text-charcoal file:mr-3 file:rounded-lg file:border-0 file:bg-sky/60 file:px-3 file:py-2 file:text-sm file:font-semibold file:text-navy"
         />
       </label>
       <fieldset>

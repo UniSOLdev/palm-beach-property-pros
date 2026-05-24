@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { appendLeadPhotoPaths, uploadLeadPhotos } from "@/lib/site/actions/upload-lead-photos";
 import { createServiceClient } from "@/lib/supabase/service";
 
 export type QuoteRequestResult =
@@ -23,41 +24,68 @@ export async function submitQuoteRequest(formData: FormData): Promise<QuoteReque
   const phone = String(formData.get("phone") ?? "").trim();
   const email = String(formData.get("email") ?? "").trim();
   const service = String(formData.get("service") ?? "").trim();
+  const address = String(formData.get("address") ?? "").trim();
   const city = String(formData.get("city") ?? "").trim();
   const propertyType = String(formData.get("propertyType") ?? "").trim();
-  const notes = String(formData.get("notes") ?? "").trim();
+  const message = String(formData.get("message") ?? "").trim();
   const contact = String(formData.get("contact") ?? "Call").trim();
+  const preferredDate = String(formData.get("preferredDate") ?? "").trim();
+  const preferredTime = String(formData.get("preferredTime") ?? "").trim();
+  const referrer = String(formData.get("referrer") ?? "").trim();
+  const source = String(formData.get("source") ?? "website").trim() || "website";
 
-  if (!name || !phone || !service || !city || !propertyType) {
+  if (!name || !phone || !service || !address) {
     return { ok: false, error: "Please complete all required fields." };
   }
 
-  const detailLines = [
-    `Service: ${service}`,
-    `City: ${city}`,
-    `Property type: ${propertyType}`,
-    `Preferred contact: ${contact}`,
-  ];
-  if (notes) detailLines.push(`Notes: ${notes}`);
-
   try {
     const supabase = createServiceClient();
-    const { error } = await supabase.from("clients").insert({
-      name,
-      phone,
-      email: email || null,
-      address: city,
-      client_type: clientTypeFromProperty(propertyType),
-      referral_source: "website_quote_form",
-      notes: detailLines.join("\n"),
-      review_status: "none",
-    });
+    const { data: lead, error } = await supabase
+      .from("quote_requests")
+      .insert({
+        name,
+        phone,
+        email: email || null,
+        service_requested: service,
+        address,
+        city: city || null,
+        property_type: propertyType || null,
+        message: message || null,
+        preferred_contact: contact,
+        preferred_date: preferredDate || null,
+        preferred_time: preferredTime || null,
+        source,
+        referrer: referrer || null,
+        status: "new",
+        photo_urls: [],
+      })
+      .select("id")
+      .single();
 
-    if (error) {
+    if (error || !lead) {
       return { ok: false, error: "Unable to submit right now. Please call us directly." };
     }
 
-    revalidatePath("/admin/clients");
+    try {
+      const photoPaths = await uploadLeadPhotos(lead.id, formData);
+      if (photoPaths.length) {
+        await appendLeadPhotoPaths(lead.id, photoPaths);
+      }
+    } catch {
+      /* photos optional — lead still saved */
+    }
+
+    await supabase.from("quote_request_activity").insert({
+      quote_request_id: lead.id,
+      activity_type: "system",
+      body: "Quote request submitted from website",
+      metadata: {
+        property_type: propertyType || null,
+        client_type: clientTypeFromProperty(propertyType),
+      },
+    });
+
+    revalidatePath("/admin/leads");
     return { ok: true };
   } catch {
     return { ok: false, error: "Unable to submit right now. Please call us directly." };

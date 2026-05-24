@@ -472,19 +472,30 @@ export async function archiveLead(id: string) {
 
 export async function getLeadPhotoUrls(paths: string[]): Promise<{ path: string; url: string }[]> {
   if (!paths.length) return [];
+
   const supabase = await createClient();
+
   const results = await Promise.all(
-    paths.map(async (path) => {
-      const { data, error } = await supabase.storage.from("lead-media").createSignedUrl(path, 3600);
+    paths.map(async (pathOrUrl, index) => {
+      if (pathOrUrl.startsWith("http://") || pathOrUrl.startsWith("https://")) {
+        return { path: pathOrUrl, url: pathOrUrl };
+      }
+
+      const { data, error } = await supabase.storage
+        .from("lead-media")
+        .createSignedUrl(pathOrUrl, 3600);
+
       if (error || !data?.signedUrl) {
         logPipelineError("lead photo signed url failed", error ?? new Error("No signed URL"), {
           step: "getLeadPhotoUrls",
-          details: { path },
+          details: { path: pathOrUrl, index },
         });
         return null;
       }
-      return { path, url: data.signedUrl };
+
+      return { path: pathOrUrl, url: data.signedUrl };
     }),
   );
+
   return results.filter((r): r is { path: string; url: string } => r !== null);
 }

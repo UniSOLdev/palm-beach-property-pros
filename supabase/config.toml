@@ -1,0 +1,14 @@
+# Palm Beach Property Pros — Supabase local config
+# Project: palm-beach-property-pros (us-west-1)
+# Apply migrations: npm run db:push (requires supabase login + link)
+
+project_id = "pfojtrfkeoeymmtkvijo"
+
+[db]
+major_version = 17
+
+[db.migrations]
+enabled = true
+
+[api]
+enabled = true

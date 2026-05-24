@@ -8,7 +8,9 @@ import {
 } from "@/lib/site/actions/upload-lead-photos";
 import {
   type QuoteRequestResult,
-  publicErrorMessage,
+  type QuoteRequestFailure,
+  QUOTE_ERRORS,
+  quoteSubmitError,
 } from "@/lib/site/quote-submit-types";
 import {
   checkSupabaseEnv,
@@ -18,18 +20,18 @@ import {
 
 export type { QuoteRequestResult } from "@/lib/site/quote-submit-types";
 
-function clientTypeFromProperty(propertyType: string): string {
-  if (
-    propertyType.includes("Commercial") ||
-    propertyType.includes("Office") ||
-    propertyType.includes("HOA")
-  ) {
-    return "commercial";
-  }
-  return "residential";
+type Payload = ReturnType<typeof parseForm>;
+type InsertOk = { leadId: string };
+type InsertResult = InsertOk | QuoteRequestResult;
+
+type InsertFailure = QuoteRequestFailure;
+
+function isFailure(result: InsertResult): result is InsertFailure {
+  return "ok" in result && result.ok === false;
 }
 
 function parseForm(formData: FormData) {
+  const preferredDate = String(formData.get("preferredDate") ?? "").trim();
   return {
     name: String(formData.get("name") ?? "").trim(),
     phone: String(formData.get("phone") ?? "").trim(),
@@ -40,109 +42,56 @@ function parseForm(formData: FormData) {
     propertyType: String(formData.get("propertyType") ?? "").trim(),
     message: String(formData.get("message") ?? "").trim(),
     contact: String(formData.get("contact") ?? "Call").trim(),
-    preferredDate: String(formData.get("preferredDate") ?? "").trim(),
-    preferredTime: String(formData.get("preferredTime") ?? "").trim(),
+    preferredDate: preferredDate || null,
+    preferredTime: String(formData.get("preferredTime") ?? "").trim() || null,
     referrer: String(formData.get("referrer") ?? "").trim(),
     source: String(formData.get("source") ?? "website").trim() || "website",
   };
 }
 
-function classifyInsertError(message: string): QuoteRequestResult {
+function rowFromPayload(payload: Payload) {
+  return {
+    name: payload.name,
+    phone: payload.phone,
+    email: payload.email || null,
+    service_requested: payload.service,
+    address: payload.address,
+    city: payload.city || null,
+    property_type: payload.propertyType || null,
+    message: payload.message || null,
+    preferred_contact: payload.contact,
+    preferred_date: payload.preferredDate,
+    preferred_time: payload.preferredTime,
+    source: payload.source,
+    referrer: payload.referrer || null,
+    status: "new" as const,
+    photo_urls: [] as string[],
+  };
+}
+
+function classifyDbError(message: string, code?: string): QuoteRequestResult {
+  const lower = message.toLowerCase();
   if (
-    message.includes("quote_requests") &&
-    (message.includes("does not exist") || message.includes("schema cache"))
+    lower.includes("quote_requests") &&
+    (lower.includes("does not exist") || lower.includes("schema cache"))
   ) {
-    return publicErrorMessage(
-      "Quote form is temporarily unavailable. Please call us directly.",
-      `Schema: ${message}`,
+    return quoteSubmitError(QUOTE_ERRORS.schema, message, "SCHEMA_MISSING");
+  }
+  if (lower.includes("submit_public_quote_request") && lower.includes("does not exist")) {
+    return quoteSubmitError(
+      QUOTE_ERRORS.schema,
+      `RPC missing: ${message}`,
       "SCHEMA_MISSING",
     );
   }
-  if (message.includes("submit_public_quote_request") && message.includes("does not exist")) {
-    return publicErrorMessage(
-      "Quote form is temporarily unavailable. Please call us directly.",
-      `RPC missing — apply migration 20260524140000_quote_request_public_submit_rpc.sql: ${message}`,
-      "SCHEMA_MISSING",
-    );
+  if (code === "42501" || lower.includes("permission denied") || lower.includes("row-level security")) {
+    return quoteSubmitError(QUOTE_ERRORS.insert, `RLS: ${message}`, "INSERT_FAILED");
   }
-  return publicErrorMessage(
-    "Unable to submit right now. Please call us directly.",
-    message,
-    "INSERT_FAILED",
-  );
+  return quoteSubmitError(QUOTE_ERRORS.insert, message, "INSERT_FAILED");
 }
 
-async function insertViaServiceRole(
-  payload: ReturnType<typeof parseForm>,
-): Promise<{ leadId: string } | QuoteRequestResult> {
-  const supabase = tryCreateServiceClient();
-  if (!supabase) {
-    return publicErrorMessage(
-      "Quote form is temporarily unavailable. Please call us directly.",
-      "SUPABASE_SERVICE_ROLE_KEY missing — falling back to RPC",
-      "MISSING_ENV",
-    );
-  }
-
-  logPipelineInfo("quote insert via service role", { step: "insertViaServiceRole" });
-
-  const { data: lead, error } = await supabase
-    .from("quote_requests")
-    .insert({
-      name: payload.name,
-      phone: payload.phone,
-      email: payload.email || null,
-      service_requested: payload.service,
-      address: payload.address,
-      city: payload.city || null,
-      property_type: payload.propertyType || null,
-      message: payload.message || null,
-      preferred_contact: payload.contact,
-      preferred_date: payload.preferredDate || null,
-      preferred_time: payload.preferredTime || null,
-      source: payload.source,
-      referrer: payload.referrer || null,
-      status: "new",
-      photo_urls: [],
-    })
-    .select("id")
-    .single();
-
-  if (error || !lead) {
-    logPipelineError("quote_requests insert failed (service role)", error ?? new Error("No row"), {
-      step: "insertViaServiceRole",
-      details: { code: error?.code, hint: error?.hint, message: error?.message },
-    });
-    return classifyInsertError(error?.message ?? "No row returned from insert");
-  }
-
-  const { error: activityError } = await supabase.from("quote_request_activity").insert({
-    quote_request_id: lead.id,
-    activity_type: "system",
-    body: "Quote request submitted from website",
-    metadata: {
-      property_type: payload.propertyType || null,
-      client_type: clientTypeFromProperty(payload.propertyType),
-      via: "service_role",
-    },
-  });
-
-  if (activityError) {
-    logPipelineError("quote_request_activity insert failed (service role)", activityError, {
-      step: "insertViaServiceRole",
-      leadId: lead.id,
-      details: { code: activityError.code, message: activityError.message },
-    });
-  }
-
-  return { leadId: lead.id };
-}
-
-async function insertViaRpc(
-  payload: ReturnType<typeof parseForm>,
-): Promise<{ leadId: string } | QuoteRequestResult> {
-  logPipelineInfo("quote insert via RPC fallback", { step: "insertViaRpc" });
-
+async function insertViaRpc(payload: Payload): Promise<InsertResult> {
+  logPipelineInfo("quote insert attempt: RPC", { step: "insertViaRpc" });
   const supabase = createServerAnonClient();
   const { data, error } = await supabase.rpc("submit_public_quote_request", {
     p_name: payload.name,
@@ -154,33 +103,129 @@ async function insertViaRpc(
     p_property_type: payload.propertyType || null,
     p_message: payload.message || null,
     p_preferred_contact: payload.contact,
-    p_preferred_date: payload.preferredDate || null,
-    p_preferred_time: payload.preferredTime || null,
+    p_preferred_date: payload.preferredDate,
+    p_preferred_time: payload.preferredTime,
     p_source: payload.source,
     p_referrer: payload.referrer || null,
   });
 
   if (error) {
-    logPipelineError("submit_public_quote_request RPC failed", error, {
+    logPipelineError("RPC insert failed", error, {
       step: "insertViaRpc",
       details: { code: error.code, hint: error.hint, message: error.message },
     });
-    return classifyInsertError(error.message);
+    return classifyDbError(error.message, error.code);
   }
-
   if (!data) {
-    return publicErrorMessage(
-      "Unable to submit right now. Please call us directly.",
-      "RPC returned null id",
-      "INSERT_FAILED",
+    return quoteSubmitError(QUOTE_ERRORS.insert, "RPC returned null id", "INSERT_FAILED");
+  }
+  logPipelineInfo("quote insert success: RPC", { step: "insertViaRpc", leadId: String(data) });
+  return { leadId: String(data) };
+}
+
+async function insertViaServiceRole(payload: Payload): Promise<InsertResult> {
+  const supabase = tryCreateServiceClient();
+  if (!supabase) {
+    logPipelineInfo("service role unavailable, skipping", { step: "insertViaServiceRole" });
+    return quoteSubmitError(
+      QUOTE_ERRORS.insert,
+      "SUPABASE_SERVICE_ROLE_KEY not set",
+      "MISSING_ENV",
     );
   }
 
-  return { leadId: String(data) };
+  logPipelineInfo("quote insert attempt: service role", { step: "insertViaServiceRole" });
+  const { data: lead, error } = await supabase
+    .from("quote_requests")
+    .insert(rowFromPayload(payload))
+    .select("id")
+    .single();
+
+  if (error || !lead) {
+    logPipelineError("service role insert failed", error ?? new Error("No row"), {
+      step: "insertViaServiceRole",
+      details: { code: error?.code, message: error?.message },
+    });
+    return classifyDbError(error?.message ?? "No row returned", error?.code);
+  }
+
+  logPipelineInfo("quote insert success: service role", {
+    step: "insertViaServiceRole",
+    leadId: lead.id,
+  });
+  return { leadId: lead.id };
+}
+
+async function insertViaAnonDirect(payload: Payload): Promise<InsertResult> {
+  logPipelineInfo("quote insert attempt: anon direct", { step: "insertViaAnonDirect" });
+  const supabase = createServerAnonClient();
+  const { data: lead, error } = await supabase
+    .from("quote_requests")
+    .insert(rowFromPayload(payload))
+    .select("id")
+    .single();
+
+  if (error || !lead) {
+    logPipelineError("anon direct insert failed", error ?? new Error("No row"), {
+      step: "insertViaAnonDirect",
+      details: { code: error?.code, message: error?.message },
+    });
+    return classifyDbError(error?.message ?? "No row returned", error?.code);
+  }
+
+  logPipelineInfo("quote insert success: anon direct", {
+    step: "insertViaAnonDirect",
+    leadId: lead.id,
+  });
+  return { leadId: lead.id };
+}
+
+async function insertLead(payload: Payload): Promise<InsertOk | QuoteRequestResult> {
+  const strategies: Array<{ name: string; fn: () => Promise<InsertResult> }> = [
+    { name: "rpc", fn: () => insertViaRpc(payload) },
+    { name: "service_role", fn: () => insertViaServiceRole(payload) },
+    { name: "anon_direct", fn: () => insertViaAnonDirect(payload) },
+  ];
+
+  let lastFailure: InsertFailure | null = null;
+
+  for (const strategy of strategies) {
+    try {
+      const result = await strategy.fn();
+      if (!isFailure(result)) {
+        logPipelineInfo("quote insert succeeded", {
+          step: "insertLead",
+          details: { strategy: strategy.name, leadId: result.leadId },
+        });
+        return result;
+      }
+      lastFailure = result;
+      logPipelineInfo("quote insert strategy failed, trying next", {
+        step: "insertLead",
+        details: { strategy: strategy.name, code: result.code },
+      });
+      if (result.code === "VALIDATION_ERROR") return result;
+    } catch (error) {
+      logPipelineError(`quote insert strategy threw: ${strategy.name}`, error, {
+        step: "insertLead",
+      });
+      lastFailure = quoteSubmitError(
+        QUOTE_ERRORS.unexpected,
+        error instanceof Error ? error.message : String(error),
+        "SERVICE_UNAVAILABLE",
+      );
+    }
+  }
+
+  return (
+    lastFailure ??
+    quoteSubmitError(QUOTE_ERRORS.insert, "All insert strategies failed", "INSERT_FAILED")
+  );
 }
 
 export async function submitQuoteRequest(formData: FormData): Promise<QuoteRequestResult> {
   const payload = parseForm(formData);
+  const envStatus = checkSupabaseEnv();
 
   logPipelineInfo("quote submit started", {
     step: "submitQuoteRequest",
@@ -188,22 +233,20 @@ export async function submitQuoteRequest(formData: FormData): Promise<QuoteReque
       service: payload.service,
       source: payload.source,
       hasPhotos: formData.getAll("photos").some((f) => f instanceof File && f.size > 0),
-      env: checkSupabaseEnv(),
+      env: envStatus,
     },
   });
 
   if (!payload.name || !payload.phone || !payload.service || !payload.address) {
-    return publicErrorMessage(
-      "Please complete all required fields.",
-      "Missing required field",
-      "VALIDATION_ERROR",
-    );
+    return quoteSubmitError(QUOTE_ERRORS.validation, "Missing required field", "VALIDATION_ERROR");
   }
 
   if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
-    logPipelineError("missing NEXT_PUBLIC_SUPABASE_URL", new Error("env"), { step: "submitQuoteRequest" });
-    return publicErrorMessage(
-      "Quote form is temporarily unavailable. Please call us directly.",
+    logPipelineError("missing NEXT_PUBLIC_SUPABASE_URL", new Error("env"), {
+      step: "submitQuoteRequest",
+    });
+    return quoteSubmitError(
+      QUOTE_ERRORS.config,
       "NEXT_PUBLIC_SUPABASE_URL is not set",
       "MISSING_ENV",
     );
@@ -211,31 +254,20 @@ export async function submitQuoteRequest(formData: FormData): Promise<QuoteReque
 
   if (!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY && !process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY) {
     logPipelineError("missing anon key", new Error("env"), { step: "submitQuoteRequest" });
-    return publicErrorMessage(
-      "Quote form is temporarily unavailable. Please call us directly.",
+    return quoteSubmitError(
+      QUOTE_ERRORS.config,
       "NEXT_PUBLIC_SUPABASE_ANON_KEY is not set",
       "MISSING_ENV",
     );
   }
 
   try {
-    let insertResult = await insertViaServiceRole(payload);
+    const insertResult = await insertLead(payload);
+    if (isFailure(insertResult)) return insertResult;
 
-    if ("ok" in insertResult && insertResult.ok === false) {
-      if (insertResult.code === "MISSING_ENV" || insertResult.code === "INSERT_FAILED") {
-        logPipelineInfo("retrying quote insert via RPC", { step: "submitQuoteRequest" });
-        insertResult = await insertViaRpc(payload);
-      }
-    }
-
-    if ("ok" in insertResult && insertResult.ok === false) {
-      return insertResult;
-    }
-
-    const { leadId } = insertResult as { leadId: string };
-    logPipelineInfo("quote request created", { step: "submitQuoteRequest", leadId });
-
+    const { leadId } = insertResult;
     const photoWarnings: string[] = [];
+
     const upload = await tryUploadLeadPhotos(leadId, formData);
     photoWarnings.push(...upload.warnings);
 
@@ -248,28 +280,26 @@ export async function submitQuoteRequest(formData: FormData): Promise<QuoteReque
           details: { count: upload.paths.length },
         });
       } catch (appendError) {
-        logPipelineError("lead photo paths append failed (lead saved)", appendError, {
+        logPipelineError("photo paths append failed (lead saved)", appendError, {
           step: "submitQuoteRequest",
           leadId,
         });
-        photoWarnings.push("Photos uploaded but could not be linked to your request.");
+        photoWarnings.push("Some photos could not be linked to your request.");
       }
     }
 
-    if (photoWarnings.length) {
-      logPipelineInfo("quote submit photo warnings", {
-        step: "submitQuoteRequest",
-        leadId,
-        details: { warnings: photoWarnings },
-      });
-    }
-
     revalidatePath("/admin/leads");
-    return { ok: true, leadId, ...(photoWarnings.length ? { photoWarnings } : {}) };
+    revalidatePath(`/admin/leads/${leadId}`);
+
+    return {
+      ok: true,
+      leadId,
+      ...(photoWarnings.length ? { photoWarnings } : {}),
+    };
   } catch (error) {
-    logPipelineError("quote request submit exception", error, { step: "submitQuoteRequest" });
-    return publicErrorMessage(
-      "Unable to submit right now. Please call us directly.",
+    logPipelineError("quote submit exception", error, { step: "submitQuoteRequest" });
+    return quoteSubmitError(
+      QUOTE_ERRORS.unexpected,
       error instanceof Error ? error.message : String(error),
       "SERVICE_UNAVAILABLE",
     );

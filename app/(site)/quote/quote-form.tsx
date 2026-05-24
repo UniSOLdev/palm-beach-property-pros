@@ -2,6 +2,7 @@
 
 import { FormEvent, useEffect, useState } from "react";
 import { submitQuoteRequest } from "@/lib/site/actions/submit-quote-request";
+import { QUOTE_ERRORS } from "@/lib/site/quote-submit-types";
 import { PHONE_DISPLAY, PHONE_TEL, SITE_NAME } from "@/lib/site";
 
 const services = [
@@ -24,6 +25,7 @@ type QuoteFormProps = {
 export function QuoteForm({ defaultService }: QuoteFormProps) {
   const [status, setStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [photoNotice, setPhotoNotice] = useState<string | null>(null);
   const [referrer, setReferrer] = useState("");
 
   useEffect(() => {
@@ -34,6 +36,7 @@ export function QuoteForm({ defaultService }: QuoteFormProps) {
     e.preventDefault();
     setStatus("submitting");
     setErrorMessage(null);
+    setPhotoNotice(null);
 
     const formData = new FormData(e.currentTarget);
     const result = await submitQuoteRequest(formData);
@@ -41,6 +44,7 @@ export function QuoteForm({ defaultService }: QuoteFormProps) {
     if (result.ok) {
       if (result.photoWarnings?.length) {
         console.warn("[PBPP Quote] submitted with photo warnings:", result.photoWarnings);
+        setPhotoNotice(QUOTE_ERRORS.photosSaved);
       }
       setStatus("success");
       e.currentTarget.reset();
@@ -74,6 +78,9 @@ export function QuoteForm({ defaultService }: QuoteFormProps) {
         <p className="text-xs text-charcoal/60">
           Your request is in our system and will appear in our leads queue immediately.
         </p>
+        {photoNotice ? (
+          <p className="rounded-xl bg-sky/50 px-4 py-3 text-sm text-navy">{photoNotice}</p>
+        ) : null}
         <button
           type="button"
           onClick={() => setStatus("idle")}
@@ -236,14 +243,31 @@ export function QuoteForm({ defaultService }: QuoteFormProps) {
         </div>
       </fieldset>
       {errorMessage ? (
-        <p className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-800">{errorMessage}</p>
+        <div className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-800" role="alert">
+          <p>{errorMessage}</p>
+          <p className="mt-2 text-red-700">
+            Need help now? Call{" "}
+            <a href={PHONE_TEL} className="font-semibold underline">
+              {PHONE_DISPLAY}
+            </a>
+            .
+          </p>
+        </div>
       ) : null}
       <button
         type="submit"
         disabled={status === "submitting"}
         className="btn-primary-lg w-full disabled:opacity-70"
+        aria-busy={status === "submitting"}
       >
-        {status === "submitting" ? "Submitting…" : "Submit quote request"}
+        {status === "submitting" ? (
+          <span className="inline-flex items-center justify-center gap-2">
+            <span className="h-4 w-4 animate-spin rounded-full border-2 border-cream/30 border-t-cream" />
+            Submitting…
+          </span>
+        ) : (
+          "Submit quote request"
+        )}
       </button>
       <p className="text-center text-xs text-charcoal/70">
         We do not sell your information. Details you enter here stay with {SITE_NAME} for scheduling

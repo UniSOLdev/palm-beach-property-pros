@@ -847,6 +847,44 @@ export type Database = {
         }
         Relationships: []
       }
+      quote_items: {
+        Row: {
+          description: string
+          id: string
+          is_addon: boolean
+          quantity: number
+          quote_id: string
+          sort_order: number
+          unit_price: number
+        }
+        Insert: {
+          description: string
+          id?: string
+          is_addon?: boolean
+          quantity?: number
+          quote_id: string
+          sort_order?: number
+          unit_price?: number
+        }
+        Update: {
+          description?: string
+          id?: string
+          is_addon?: boolean
+          quantity?: number
+          quote_id?: string
+          sort_order?: number
+          unit_price?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quote_items_quote_id_fkey"
+            columns: ["quote_id"]
+            isOneToOne: false
+            referencedRelation: "quotes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       quote_request_activity: {
         Row: {
           activity_type: string
@@ -978,44 +1016,6 @@ export type Database = {
           },
           {
             foreignKeyName: "quote_requests_quote_id_fkey"
-            columns: ["quote_id"]
-            isOneToOne: false
-            referencedRelation: "quotes"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      quote_items: {
-        Row: {
-          description: string
-          id: string
-          is_addon: boolean
-          quantity: number
-          quote_id: string
-          sort_order: number
-          unit_price: number
-        }
-        Insert: {
-          description: string
-          id?: string
-          is_addon?: boolean
-          quantity?: number
-          quote_id: string
-          sort_order?: number
-          unit_price?: number
-        }
-        Update: {
-          description?: string
-          id?: string
-          is_addon?: boolean
-          quantity?: number
-          quote_id?: string
-          sort_order?: number
-          unit_price?: number
-        }
-        Relationships: [
-          {
-            foreignKeyName: "quote_items_quote_id_fkey"
             columns: ["quote_id"]
             isOneToOne: false
             referencedRelation: "quotes"
@@ -1457,6 +1457,24 @@ export type Database = {
           p_user_agent?: string
         }
         Returns: Json
+      }
+      submit_public_quote_request: {
+        Args: {
+          p_address: string
+          p_city?: string
+          p_email: string
+          p_message?: string
+          p_name: string
+          p_phone: string
+          p_preferred_contact?: string
+          p_preferred_date?: string
+          p_preferred_time?: string
+          p_property_type?: string
+          p_referrer?: string
+          p_service_requested: string
+          p_source?: string
+        }
+        Returns: string
       }
     }
     Enums: {

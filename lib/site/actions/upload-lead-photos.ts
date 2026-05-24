@@ -8,6 +8,7 @@ const MAX_PHOTOS = 5;
 const MAX_BYTES = 5 * 1024 * 1024;
 const ALLOWED_TYPES = new Set([
   "image/jpeg",
+  "image/jpg",
   "image/png",
   "image/webp",
   "image/heic",
@@ -19,7 +20,16 @@ export type LeadPhotoUploadResult = {
   warnings: string[];
 };
 
-/** Best-effort photo upload — never throws; failures become warnings. */
+function normalizeMime(type: string, fileName: string): string {
+  if (ALLOWED_TYPES.has(type)) return type;
+  const ext = fileName.split(".").pop()?.toLowerCase();
+  if (ext === "jpg" || ext === "jpeg") return "image/jpeg";
+  if (ext === "png") return "image/png";
+  if (ext === "webp") return "image/webp";
+  return type;
+}
+
+/** Best-effort photo upload — never throws; failures become warnings only. */
 export async function tryUploadLeadPhotos(
   quoteRequestId: string,
   formData: FormData,
@@ -29,8 +39,7 @@ export async function tryUploadLeadPhotos(
 
   const supabase = tryCreateServiceClient();
   if (!supabase) {
-    warnings.push("Photo upload unavailable (server configuration). Your request was still saved.");
-    logPipelineError("photo upload skipped — no service role", new Error("missing service role"), {
+    logPipelineInfo("photo upload skipped — no service role key", {
       step: "tryUploadLeadPhotos",
       leadId: quoteRequestId,
     });
@@ -41,7 +50,7 @@ export async function tryUploadLeadPhotos(
   if (!files.length) return { paths, warnings };
 
   if (files.length > MAX_PHOTOS) {
-    warnings.push(`Only the first ${MAX_PHOTOS} photos were processed.`);
+    warnings.push(`Only the first ${MAX_PHOTOS} photos were uploaded.`);
   }
 
   const batch = files.slice(0, MAX_PHOTOS);
@@ -52,12 +61,13 @@ export async function tryUploadLeadPhotos(
   });
 
   for (const file of batch) {
-    if (!ALLOWED_TYPES.has(file.type)) {
-      warnings.push(`Skipped ${file.name}: unsupported file type.`);
+    const mime = normalizeMime(file.type, file.name);
+    if (!ALLOWED_TYPES.has(mime) && !mime.startsWith("image/")) {
+      warnings.push(`Skipped ${file.name}: use JPG, PNG, or WebP.`);
       continue;
     }
     if (file.size > MAX_BYTES) {
-      warnings.push(`Skipped ${file.name}: exceeds 5 MB limit.`);
+      warnings.push(`Skipped ${file.name}: must be 5 MB or smaller.`);
       continue;
     }
 
@@ -67,7 +77,7 @@ export async function tryUploadLeadPhotos(
     try {
       const buffer = Buffer.from(await file.arrayBuffer());
       const { error } = await supabase.storage.from("lead-media").upload(path, buffer, {
-        contentType: file.type,
+        contentType: mime,
         cacheControl: "3600",
         upsert: false,
       });
@@ -78,17 +88,18 @@ export async function tryUploadLeadPhotos(
           leadId: quoteRequestId,
           details: { path, fileName: file.name, message: error.message },
         });
-        if (error.message.includes("Bucket not found")) {
-          warnings.push("Photo storage is not configured yet. Your request was still saved.");
+        if (error.message.toLowerCase().includes("bucket not found")) {
+          warnings.push("Photo storage is not configured yet.");
           break;
         }
         warnings.push(`Could not upload ${file.name}.`);
         continue;
       }
 
-      paths.push(path);
+      const { data: publicUrl } = supabase.storage.from("lead-media").getPublicUrl(path);
+      paths.push(publicUrl.publicUrl);
     } catch (fileError) {
-      logPipelineError("lead photo read/upload exception", fileError, {
+      logPipelineError("lead photo exception", fileError, {
         step: "tryUploadLeadPhotos",
         leadId: quoteRequestId,
         details: { fileName: file.name },
@@ -100,29 +111,25 @@ export async function tryUploadLeadPhotos(
   return { paths, warnings };
 }
 
-/** @deprecated use tryUploadLeadPhotos */
-export async function uploadLeadPhotos(quoteRequestId: string, formData: FormData): Promise<string[]> {
-  const result = await tryUploadLeadPhotos(quoteRequestId, formData);
-  return result.paths;
-}
-
 export async function appendLeadPhotoPaths(quoteRequestId: string, paths: string[]) {
   if (!paths.length) return;
 
   const supabase = tryCreateServiceClient();
-  if (!supabase) {
-    logPipelineError("appendLeadPhotoPaths skipped — no service role", new Error("missing service role"), {
-      step: "appendLeadPhotoPaths",
-      leadId: quoteRequestId,
-    });
-    return;
-  }
+  if (!supabase) return;
 
-  const { data: existing } = await supabase
+  const { data: existing, error: readError } = await supabase
     .from("quote_requests")
     .select("photo_urls")
     .eq("id", quoteRequestId)
     .single();
+
+  if (readError) {
+    logPipelineError("photo_urls read failed", readError, {
+      step: "appendLeadPhotoPaths",
+      leadId: quoteRequestId,
+    });
+    throw new Error(readError.message);
+  }
 
   const current = Array.isArray(existing?.photo_urls)
     ? existing.photo_urls.filter((v): v is string => typeof v === "string")
@@ -137,15 +144,14 @@ export async function appendLeadPhotoPaths(quoteRequestId: string, paths: string
     .eq("id", quoteRequestId);
 
   if (error) {
-    logPipelineError("lead photo paths update failed", error, {
+    logPipelineError("photo_urls update failed", error, {
       step: "appendLeadPhotoPaths",
       leadId: quoteRequestId,
-      details: { message: error.message, code: error.code },
     });
     throw new Error(error.message);
   }
 
-  logPipelineInfo("lead photo paths saved", {
+  logPipelineInfo("photo_urls saved", {
     step: "appendLeadPhotoPaths",
     leadId: quoteRequestId,
     details: { count: paths.length },

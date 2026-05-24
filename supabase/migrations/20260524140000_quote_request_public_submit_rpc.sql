@@ -71,8 +71,7 @@ BEGIN
   )
   RETURNING id INTO v_id;
 
-  INSERT INTO public.quote_request_activity (quote_request_id, activity_type, body)
-  VALUES (v_id, 'system', 'Quote request submitted from website');
+  -- Activity logged by quote_requests_log_submission trigger
 
   RETURN v_id;
 END;

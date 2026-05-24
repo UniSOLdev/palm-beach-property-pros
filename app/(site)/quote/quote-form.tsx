@@ -39,10 +39,21 @@ export function QuoteForm({ defaultService }: QuoteFormProps) {
     const result = await submitQuoteRequest(formData);
 
     if (result.ok) {
+      if (result.photoWarnings?.length) {
+        console.warn("[PBPP Quote] submitted with photo warnings:", result.photoWarnings);
+      }
       setStatus("success");
       e.currentTarget.reset();
       return;
     }
+
+    console.error("[PBPP Quote] submit failed:", {
+      code: result.code,
+      error: result.error,
+      ...(process.env.NODE_ENV === "development" && "debug" in result
+        ? { debug: result.debug }
+        : {}),
+    });
 
     setStatus("error");
     setErrorMessage(result.error);
@@ -59,6 +70,9 @@ export function QuoteForm({ defaultService }: QuoteFormProps) {
             {PHONE_DISPLAY}
           </a>
           .
+        </p>
+        <p className="text-xs text-charcoal/60">
+          Your request is in our system and will appear in our leads queue immediately.
         </p>
         <button
           type="button"

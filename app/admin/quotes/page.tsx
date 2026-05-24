@@ -4,6 +4,11 @@ import { LoadError } from "@/components/admin/load-error";
 import { fromSupabase } from "@/lib/admin/db-query";
 import { formatCurrency, formatDate } from "@/lib/admin/format";
 import { logAdminError } from "@/lib/admin/logger";
+import {
+  QUOTE_APPROVAL_LABELS,
+  quoteApprovalClass,
+  type QuoteApprovalStatus,
+} from "@/lib/quotes/constants";
 import { createClient } from "@/lib/supabase/server";
 import { SITE_URL } from "@/lib/site";
 
@@ -50,7 +55,7 @@ export default async function AdminQuotesPage() {
     <div className="space-y-4">
       <AdminPageHeader
         title="Quotes"
-        subtitle="Estimates — convert from leads or share public links"
+        subtitle="Estimates — e-sign, share, and track approval"
         actionHref="/admin/leads"
         actionLabel="Leads"
       />
@@ -66,40 +71,61 @@ export default async function AdminQuotesPage() {
                 : "Client";
             const publicUrl = `${SITE_URL}/view/quote/${quote.public_id}`;
             const leadId = leadByQuoteId.get(quote.id);
+            const approval = (quote.approval_status ?? "pending") as QuoteApprovalStatus;
 
             return (
               <li key={quote.id} className="admin-card">
                 <div className="flex items-start justify-between gap-2">
                   <div>
-                    <p className="font-semibold text-navy">{quote.quote_number}</p>
+                    <Link
+                      href={`/admin/quotes/${quote.id}`}
+                      className="font-semibold text-navy no-underline hover:underline"
+                    >
+                      {quote.quote_number}
+                    </Link>
                     <p className="text-xs text-charcoal/60">
                       {client} · {quote.service_type} · {formatDate(quote.created_at)}
                     </p>
                     <p className="mt-1 text-xs text-charcoal/50">{quote.job_address}</p>
+                    {quote.signed_at ? (
+                      <p className="mt-1 text-xs text-leaf font-medium">
+                        Signed {formatDate(quote.signed_at)}
+                        {quote.signed_name ? ` · ${quote.signed_name}` : ""}
+                      </p>
+                    ) : quote.viewed_at ? (
+                      <p className="mt-1 text-xs text-charcoal/50">Viewed {formatDate(quote.viewed_at)}</p>
+                    ) : null}
                   </div>
-                  <span className="admin-chip bg-sky/50 text-navy">{quote.status}</span>
+                  <div className="flex shrink-0 flex-col items-end gap-1">
+                    <span className={`admin-chip ${quoteApprovalClass(approval)}`}>
+                      {QUOTE_APPROVAL_LABELS[approval] ?? approval}
+                    </span>
+                    <span className="admin-chip bg-sky/40 text-navy text-[10px]">{quote.status}</span>
+                  </div>
                 </div>
                 <div className="mt-3 flex flex-wrap gap-3 text-sm">
+                  <Link
+                    href={`/admin/quotes/${quote.id}`}
+                    className="font-semibold text-ocean no-underline hover:underline"
+                  >
+                    Open →
+                  </Link>
                   <a
                     href={publicUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="font-semibold text-ocean no-underline hover:underline"
+                    className="font-semibold text-charcoal/70 no-underline hover:underline"
                   >
-                    Public link →
+                    Public link
                   </a>
                   {leadId ? (
                     <Link
                       href={`/admin/leads/${leadId}`}
                       className="font-semibold text-charcoal/70 no-underline hover:underline"
                     >
-                      Source lead →
+                      Source lead
                     </Link>
-                  ) : (
-                    <Link href="/admin/leads" className="font-semibold text-charcoal/70 no-underline hover:underline">
-                      View leads
-                    </Link>
-                  )}
+                  ) : null}
                 </div>
                 {quote.deposit_required ? (
                   <p className="mt-2 text-xs text-charcoal/60">

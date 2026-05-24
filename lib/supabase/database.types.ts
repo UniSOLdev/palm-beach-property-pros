@@ -847,6 +847,41 @@ export type Database = {
         }
         Relationships: []
       }
+      quote_events: {
+        Row: {
+          created_at: string
+          id: string
+          metadata: Json
+          note: string | null
+          quote_id: string
+          type: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          metadata?: Json
+          note?: string | null
+          quote_id: string
+          type: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          metadata?: Json
+          note?: string | null
+          quote_id?: string
+          type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quote_events_quote_id_fkey"
+            columns: ["quote_id"]
+            isOneToOne: false
+            referencedRelation: "quotes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       quote_items: {
         Row: {
           description: string
@@ -1025,9 +1060,12 @@ export type Database = {
       }
       quotes: {
         Row: {
+          approval_status: string
           archived: boolean
           client_id: string
+          client_signature_url: string | null
           created_at: string
+          declined_at: string | null
           deposit_amount: number
           deposit_required: boolean
           expiration_date: string | null
@@ -1038,14 +1076,23 @@ export type Database = {
           notes: string | null
           public_id: string
           quote_number: string
+          sent_at: string | null
           service_type: string
+          signed_at: string | null
+          signed_ip: string | null
+          signed_name: string | null
+          signed_pdf_url: string | null
           status: string
           terms: string | null
+          viewed_at: string | null
         }
         Insert: {
+          approval_status?: string
           archived?: boolean
           client_id: string
+          client_signature_url?: string | null
           created_at?: string
+          declined_at?: string | null
           deposit_amount?: number
           deposit_required?: boolean
           expiration_date?: string | null
@@ -1056,14 +1103,23 @@ export type Database = {
           notes?: string | null
           public_id: string
           quote_number: string
+          sent_at?: string | null
           service_type: string
+          signed_at?: string | null
+          signed_ip?: string | null
+          signed_name?: string | null
+          signed_pdf_url?: string | null
           status: string
           terms?: string | null
+          viewed_at?: string | null
         }
         Update: {
+          approval_status?: string
           archived?: boolean
           client_id?: string
+          client_signature_url?: string | null
           created_at?: string
+          declined_at?: string | null
           deposit_amount?: number
           deposit_required?: boolean
           expiration_date?: string | null
@@ -1074,9 +1130,15 @@ export type Database = {
           notes?: string | null
           public_id?: string
           quote_number?: string
+          sent_at?: string | null
           service_type?: string
+          signed_at?: string | null
+          signed_ip?: string | null
+          signed_name?: string | null
+          signed_pdf_url?: string | null
           status?: string
           terms?: string | null
+          viewed_at?: string | null
         }
         Relationships: [
           {
@@ -1447,6 +1509,16 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      log_quote_event: {
+        Args: {
+          p_metadata?: Json
+          p_note?: string
+          p_quote_id: string
+          p_type: string
+        }
+        Returns: string
+      }
+      mark_quote_viewed: { Args: { p_public_id: string }; Returns: boolean }
       submit_change_order_approval: {
         Args: {
           p_action: string

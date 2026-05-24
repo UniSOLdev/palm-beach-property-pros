@@ -8,6 +8,7 @@
     "start": "next start",
     "lint": "next lint",
     "type-check": "tsc --noEmit",
+    "db:push": "node scripts/db-push.mjs",
     "verify:public-homepage": "node scripts/verify-public-homepage-lock.mjs"
   },
   "dependencies": {
@@ -18,14 +19,20 @@
     "@supabase/supabase-js": "^2.106.0",
     "date-fns": "^4.2.1",
     "next": "^15.3.2",
+    "papaparse": "^5.5.3",
+    "pdf-lib": "^1.17.1",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
+    "react-signature-canvas": "^1.1.0-alpha.2",
+    "xlsx": "^0.18.5",
     "zod": "^4.4.3"
   },
   "devDependencies": {
     "@types/node": "^22.15.3",
+    "@types/papaparse": "^5.5.2",
     "@types/react": "^19.1.2",
     "@types/react-dom": "^19.1.2",
+    "@types/react-signature-canvas": "^1.0.7",
     "autoprefixer": "^10.4.21",
     "eslint": "^9.26.0",
     "eslint-config-next": "^15.3.2",

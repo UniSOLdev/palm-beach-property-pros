@@ -10,7 +10,13 @@ import {
   logLeadContact,
   updateLeadStatus,
 } from "@/lib/admin/actions/leads";
+import { copyQuotePublicLink, markQuoteSent } from "@/lib/admin/actions/quotes";
 import { LEAD_STATUSES, LEAD_STATUS_LABELS, type LeadStatus } from "@/lib/admin/lead-constants";
+import {
+  QUOTE_APPROVAL_LABELS,
+  quoteApprovalClass,
+  type QuoteApprovalStatus,
+} from "@/lib/quotes/constants";
 
 type Props = {
   leadId: string;
@@ -19,6 +25,8 @@ type Props = {
   hasQuote: boolean;
   hasInvoice: boolean;
   quotePublicUrl: string | null;
+  quoteId: string | null;
+  quoteApprovalStatus: string | null;
   phone: string;
   email: string | null;
 };
@@ -40,6 +48,8 @@ export function LeadDetailActions({
   hasQuote,
   hasInvoice,
   quotePublicUrl,
+  quoteId,
+  quoteApprovalStatus,
   phone,
   email,
 }: Props) {
@@ -91,12 +101,57 @@ export function LeadDetailActions({
       </div>
 
       {quotePublicUrl ? (
-        <p className="rounded-xl bg-sky/40 px-4 py-3 text-sm">
-          Public quote:{" "}
-          <a href={quotePublicUrl} target="_blank" rel="noopener noreferrer" className="font-semibold text-ocean">
-            {quotePublicUrl}
-          </a>
-        </p>
+        <div className="rounded-xl bg-sky/40 px-4 py-3 text-sm space-y-2">
+          <p>
+            Public quote:{" "}
+            <a href={quotePublicUrl} target="_blank" rel="noopener noreferrer" className="font-semibold text-ocean break-all">
+              {quotePublicUrl}
+            </a>
+          </p>
+          {quoteApprovalStatus ? (
+            <p>
+              Approval:{" "}
+              <span
+                className={`inline-block rounded-full px-2 py-0.5 text-xs font-semibold ${quoteApprovalClass(quoteApprovalStatus as QuoteApprovalStatus)}`}
+              >
+                {QUOTE_APPROVAL_LABELS[quoteApprovalStatus as QuoteApprovalStatus] ?? quoteApprovalStatus}
+              </span>
+            </p>
+          ) : null}
+          {quoteId ? (
+            <div className="flex flex-wrap gap-2 pt-1">
+              <button
+                type="button"
+                disabled={pending}
+                className="admin-btn min-h-[44px] px-3 text-xs"
+                onClick={() =>
+                  run(async () => {
+                    const result = await markQuoteSent(quoteId);
+                    if (result.smsHref) window.open(result.smsHref, "_blank");
+                    else if (result.mailtoHref) window.location.href = result.mailtoHref;
+                    setSuccess("Quote marked sent.");
+                  })
+                }
+              >
+                Send Quote
+              </button>
+              <button
+                type="button"
+                disabled={pending}
+                className="admin-btn-secondary min-h-[44px] px-3 text-xs"
+                onClick={() =>
+                  run(async () => {
+                    const link = await copyQuotePublicLink(quoteId);
+                    await navigator.clipboard.writeText(link);
+                    setSuccess("Public link copied.");
+                  })
+                }
+              >
+                Copy Link
+              </button>
+            </div>
+          ) : null}
+        </div>
       ) : null}
 
       <div>

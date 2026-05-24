@@ -6,6 +6,7 @@ import type { QuoteRequestActivityRow, QuoteRequestRow } from "@/lib/admin/types
 import { logAdminError } from "@/lib/admin/logger";
 import { logPipelineError, logPipelineInfo } from "@/lib/pipeline/logger";
 import { createClient } from "@/lib/supabase/server";
+import { createServiceClient } from "@/lib/supabase/service";
 
 export type ConvertLeadToQuoteResult = {
   quoteId: string;
@@ -123,6 +124,12 @@ export async function getLead(id: string): Promise<{
   lead: QuoteRequestRow;
   activity: QuoteRequestActivityRow[];
   quotePublicId: string | null;
+  quoteMeta: {
+    approval_status: string;
+    signed_at: string | null;
+    signed_name: string | null;
+    id: string;
+  } | null;
 }> {
   const supabase = await createClient();
   const { data: lead, error } = await supabase
@@ -145,7 +152,11 @@ export async function getLead(id: string): Promise<{
       .eq("quote_request_id", id)
       .order("created_at", { ascending: false }),
     lead.quote_id
-      ? supabase.from("quotes").select("public_id").eq("id", lead.quote_id).maybeSingle()
+      ? supabase
+          .from("quotes")
+          .select("public_id, approval_status, signed_at, signed_name, signed_pdf_url, client_signature_url")
+          .eq("id", lead.quote_id)
+          .maybeSingle()
       : Promise.resolve({ data: null, error: null }),
   ]);
 
@@ -161,6 +172,14 @@ export async function getLead(id: string): Promise<{
     lead: mapLead(lead as Record<string, unknown>),
     activity: (activity ?? []) as QuoteRequestActivityRow[],
     quotePublicId: quoteResult.data?.public_id ?? null,
+    quoteMeta: quoteResult.data
+      ? {
+          id: lead.quote_id!,
+          approval_status: quoteResult.data.approval_status ?? "pending",
+          signed_at: quoteResult.data.signed_at ?? null,
+          signed_name: quoteResult.data.signed_name ?? null,
+        }
+      : null,
   };
 }
 
@@ -310,6 +329,7 @@ export async function convertLeadToQuote(id: string): Promise<ConvertLeadToQuote
       service_type: lead.service_requested,
       job_address: jobAddress,
       status: "sent",
+      approval_status: "pending",
       notes: lead.message,
       terms: settings?.default_quote_terms ?? null,
     })
@@ -351,6 +371,18 @@ export async function convertLeadToQuote(id: string): Promise<ConvertLeadToQuote
   if (linkError) {
     logPipelineError("lead quote link failed", linkError, { step: "convertLeadToQuote", leadId: id });
     throw new Error(linkError.message);
+  }
+
+  try {
+    const admin = createServiceClient();
+    await admin.from("quote_events").insert({
+      quote_id: quote.id,
+      type: "created",
+      note: "Quote created from lead",
+      metadata: { lead_id: id },
+    });
+  } catch (eventError) {
+    logPipelineError("quote created event failed", eventError, { quoteId: quote.id });
   }
 
   await logActivity(supabase, id, {

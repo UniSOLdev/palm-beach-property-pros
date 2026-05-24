@@ -8,6 +8,11 @@ import { LEAD_STATUS_LABELS, leadStatusClass } from "@/lib/admin/lead-constants"
 import { logAdminError } from "@/lib/admin/logger";
 import { formatDate } from "@/lib/admin/format";
 import type { LeadStatus } from "@/lib/admin/lead-constants";
+import {
+  QUOTE_APPROVAL_LABELS,
+  quoteApprovalClass,
+  type QuoteApprovalStatus,
+} from "@/lib/quotes/constants";
 import { SITE_URL } from "@/lib/site";
 
 export const dynamic = "force-dynamic";
@@ -49,9 +54,10 @@ export default async function AdminLeadDetailPage({ params }: Props) {
 
   if (!leadData) notFound();
 
-  const { lead, activity, quotePublicId } = leadData;
+  const { lead, activity, quotePublicId, quoteMeta } = leadData;
   const photos = await getLeadPhotoUrls(lead.photo_urls);
   const quotePublicUrl = quotePublicId ? `${SITE_URL}/view/quote/${quotePublicId}` : null;
+  const quoteApproval = quoteMeta?.approval_status as QuoteApprovalStatus | undefined;
 
   return (
     <div className="space-y-4">
@@ -142,9 +148,17 @@ export default async function AdminLeadDetailPage({ params }: Props) {
                   <a href={quotePublicUrl} target="_blank" rel="noopener noreferrer" className="text-ocean no-underline hover:underline">
                     Public quote link
                   </a>
+                  {quoteApproval ? (
+                    <>
+                      {" · "}
+                      <span className={`inline-block rounded-full px-2 py-0.5 text-xs font-semibold ${quoteApprovalClass(quoteApproval)}`}>
+                        {QUOTE_APPROVAL_LABELS[quoteApproval]}
+                      </span>
+                    </>
+                  ) : null}
                   {" · "}
-                  <Link href="/admin/quotes" className="text-ocean no-underline hover:underline">
-                    Admin quotes
+                  <Link href={`/admin/quotes/${lead.quote_id}`} className="text-ocean no-underline hover:underline">
+                    Admin quote
                   </Link>
                 </li>
               ) : lead.quote_id ? (
@@ -192,6 +206,8 @@ export default async function AdminLeadDetailPage({ params }: Props) {
             hasQuote={Boolean(lead.quote_id)}
             hasInvoice={Boolean(lead.invoice_id)}
             quotePublicUrl={quotePublicUrl}
+            quoteId={lead.quote_id}
+            quoteApprovalStatus={quoteMeta?.approval_status ?? null}
             phone={lead.phone}
             email={lead.email}
           />

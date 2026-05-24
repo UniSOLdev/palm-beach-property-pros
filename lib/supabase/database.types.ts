@@ -775,48 +775,85 @@ export type Database = {
       }
       media_assets: {
         Row: {
+          alt_text: string | null
           before_after_group: string | null
           before_after_role: string | null
+          caption: string | null
+          city: string | null
+          collection_id: string | null
           created_at: string
+          file_size_bytes: number | null
           file_type: string
           file_url: string
           folder_id: string | null
+          height: number | null
           id: string
           is_featured: boolean
+          job_reference: string | null
+          service_category: string | null
           sort_order: number
           storage_path: string | null
           tags: string[]
           title: string | null
+          webp_url: string | null
+          width: number | null
         }
         Insert: {
+          alt_text?: string | null
           before_after_group?: string | null
           before_after_role?: string | null
+          caption?: string | null
+          city?: string | null
+          collection_id?: string | null
           created_at?: string
+          file_size_bytes?: number | null
           file_type?: string
           file_url: string
           folder_id?: string | null
+          height?: number | null
           id?: string
           is_featured?: boolean
+          job_reference?: string | null
+          service_category?: string | null
           sort_order?: number
           storage_path?: string | null
           tags?: string[]
           title?: string | null
+          webp_url?: string | null
+          width?: number | null
         }
         Update: {
+          alt_text?: string | null
           before_after_group?: string | null
           before_after_role?: string | null
+          caption?: string | null
+          city?: string | null
+          collection_id?: string | null
           created_at?: string
+          file_size_bytes?: number | null
           file_type?: string
           file_url?: string
           folder_id?: string | null
+          height?: number | null
           id?: string
           is_featured?: boolean
+          job_reference?: string | null
+          service_category?: string | null
           sort_order?: number
           storage_path?: string | null
           tags?: string[]
           title?: string | null
+          webp_url?: string | null
+          width?: number | null
         }
         Relationships: [
+          {
+            foreignKeyName: "media_assets_collection_id_fkey"
+            columns: ["collection_id"]
+            isOneToOne: false
+            referencedRelation: "media_collections"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "media_assets_folder_id_fkey"
             columns: ["folder_id"]
@@ -825,6 +862,30 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      media_collections: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          name: string
+          slug: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          name: string
+          slug: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string
+          slug?: string
+        }
+        Relationships: []
       }
       media_folders: {
         Row: {
@@ -844,6 +905,189 @@ export type Database = {
           name?: string
           slug?: string
           sort_order?: number
+        }
+        Relationships: []
+      }
+      website_pages: {
+        Row: {
+          created_at: string
+          id: string
+          meta_description: string | null
+          og_image_url: string | null
+          page_type: string
+          preview_token: string
+          published_at: string | null
+          seo_title: string | null
+          slug: string
+          status: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          meta_description?: string | null
+          og_image_url?: string | null
+          page_type?: string
+          preview_token?: string
+          published_at?: string | null
+          seo_title?: string | null
+          slug: string
+          status?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          meta_description?: string | null
+          og_image_url?: string | null
+          page_type?: string
+          preview_token?: string
+          published_at?: string | null
+          seo_title?: string | null
+          slug?: string
+          status?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      website_publish_history: {
+        Row: {
+          created_at: string
+          id: string
+          note: string | null
+          page_id: string
+          published_by: string | null
+          snapshot: Json
+          version_number: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          note?: string | null
+          page_id: string
+          published_by?: string | null
+          snapshot: Json
+          version_number: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          note?: string | null
+          page_id?: string
+          published_by?: string | null
+          snapshot?: Json
+          version_number?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "website_publish_history_page_id_fkey"
+            columns: ["page_id"]
+            isOneToOne: false
+            referencedRelation: "website_pages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      website_section_items: {
+        Row: {
+          content: Json
+          created_at: string
+          id: string
+          item_type: string
+          section_id: string
+          sort_order: number
+        }
+        Insert: {
+          content?: Json
+          created_at?: string
+          id?: string
+          item_type?: string
+          section_id: string
+          sort_order?: number
+        }
+        Update: {
+          content?: Json
+          created_at?: string
+          id?: string
+          item_type?: string
+          section_id?: string
+          sort_order?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "website_section_items_section_id_fkey"
+            columns: ["section_id"]
+            isOneToOne: false
+            referencedRelation: "website_sections"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      website_sections: {
+        Row: {
+          content: Json
+          created_at: string
+          id: string
+          is_visible: boolean
+          label: string | null
+          page_id: string
+          section_type: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          content?: Json
+          created_at?: string
+          id?: string
+          is_visible?: boolean
+          label?: string | null
+          page_id: string
+          section_type: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          content?: Json
+          created_at?: string
+          id?: string
+          is_visible?: boolean
+          label?: string | null
+          page_id?: string
+          section_type?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "website_sections_page_id_fkey"
+            columns: ["page_id"]
+            isOneToOne: false
+            referencedRelation: "website_pages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      website_theme: {
+        Row: {
+          dark_mode_enabled: boolean
+          id: string
+          tokens: Json
+          updated_at: string
+        }
+        Insert: {
+          dark_mode_enabled?: boolean
+          id?: string
+          tokens?: Json
+          updated_at?: string
+        }
+        Update: {
+          dark_mode_enabled?: boolean
+          id?: string
+          tokens?: Json
+          updated_at?: string
         }
         Relationships: []
       }

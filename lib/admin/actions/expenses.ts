@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { fromSupabase, type DbQueryResult } from "@/lib/admin/db-query";
 
 export async function createExpense(input: {
   expense_date: string;
@@ -52,16 +53,23 @@ export async function createExpense(input: {
   revalidatePath("/admin/expenses");
 }
 
-export async function listJobsForExpenseLink() {
+export async function listJobsForExpenseLink(): Promise<
+  DbQueryResult<{ id: string; label: string }[]>
+> {
   const supabase = await createClient();
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from("jobs")
     .select("id, service_type, address")
     .eq("archived", false)
     .order("job_date", { ascending: false })
     .limit(80);
-  return (data ?? []).map((j) => ({
-    id: j.id,
-    label: `${j.service_type} · ${j.address}`,
-  }));
+  const result = fromSupabase(data, error, { route: "/admin/expenses", query: "jobs for expense link" });
+  if (!result.ok) return result;
+  return {
+    ok: true,
+    data: (result.data ?? []).map((j) => ({
+      id: j.id,
+      label: `${j.service_type} · ${j.address}`,
+    })),
+  };
 }

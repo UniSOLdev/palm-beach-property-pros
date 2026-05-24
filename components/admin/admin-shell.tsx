@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState, type ReactNode } from "react";
+import { AdminToastProvider } from "@/components/admin/admin-toast";
 import { ADMIN_MORE_NAV, ADMIN_NAV, QUICK_ACTIONS } from "@/lib/admin/constants";
 
 export function AdminShell({ children }: { children: ReactNode }) {
@@ -21,6 +22,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
 
 
   return (
+    <AdminToastProvider>
     <div className="min-h-screen bg-gradient-to-b from-cream via-white to-sky/20 text-charcoal">
       <header className="sticky top-0 z-40 border-b border-navy/10 bg-cream/90 px-4 py-3 backdrop-blur-md">
         <div className="mx-auto flex max-w-3xl items-center justify-between gap-3">
@@ -126,5 +128,6 @@ export function AdminShell({ children }: { children: ReactNode }) {
         </div>
       </nav>
     </div>
+    </AdminToastProvider>
   );
 }

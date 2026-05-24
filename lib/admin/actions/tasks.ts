@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { JOB_CHECKLIST_ITEMS } from "@/lib/admin/task-constants";
+import { listCrewOptions as queryCrewOptions } from "@/lib/supabase/queries/crew";
 import type { CreateTaskInput, TaskBulkDefaults, TaskRow } from "@/lib/admin/types";
 
 function revalidateTaskPaths(jobId?: string | null, invoiceId?: string | null) {
@@ -50,12 +51,9 @@ export async function listTasksForJob(jobId: string): Promise<TaskRow[]> {
 
 export async function listCrewOptions() {
   const supabase = await createClient();
-  const { data } = await supabase
-    .from("crew_members")
-    .select("id, name")
-    .eq("archived", false)
-    .order("name");
-  return data ?? [];
+  const result = await queryCrewOptions(supabase);
+  if (!result.ok) return [];
+  return result.data;
 }
 
 export async function createTask(input: CreateTaskInput) {

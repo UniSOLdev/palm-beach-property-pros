@@ -1,14 +1,33 @@
 import Link from "next/link";
 import { AdminPageHeader } from "@/components/admin/entity-list";
+import { LoadError } from "@/components/admin/load-error";
 import { listChangeOrders } from "@/lib/admin/actions/change-orders";
 import { changeOrderStatusClass } from "@/lib/admin/change-order-constants";
 import { formatCurrency, formatDate } from "@/lib/admin/format";
+import { logAdminError } from "@/lib/admin/logger";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Change Orders" };
 
 export default async function ChangeOrdersPage() {
-  const orders = await listChangeOrders();
+  let orders: Awaited<ReturnType<typeof listChangeOrders>> = [];
+  let loadError = "";
+
+  try {
+    orders = await listChangeOrders();
+  } catch (e) {
+    loadError = e instanceof Error ? e.message : "Could not load change orders";
+    logAdminError("change orders list failed", e, { route: "/admin/change-orders" });
+  }
+
+  if (loadError) {
+    return (
+      <div className="space-y-4">
+        <AdminPageHeader title="Change orders" subtitle="Scope changes with client approval" />
+        <LoadError title="Could not load change orders" message={loadError} retryHref="/admin/change-orders" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4">

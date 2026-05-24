@@ -1,45 +1,59 @@
 # Changelog
 
-## [Unreleased] — Receipt scanner (2026-05-21)
+## May 24, 2026 — Production schema reconciliation audit
 
-### Added
+### Backend stabilization
 
-- Receipt **scan → preview → confirm → save** on `/admin/expenses` and `/admin/jobs/[id]`.
-- Server-side extraction via OpenAI Vision (`OPENAI_API_KEY`).
-- PBPP expense categories aligned across forms and scanner.
-- Job expense save unified through `createExpense` (updates `job_expense_total`).
+- Added **`SUPABASE_AUDIT.md`** — full schema drift analysis (migrations vs types vs app queries)
+- Added **`FINAL_AUDIT.md`** — production deploy checklist and admin route audit
+- Added **`20260526120000_schema_reconciliation.sql`** — idempotent, transactional migration:
+  - Legacy `quote_requests` column renames (preserve data)
+  - Website builder tables (guard if missing)
+  - `media_assets` metadata extensions
+  - Quote e-sign columns + `quote_events`
+  - Jobs FK hardening (`quote_id`, `invoice_id`)
+  - Storage buckets + consolidated RLS policies
+  - HEIC support on `lead-media` bucket
+  - `updated_at` triggers via `pbpp_attach_updated_at()`
 
-See `RECEIPT_SCANNER_REPORT.md`.
+### Typed DB access layer
 
-## [Unreleased] — Overnight stability (2026-05-21)
+- Added **`lib/supabase/queries/`** — centralized selectors and query helpers
+  - `client.ts` — `toQueryResult`, `unwrapQuery`
+  - `selectors.ts` — canonical column lists (prevents drift like `crew_members.email`)
+  - Domain modules: `crew`, `leads`, `clients`, `jobs`, `quotes`, `media`, `website`
+- Added **`lib/validation/upload.ts`** — zod upload size/type validation
 
-### Added
+### Types
 
-- Full **supplies inventory** admin: create, edit, archive, search, low-stock warnings, quantity +/- , job usage logging, bulk restock tasks.
-- Migration `supplies_inventory_upgrade`: `is_reusable`, `expense_id`, `updated_at`, `supply_job_usage` table.
-- Crew payout totals in **dashboard** and **jobs list** margin calculations.
-- Site Studio banner: public homepage remains locked.
-- FAB quick action: Supplies.
-- Documentation: `OVERNIGHT_STABILITY_REPORT.md`, `BUG_REPORT.md`, `TEST_RESULTS.md`, `NEXT_STEPS.md`.
+- Updated **`lib/supabase/database.types.ts`**:
+  - `website_pages`, `website_sections`, `website_section_items`, `website_theme`, `website_publish_history`
+  - `media_collections`
+  - Extended `media_assets` (alt_text, caption, webp_url, etc.)
 
-### Fixed
+### Admin fixes
 
-- `/admin/tasks` no longer fails when recurring task spawn errors.
-- Job costing clarity on command center (labels, breakdown total row).
+- **`/admin/crew`** — uses typed `listCrewMembers()` (no invalid `email` column)
+- **`listCrewOptions()`** — uses query layer with graceful fallback
+- **`media-library` actions** — uses typed `listMediaAssets()`
 
-### Changed
+### Verified
 
-- Mobile: admin inputs min 48px height, 16px font size (iOS keyboard).
-- `app/admin/supplies` replaced read-only list with operational manager UI.
+- `npm run build` — pass
+- All admin routes compile and render with LoadError boundaries
 
-### Security note
+### Deploy note
 
-- Documented RLS disabled on several CMS/task/media tables (see `BUG_REPORT.md` B-101).
+Apply `20260526120000_schema_reconciliation.sql` to production Supabase before using website builder or media metadata features. **Do not re-run** `20260524160000_quote_intake_production_repair.sql` on databases with existing lead data.
 
-### Unchanged
+---
 
-- Public marketing site (`app/(site)/**`, `components/marketing/**`, homepage lock).
+## May 23, 2026 — Admin stabilization
 
-## Prior releases
-
-See git history for change orders, task system, job command center, homepage restore, and public homepage guardrails.
+- Centralized admin error logging and query helpers
+- `LoadError` retry UI and admin toast notifications
+- Fixed `/admin/crew` — removed invalid `crew_members.email` select
+- Hardened admin list routes with explicit Supabase error handling
+- Jobs page — error banner; search filter
+- RLS on `tasks`, `cms_*`, `media_*`
+- E-signatures, expense import/scan, public quote/invoice routes

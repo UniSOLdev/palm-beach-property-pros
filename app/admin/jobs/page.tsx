@@ -1,19 +1,32 @@
 import Link from "next/link";
 import { TaskQuickAdd } from "@/components/admin/task-quick-add";
 import { AdminPageHeader, EmptyState } from "@/components/admin/entity-list";
-import { listCrewOptions } from "@/lib/admin/actions/tasks";
+import { LoadError } from "@/components/admin/load-error";
 import { getCrewPayoutTotalsByJob } from "@/lib/admin/crew-payout-totals";
 import { calculateJobProfit } from "@/lib/admin/job-costing";
+import { fromSupabase } from "@/lib/admin/db-query";
 import { formatCurrency, formatDate, formatPercent } from "@/lib/admin/format";
+import { listCrewOptions } from "@/lib/admin/actions/tasks";
 import { createClient } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Jobs" };
 
-export default async function AdminJobsPage() {
-  const crew = await listCrewOptions();
+type Props = { searchParams: Promise<{ q?: string }> };
+
+export default async function AdminJobsPage({ searchParams }: Props) {
+  const { q } = await searchParams;
+  const search = q?.trim().toLowerCase() ?? "";
+
+  let crew: Awaited<ReturnType<typeof listCrewOptions>> = [];
+  try {
+    crew = await listCrewOptions();
+  } catch {
+    /* non-blocking */
+  }
+
   const supabase = await createClient();
-  const [{ data: jobs }, crewPayoutMap] = await Promise.all([
+  const [jobsResult, crewPayoutMap] = await Promise.all([
     supabase
       .from("jobs")
       .select("*, clients(name)")
@@ -21,6 +34,34 @@ export default async function AdminJobsPage() {
       .order("job_date", { ascending: false }),
     getCrewPayoutTotalsByJob(supabase),
   ]);
+
+  const query = fromSupabase(jobsResult.data, jobsResult.error, {
+    route: "/admin/jobs",
+    query: "jobs with clients",
+  });
+
+  if (!query.ok) {
+    return (
+      <div className="space-y-4">
+        <AdminPageHeader title="Jobs" subtitle="Profitability and field documentation" />
+        <LoadError title="Could not load jobs" message={query.error} retryHref="/admin/jobs" />
+      </div>
+    );
+  }
+
+  const jobs = (query.data ?? []).filter((job) => {
+    if (!search) return true;
+    const clientName =
+      job.clients && typeof job.clients === "object" && "name" in job.clients
+        ? String((job.clients as { name: string }).name).toLowerCase()
+        : "";
+    return (
+      job.service_type.toLowerCase().includes(search) ||
+      job.address.toLowerCase().includes(search) ||
+      job.status.toLowerCase().includes(search) ||
+      clientName.includes(search)
+    );
+  });
 
   return (
     <div className="space-y-4">
@@ -30,10 +71,23 @@ export default async function AdminJobsPage() {
         actionHref="/admin/tasks"
         actionLabel="All tasks"
       />
+      <form method="get" className="flex gap-2">
+        <input
+          name="q"
+          defaultValue={search}
+          placeholder="Search jobs, client, address…"
+          className="min-h-[48px] flex-1 rounded-xl border border-navy/15 px-4 text-base"
+        />
+        <button type="submit" className="admin-btn min-h-[48px] px-4">
+          Search
+        </button>
+      </form>
       <TaskQuickAdd crew={crew} variant="primary" label="+ Add job task" className="w-full" />
       <ul className="space-y-3">
-        {!jobs?.length ? (
-          <EmptyState>No jobs yet. Create one from a quote or add manually in Supabase.</EmptyState>
+        {!jobs.length ? (
+          <EmptyState>
+            {search ? "No jobs match your search." : "No jobs yet. Create one from a quote or add manually in Supabase."}
+          </EmptyState>
         ) : (
           jobs.map((job) => {
             const profit = calculateJobProfit({

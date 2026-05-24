@@ -2,31 +2,50 @@
 import Link from "next/link";
 import { TaskQuickAdd } from "@/components/admin/task-quick-add";
 import { AdminPageHeader, EmptyState } from "@/components/admin/entity-list";
-import { listCrewOptions } from "@/lib/admin/actions/tasks";
+import { LoadError } from "@/components/admin/load-error";
+import { fromSupabase } from "@/lib/admin/db-query";
 import { formatDate } from "@/lib/admin/format";
+import { listCrewOptions } from "@/lib/admin/actions/tasks";
 import { createClient } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Invoices" };
 
 export default async function AdminInvoicesPage() {
-  const crew = await listCrewOptions();
+  let crew: Awaited<ReturnType<typeof listCrewOptions>> = [];
+  try {
+    crew = await listCrewOptions();
+  } catch {
+    /* non-blocking */
+  }
+
   const supabase = await createClient();
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from("invoices")
     .select("*, clients(name)")
     .eq("archived", false)
     .order("created_at", { ascending: false });
+
+  const query = fromSupabase(data, error, { route: "/admin/invoices", query: "invoices with clients" });
+
+  if (!query.ok) {
+    return (
+      <div className="space-y-4">
+        <AdminPageHeader title="Invoices" subtitle="Drafts, sent, payments" />
+        <LoadError title="Could not load invoices" message={query.error} retryHref="/admin/invoices" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4">
       <AdminPageHeader title="Invoices" subtitle="Drafts, sent, payments" actionHref="/admin/invoices/new" actionLabel="New invoice" />
       <TaskQuickAdd crew={crew} variant="secondary" label="+ Add invoice task" className="w-full" defaults={{ category: "Invoice Follow-Up" }} />
       <ul className="space-y-3">
-        {!data?.length ? (
+        {!query.data?.length ? (
           <EmptyState>No invoices yet.</EmptyState>
         ) : (
-          data.map((inv) => {
+          query.data.map((inv) => {
             const client = inv.clients as { name?: string } | null;
             return (
               <li key={inv.id} className="admin-card">

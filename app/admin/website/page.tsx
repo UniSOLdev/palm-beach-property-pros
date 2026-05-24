@@ -1,45 +1,72 @@
 import Link from "next/link";
-import { CmsStudio } from "@/components/admin/cms-studio";
+import { AdminPageHeader } from "@/components/admin/entity-list";
+import { LoadError } from "@/components/admin/load-error";
 import { TaskQuickAdd } from "@/components/admin/task-quick-add";
 import { TaskWorkflowBar } from "@/components/admin/task-workflow-bar";
-import { AdminPageHeader } from "@/components/admin/entity-list";
+import { listWebsitePages } from "@/lib/admin/actions/website-builder";
 import { listCrewOptions } from "@/lib/admin/actions/tasks";
-import { HOME_CMS_DEFAULTS } from "@/lib/cms/home";
-import { createClient } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Site Studio" };
 
 export default async function WebsiteAdminPage() {
-  const crew = await listCrewOptions();
-  const supabase = await createClient();
-  const { data } = await supabase.from("cms_sections").select("*").eq("page_key", "home").order("sort_order");
+  let crew: Awaited<ReturnType<typeof listCrewOptions>> = [];
+  let pages: Awaited<ReturnType<typeof listWebsitePages>> = [];
+  let builderError = "";
 
-  const sections = Object.keys(HOME_CMS_DEFAULTS).map((key) => {
-    const row = data?.find((r) => r.section_key === key);
-    return {
-      section_key: key,
-      title: row?.title ?? key.replace(/_/g, " "),
-      content: (row?.content as Record<string, unknown>) ?? HOME_CMS_DEFAULTS[key],
-    };
-  });
+  try {
+    crew = await listCrewOptions();
+  } catch {
+    /* non-blocking */
+  }
+
+  try {
+    pages = await listWebsitePages();
+  } catch (err) {
+    builderError = err instanceof Error ? err.message : "Builder tables not available";
+  }
+
+  const homepage = pages.find((p) => p.slug === "home");
 
   return (
     <div className="space-y-4">
       <AdminPageHeader
         title="Site Studio"
-        subtitle="CMS for future publish — does not change the live homepage"
+        subtitle="Premium visual website builder — draft, preview, and publish"
       />
-      <p className="rounded-xl border border-ocean/25 bg-sky/30 px-4 py-3 text-sm leading-relaxed text-navy">
-        <strong>Public homepage is locked</strong> to the premium marketing page. Saving sections here updates the database only and does not affect{" "}
-        <code className="text-xs">/</code> until a gated publish workflow is built.
-      </p>
-      <Link href="/admin/website/media" className="admin-btn-secondary inline-flex no-underline">
-        Open media library
-      </Link>
+
+      {builderError ? (
+        <LoadError title="Visual builder not ready" message={builderError} retryHref="/admin/website" />
+      ) : (
+        <>
+          <div className="admin-card flex flex-wrap items-center gap-3 bg-gradient-to-br from-white to-sky/20">
+            <div className="flex-1">
+              <p className="font-semibold text-navy">Visual page builder</p>
+              <p className="mt-1 text-sm text-charcoal/75">
+                Inline editing, drag-and-drop sections, live preview, autosave drafts, and versioned publish.
+              </p>
+            </div>
+            {homepage ? (
+              <Link href={`/admin/website/builder/${homepage.id}`} className="admin-btn no-underline">
+                Edit homepage
+              </Link>
+            ) : null}
+            <Link href="/admin/website/pages" className="admin-btn-secondary no-underline">
+              All pages
+            </Link>
+            <Link href="/admin/website/media" className="admin-btn-secondary no-underline">
+              Media library
+            </Link>
+          </div>
+
+          <p className="rounded-xl border border-ocean/25 bg-sky/30 px-4 py-3 text-sm leading-relaxed text-navy">
+            <strong>Public homepage remains locked</strong> until you publish from the builder. Draft preview uses a secure token URL. Only published snapshots render on the live site once wired.
+          </p>
+        </>
+      )}
+
       <TaskQuickAdd crew={crew} variant="primary" label="+ Add website task" className="w-full" defaults={{ category: "Website Update" }} />
       <TaskWorkflowBar context="website" defaults={{ category: "Website Update" }} />
-      <CmsStudio sections={sections} />
     </div>
   );
 }

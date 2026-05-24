@@ -18,6 +18,7 @@ type Props = {
   hasClient: boolean;
   hasQuote: boolean;
   hasInvoice: boolean;
+  quotePublicUrl: string | null;
   phone: string;
   email: string | null;
 };
@@ -38,6 +39,7 @@ export function LeadDetailActions({
   hasClient,
   hasQuote,
   hasInvoice,
+  quotePublicUrl,
   phone,
   email,
 }: Props) {
@@ -45,9 +47,11 @@ export function LeadDetailActions({
   const [pending, startTransition] = useTransition();
   const [note, setNote] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
 
   function run(action: () => Promise<void>) {
     setError(null);
+    setSuccess(null);
     startTransition(async () => {
       try {
         await action();
@@ -61,10 +65,18 @@ export function LeadDetailActions({
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap gap-2">
-        <a href={phoneTel(phone)} className="admin-btn min-h-[48px] no-underline" onClick={() => logLeadContact(leadId, "call")}>
+        <a
+          href={phoneTel(phone)}
+          className="admin-btn min-h-[48px] no-underline"
+          onClick={() => logLeadContact(leadId, "call")}
+        >
           Call
         </a>
-        <a href={phoneSms(phone)} className="admin-btn-secondary min-h-[48px] no-underline" onClick={() => logLeadContact(leadId, "text")}>
+        <a
+          href={phoneSms(phone)}
+          className="admin-btn-secondary min-h-[48px] no-underline"
+          onClick={() => logLeadContact(leadId, "text")}
+        >
           Text
         </a>
         {email ? (
@@ -77,6 +89,15 @@ export function LeadDetailActions({
           </a>
         ) : null}
       </div>
+
+      {quotePublicUrl ? (
+        <p className="rounded-xl bg-sky/40 px-4 py-3 text-sm">
+          Public quote:{" "}
+          <a href={quotePublicUrl} target="_blank" rel="noopener noreferrer" className="font-semibold text-ocean">
+            {quotePublicUrl}
+          </a>
+        </p>
+      ) : null}
 
       <div>
         <p className="text-xs font-semibold uppercase tracking-wide text-charcoal/60">Status</p>
@@ -106,7 +127,12 @@ export function LeadDetailActions({
             <button
               type="button"
               disabled={pending}
-              onClick={() => run(async () => { await convertLeadToClient(leadId); })}
+              onClick={() =>
+                run(async () => {
+                  await convertLeadToClient(leadId);
+                  setSuccess("Client record created.");
+                })
+              }
               className="admin-btn-secondary min-h-[48px]"
             >
               → Client
@@ -116,7 +142,12 @@ export function LeadDetailActions({
             <button
               type="button"
               disabled={pending}
-              onClick={() => run(async () => { await convertLeadToQuote(leadId); })}
+              onClick={() =>
+                run(async () => {
+                  const result = await convertLeadToQuote(leadId);
+                  setSuccess(`Quote created. Share link: ${result.publicUrl}`);
+                })
+              }
               className="admin-btn-secondary min-h-[48px]"
             >
               → Estimate
@@ -126,7 +157,12 @@ export function LeadDetailActions({
             <button
               type="button"
               disabled={pending}
-              onClick={() => run(async () => { await convertLeadToInvoice(leadId); })}
+              onClick={() =>
+                run(async () => {
+                  const result = await convertLeadToInvoice(leadId);
+                  router.push(`/admin/invoices/${result.invoiceId}`);
+                })
+              }
               className="admin-btn min-h-[48px]"
             >
               → Invoice
@@ -141,6 +177,7 @@ export function LeadDetailActions({
           run(async () => {
             await addLeadNote(leadId, note);
             setNote("");
+            setSuccess("Note saved.");
           });
         }}
         className="space-y-2"
@@ -160,6 +197,7 @@ export function LeadDetailActions({
         </button>
       </form>
 
+      {success ? <p className="rounded-xl bg-leaf/15 px-4 py-3 text-sm text-navy">{success}</p> : null}
       {error ? <p className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-800">{error}</p> : null}
     </div>
   );

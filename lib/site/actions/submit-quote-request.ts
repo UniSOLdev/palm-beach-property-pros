@@ -2,10 +2,11 @@
 
 import { revalidatePath } from "next/cache";
 import { appendLeadPhotoPaths, uploadLeadPhotos } from "@/lib/site/actions/upload-lead-photos";
+import { logPipelineError, logPipelineInfo } from "@/lib/pipeline/logger";
 import { createServiceClient } from "@/lib/supabase/service";
 
 export type QuoteRequestResult =
-  | { ok: true }
+  | { ok: true; leadId: string }
   | { ok: false; error: string };
 
 function clientTypeFromProperty(propertyType: string): string {
@@ -17,6 +18,13 @@ function clientTypeFromProperty(propertyType: string): string {
     return "commercial";
   }
   return "residential";
+}
+
+function schemaHint(errorMessage: string): string | null {
+  if (errorMessage.includes("quote_requests") && errorMessage.includes("does not exist")) {
+    return "Database migration pending — apply supabase/migrations/20260524120000_quote_requests.sql";
+  }
+  return null;
 }
 
 export async function submitQuoteRequest(formData: FormData): Promise<QuoteRequestResult> {
@@ -63,19 +71,39 @@ export async function submitQuoteRequest(formData: FormData): Promise<QuoteReque
       .single();
 
     if (error || !lead) {
-      return { ok: false, error: "Unable to submit right now. Please call us directly." };
+      logPipelineError("quote request insert failed", error ?? new Error("No row returned"), {
+        step: "submitQuoteRequest",
+        details: { service, source },
+      });
+      const hint = error ? schemaHint(error.message) : null;
+      return {
+        ok: false,
+        error: hint
+          ? "Quote form is temporarily unavailable. Please call us directly."
+          : "Unable to submit right now. Please call us directly.",
+      };
     }
+
+    logPipelineInfo("quote request created", { step: "submitQuoteRequest", leadId: lead.id });
 
     try {
       const photoPaths = await uploadLeadPhotos(lead.id, formData);
       if (photoPaths.length) {
         await appendLeadPhotoPaths(lead.id, photoPaths);
+        logPipelineInfo("lead photos uploaded", {
+          step: "submitQuoteRequest",
+          leadId: lead.id,
+          details: { count: photoPaths.length },
+        });
       }
-    } catch {
-      /* photos optional — lead still saved */
+    } catch (photoError) {
+      logPipelineError("lead photo upload failed (lead saved)", photoError, {
+        step: "submitQuoteRequest",
+        leadId: lead.id,
+      });
     }
 
-    await supabase.from("quote_request_activity").insert({
+    const { error: activityError } = await supabase.from("quote_request_activity").insert({
       quote_request_id: lead.id,
       activity_type: "system",
       body: "Quote request submitted from website",
@@ -85,9 +113,17 @@ export async function submitQuoteRequest(formData: FormData): Promise<QuoteReque
       },
     });
 
+    if (activityError) {
+      logPipelineError("quote request activity insert failed", activityError, {
+        step: "submitQuoteRequest",
+        leadId: lead.id,
+      });
+    }
+
     revalidatePath("/admin/leads");
-    return { ok: true };
-  } catch {
+    return { ok: true, leadId: lead.id };
+  } catch (error) {
+    logPipelineError("quote request submit exception", error, { step: "submitQuoteRequest" });
     return { ok: false, error: "Unable to submit right now. Please call us directly." };
   }
 }

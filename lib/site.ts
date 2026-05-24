@@ -1,4 +1,6 @@
-export const SITE_URL = "https://www.palmbeachpropertypros.com";
+export const SITE_URL =
+  process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ||
+  "https://www.palmbeachpropertypros.com";
 export const SITE_NAME = "Palm Beach Property Pros";
 export const TAGLINE =
   "One reliable local team for everything your property needs.";

@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { logPipelineError, logPipelineInfo } from "@/lib/pipeline/logger";
 import { createServiceClient } from "@/lib/supabase/service";
 
 const MAX_PHOTOS = 5;
@@ -45,7 +46,10 @@ export async function uploadLeadPhotos(
       upsert: false,
     });
 
-    if (error) throw new Error(error.message);
+    if (error) {
+      logPipelineError("lead photo upload failed", error, { step: "uploadLeadPhotos", leadId: quoteRequestId, details: { path } });
+      throw new Error(error.message);
+    }
     paths.push(path);
   }
 
@@ -74,7 +78,11 @@ export async function appendLeadPhotoPaths(quoteRequestId: string, paths: string
     })
     .eq("id", quoteRequestId);
 
-  if (error) throw new Error(error.message);
+  if (error) {
+    logPipelineError("lead photo paths update failed", error, { step: "appendLeadPhotoPaths", leadId: quoteRequestId });
+    throw new Error(error.message);
+  }
+  logPipelineInfo("lead photo paths saved", { step: "appendLeadPhotoPaths", leadId: quoteRequestId, details: { count: paths.length } });
   revalidatePath("/admin/leads");
   revalidatePath(`/admin/leads/${quoteRequestId}`);
 }

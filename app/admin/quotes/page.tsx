@@ -31,6 +31,20 @@ export default async function AdminQuotesPage() {
   }
 
   const quotes = query.data ?? [];
+  const quoteIds = quotes.map((q) => q.id);
+  const leadByQuoteId = new Map<string, string>();
+
+  if (quoteIds.length) {
+    const { data: linkedLeads } = await supabase
+      .from("quote_requests")
+      .select("id, quote_id")
+      .in("quote_id", quoteIds)
+      .eq("archived", false);
+
+    for (const row of linkedLeads ?? []) {
+      if (row.quote_id) leadByQuoteId.set(row.quote_id, row.id);
+    }
+  }
 
   return (
     <div className="space-y-4">
@@ -51,6 +65,7 @@ export default async function AdminQuotesPage() {
                 ? String((quote.clients as { name: string }).name)
                 : "Client";
             const publicUrl = `${SITE_URL}/view/quote/${quote.public_id}`;
+            const leadId = leadByQuoteId.get(quote.id);
 
             return (
               <li key={quote.id} className="admin-card">
@@ -73,9 +88,18 @@ export default async function AdminQuotesPage() {
                   >
                     Public link →
                   </a>
-                  <Link href="/admin/leads" className="font-semibold text-charcoal/70 no-underline hover:underline">
-                    View leads
-                  </Link>
+                  {leadId ? (
+                    <Link
+                      href={`/admin/leads/${leadId}`}
+                      className="font-semibold text-charcoal/70 no-underline hover:underline"
+                    >
+                      Source lead →
+                    </Link>
+                  ) : (
+                    <Link href="/admin/leads" className="font-semibold text-charcoal/70 no-underline hover:underline">
+                      View leads
+                    </Link>
+                  )}
                 </div>
                 {quote.deposit_required ? (
                   <p className="mt-2 text-xs text-charcoal/60">

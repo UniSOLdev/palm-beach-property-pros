@@ -1,50 +1,46 @@
 import { notFound } from "next/navigation";
+import Link from "next/link";
 import { InvoiceTemplate } from "@/components/invoice/invoice-template";
-import { createClient } from "@/lib/supabase/server";
+import { fetchPublicInvoice } from "@/lib/supabase/public-share";
 
 export const dynamic = "force-dynamic";
 
 export default async function PublicInvoicePage({ params }: { params: Promise<{ publicId: string }> }) {
   const { publicId } = await params;
-  const supabase = await createClient();
-  const { data: inv, error: invError } = await supabase
-    .from("invoices")
-    .select("*, clients(name, address)")
-    .eq("public_id", publicId)
-    .eq("archived", false)
-    .maybeSingle();
-  if (invError) {
+  const result = await fetchPublicInvoice(publicId);
+
+  if (!result.ok) {
+    if (result.reason === "not_found") notFound();
     return (
       <main className="min-h-screen bg-cream px-4 py-10">
-        <p className="text-center text-sm text-red-700">Unable to load invoice. Please contact Palm Beach Property Pros.</p>
+        <div className="mx-auto max-w-lg rounded-2xl border border-red-200 bg-red-50 p-6 text-center">
+          <p className="text-sm text-red-800">Unable to load invoice. Please contact Palm Beach Property Pros.</p>
+          <Link href="/quote" className="mt-4 inline-block text-sm font-semibold text-ocean no-underline">
+            Contact us
+          </Link>
+        </div>
       </main>
     );
   }
-  if (!inv) notFound();
 
-  const { data: items } = await supabase
-    .from("invoice_items")
-    .select("*")
-    .eq("invoice_id", inv.id)
-    .order("sort_order");
-  const { data: settings } = await supabase.from("business_settings").select("*").limit(1).maybeSingle();
-  const client = inv.clients as { name?: string; address?: string } | null;
+  const { invoice, items, settings } = result;
+  const client = invoice.clients as { name?: string; address?: string } | null;
 
   return (
     <main className="min-h-screen bg-cream px-4 py-10">
       <InvoiceTemplate
-        invoiceNumber={inv.invoice_number}
+        invoiceNumber={invoice.invoice_number}
         clientName={client?.name ?? "Client"}
         clientAddress={client?.address}
-        dueDate={inv.due_date}
-        terms={inv.terms}
-        notes={inv.notes}
-        discount={Number(inv.discount)}
-        depositPaid={Number(inv.deposit_paid)}
+        dueDate={invoice.due_date}
+        terms={invoice.terms}
+        notes={invoice.notes}
+        discount={Number(invoice.discount)}
+        depositPaid={Number(invoice.deposit_paid)}
         logoUrl={settings?.logo_url}
         businessPhone={settings?.phone}
         businessEmail={settings?.email}
-        lines={(items ?? []).map((l) => ({
+        lines={items.map((l) => ({
           description: l.description,
           quantity: Number(l.quantity),
           unit_price: Number(l.unit_price),

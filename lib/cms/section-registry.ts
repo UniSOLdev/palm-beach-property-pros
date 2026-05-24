@@ -16,6 +16,7 @@ export const WEBSITE_SECTION_TYPES = [
   "video",
   "quote_form",
   "contact",
+  "rich_text",
 ] as const;
 
 export type WebsiteSectionType = (typeof WEBSITE_SECTION_TYPES)[number];
@@ -36,6 +37,7 @@ export const SECTION_TYPE_LABELS: Record<WebsiteSectionType, string> = {
   video: "Video",
   quote_form: "Quote Form",
   contact: "Contact",
+  rich_text: "Rich Text",
 };
 
 const linkSchema = z.object({
@@ -108,6 +110,11 @@ export const galleryContentSchema = z.object({
   items: z.array(z.object({ label: z.string(), imageUrl: z.string().optional() })).default([]),
 });
 
+export const richTextContentSchema = z.object({
+  headline: z.string().default(""),
+  body: z.string().default(""),
+});
+
 export const genericContentSchema = z.record(z.string(), z.unknown());
 
 export type WebsiteSectionRow = {
@@ -159,6 +166,8 @@ export function defaultContentForType(type: WebsiteSectionType): Record<string, 
       return quoteFormContentSchema.parse({});
     case "gallery":
       return galleryContentSchema.parse({});
+    case "rich_text":
+      return richTextContentSchema.parse({});
     default:
       return { headline: "", body: "" };
   }
@@ -182,6 +191,8 @@ export function parseSectionContent(type: WebsiteSectionType, content: Record<st
       return quoteFormContentSchema.parse({ ...defaultContentForType("quote_form"), ...content });
     case "gallery":
       return galleryContentSchema.parse({ ...defaultContentForType("gallery"), ...content });
+    case "rich_text":
+      return richTextContentSchema.parse({ ...defaultContentForType("rich_text"), ...content });
     default:
       return { ...defaultContentForType(type), ...content };
   }

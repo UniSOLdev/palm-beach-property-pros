@@ -1,5 +1,28 @@
 # Changelog
 
+## May 24, 2026 — Site Studio production fix
+
+### Root cause
+`/admin/website` crashed with **"Could not find the table public.website_pages in the schema cache"** because Site Studio migrations were never applied to production Supabase.
+
+### Fixes
+- Added **`20260527120000_site_studio_complete.sql`** — creates `website_pages`, `website_sections`, `website_media`, `website_revisions`, RLS, storage, seeds homepage
+- Added **`SITE_STUDIO_DEPLOY.md`** — step-by-step migration + schema cache reload
+- Added **`checkSiteStudioHealth()`** — detects missing tables with operator-friendly errors
+- Replaced malformed task shortcuts on Site Studio hub with **`SiteStudioHub`** component
+- Wider admin layout for builder routes (`max-w-7xl`)
+- Added loading skeletons + error boundary for `/admin/website`
+- Migrated publish workflow to **`website_revisions`** (legacy `website_publish_history` fallback)
+- Added API routes: `/api/admin/website/{pages,sections,publish,media}`
+- Added zod validation in `lib/cms/website-schemas.ts`
+- Added `rich_text` section type
+- Slug editor in builder SEO panel
+
+### Deploy required
+Apply `20260527120000_site_studio_complete.sql` in Supabase SQL Editor, then reload schema cache.
+
+---
+
 ## May 24, 2026 — Production schema reconciliation audit
 
 ### Backend stabilization

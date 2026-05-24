@@ -37,7 +37,7 @@ import {
 
 type BuilderState = {
   sections: WebsiteSectionRow[];
-  seo: { seo_title: string; meta_description: string; og_image_url: string };
+  seo: { slug: string; seo_title: string; meta_description: string; og_image_url: string };
 };
 
 function SortableSectionRow({
@@ -97,6 +97,7 @@ export function WebsiteBuilder({ bundle }: { bundle: BuilderPageBundle }) {
   const initial: BuilderState = {
     sections: bundle.sections,
     seo: {
+      slug: bundle.page.slug,
       seo_title: bundle.page.seo_title ?? "",
       meta_description: bundle.page.meta_description ?? "",
       og_image_url: bundle.page.og_image_url ?? "",
@@ -302,6 +303,15 @@ export function WebsiteBuilder({ bundle }: { bundle: BuilderPageBundle }) {
           <summary className="cursor-pointer font-semibold text-navy">Page SEO</summary>
           <div className="mt-3 space-y-2">
             <label className="block text-xs font-medium text-navy">
+              URL slug
+              <input
+                className="admin-input text-sm"
+                value={state.seo.slug}
+                onChange={(e) => push({ ...state, seo: { ...state.seo, slug: e.target.value } })}
+                placeholder="home"
+              />
+            </label>
+            <label className="block text-xs font-medium text-navy">
               SEO title
               <input
                 className="admin-input text-sm"
@@ -325,7 +335,7 @@ export function WebsiteBuilder({ bundle }: { bundle: BuilderPageBundle }) {
                 onChange={(e) => push({ ...state, seo: { ...state.seo, og_image_url: e.target.value } })}
               />
             </label>
-            <p className="text-xs text-charcoal/60">Slug: /{bundle.page.slug === "home" ? "" : bundle.page.slug}</p>
+            <p className="text-xs text-charcoal/60">Live path: /{state.seo.slug === "home" ? "" : state.seo.slug}</p>
           </div>
         </details>
 

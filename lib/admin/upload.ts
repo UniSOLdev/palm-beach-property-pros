@@ -3,7 +3,7 @@
 import { createClient } from "@/lib/supabase/client";
 
 export async function uploadAdminFile(
-  bucket: "receipts" | "job-media" | "cms-media" | "media-library",
+  bucket: "receipts" | "job-media" | "cms-media" | "media-library" | "website-media",
   file: File,
   pathPrefix: string,
 ) {

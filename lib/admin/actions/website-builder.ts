@@ -6,8 +6,16 @@ import {
   type WebsiteSectionRow,
   type WebsiteSectionType,
 } from "@/lib/cms/section-registry";
+import { formatSiteStudioError } from "@/lib/cms/website-schemas";
 import { createClient } from "@/lib/supabase/server";
 import { createServiceClient } from "@/lib/supabase/service";
+
+export type RevisionRow = {
+  id: string;
+  version_number: number;
+  created_at: string;
+  note: string | null;
+};
 
 export type BuilderPageBundle = {
   page: {
@@ -24,43 +32,118 @@ export type BuilderPageBundle = {
   };
   sections: WebsiteSectionRow[];
   theme: Record<string, unknown>;
-  publishVersions: Array<{ id: string; version_number: number; created_at: string; note: string | null }>;
+  publishVersions: RevisionRow[];
 };
+
+async function fetchRevisions(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  pageId: string,
+): Promise<RevisionRow[]> {
+  const { data, error } = await supabase
+    .from("website_revisions")
+    .select("id, version_number, created_at, note")
+    .eq("page_id", pageId)
+    .order("version_number", { ascending: false })
+    .limit(10);
+
+  if (!error && data) return data;
+
+  const legacy = await supabase
+    .from("website_publish_history")
+    .select("id, version_number, created_at, note")
+    .eq("page_id", pageId)
+    .order("version_number", { ascending: false })
+    .limit(10);
+
+  if (legacy.error) return [];
+  return legacy.data ?? [];
+}
+
+async function insertRevision(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  row: {
+    page_id: string;
+    version_number: number;
+    snapshot: Record<string, unknown>;
+    published_by: string | null;
+    note: string | null;
+  },
+) {
+  const { error } = await supabase.from("website_revisions").insert({
+    page_id: row.page_id,
+    version_number: row.version_number,
+    snapshot: row.snapshot,
+    status: "published",
+    published_by: row.published_by,
+    note: row.note,
+  });
+
+  if (!error) return;
+
+  const legacy = await supabase.from("website_publish_history").insert({
+    page_id: row.page_id,
+    version_number: row.version_number,
+    snapshot: row.snapshot,
+    published_by: row.published_by,
+    note: row.note,
+  });
+  if (legacy.error) throw new Error(formatSiteStudioError(legacy.error.message));
+}
+
+async function getLatestRevisionSnapshot(
+  supabase: ReturnType<typeof createServiceClient>,
+  pageId: string,
+): Promise<Record<string, unknown> | null> {
+  const { data } = await supabase
+    .from("website_revisions")
+    .select("snapshot")
+    .eq("page_id", pageId)
+    .order("version_number", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (data?.snapshot) return data.snapshot as Record<string, unknown>;
+
+  const legacy = await supabase
+    .from("website_publish_history")
+    .select("snapshot")
+    .eq("page_id", pageId)
+    .order("version_number", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  return (legacy.data?.snapshot as Record<string, unknown>) ?? null;
+}
 
 export async function listWebsitePages() {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("website_pages")
-    .select("id, slug, title, page_type, status, updated_at, published_at")
+    .select("id, slug, title, page_type, status, updated_at, published_at, preview_token")
     .order("updated_at", { ascending: false });
-  if (error) throw new Error(error.message);
+  if (error) throw new Error(formatSiteStudioError(error.message));
   return data ?? [];
 }
 
 export async function getBuilderPage(pageId: string): Promise<BuilderPageBundle> {
   const supabase = await createClient();
   const { data: page, error } = await supabase.from("website_pages").select("*").eq("id", pageId).single();
-  if (error || !page) throw new Error(error?.message ?? "Page not found");
+  if (error || !page) throw new Error(formatSiteStudioError(error?.message ?? "Page not found"));
 
-  const [{ data: sections }, { data: theme }, { data: versions }] = await Promise.all([
+  const [{ data: sections }, { data: theme }, versions] = await Promise.all([
     supabase.from("website_sections").select("*").eq("page_id", pageId).order("sort_order"),
     supabase.from("website_theme").select("tokens, dark_mode_enabled").eq("id", "default").maybeSingle(),
-    supabase
-      .from("website_publish_history")
-      .select("id, version_number, created_at, note")
-      .eq("page_id", pageId)
-      .order("version_number", { ascending: false })
-      .limit(10),
+    fetchRevisions(supabase, pageId),
   ]);
 
   return {
     page: page as BuilderPageBundle["page"],
     sections: (sections ?? []) as WebsiteSectionRow[],
     theme: {
-      ...(theme?.tokens as Record<string, unknown> ?? {}),
+      ...((theme?.tokens as Record<string, unknown>) ?? {}),
       darkMode: theme?.dark_mode_enabled ?? false,
     },
-    publishVersions: versions ?? [],
+    publishVersions: versions,
   };
 }
 
@@ -81,7 +164,7 @@ export async function saveDraftSections(
     is_visible: boolean;
     content: Record<string, unknown>;
   }>,
-  seo?: { seo_title?: string; meta_description?: string; og_image_url?: string },
+  seo?: { seo_title?: string; meta_description?: string; og_image_url?: string; slug?: string },
 ) {
   const supabase = await createClient();
 
@@ -98,21 +181,20 @@ export async function saveDraftSections(
       })
       .eq("id", section.id)
       .eq("page_id", pageId);
-    if (error) throw new Error(error.message);
+    if (error) throw new Error(formatSiteStudioError(error.message));
   }
 
-  if (seo) {
-    const { error } = await supabase
-      .from("website_pages")
-      .update({ ...seo, updated_at: new Date().toISOString(), status: "draft" })
-      .eq("id", pageId);
-    if (error) throw new Error(error.message);
-  } else {
-    await supabase
-      .from("website_pages")
-      .update({ updated_at: new Date().toISOString(), status: "draft" })
-      .eq("id", pageId);
-  }
+  const pagePatch: Record<string, string | null> = {
+    updated_at: new Date().toISOString(),
+    status: "draft",
+  };
+  if (seo?.seo_title !== undefined) pagePatch.seo_title = seo.seo_title;
+  if (seo?.meta_description !== undefined) pagePatch.meta_description = seo.meta_description;
+  if (seo?.og_image_url !== undefined) pagePatch.og_image_url = seo.og_image_url || null;
+  if (seo?.slug !== undefined) pagePatch.slug = seo.slug.trim().replace(/^\//, "").toLowerCase();
+
+  const { error: pageError } = await supabase.from("website_pages").update(pagePatch).eq("id", pageId);
+  if (pageError) throw new Error(formatSiteStudioError(pageError.message));
 
   revalidatePath("/admin/website");
   revalidatePath(`/admin/website/builder/${pageId}`);
@@ -137,7 +219,7 @@ export async function addWebsiteSection(pageId: string, sectionType: WebsiteSect
     .select("*")
     .single();
 
-  if (error) throw new Error(error.message);
+  if (error) throw new Error(formatSiteStudioError(error.message));
   revalidatePath(`/admin/website/builder/${pageId}`);
   return data as WebsiteSectionRow;
 }
@@ -145,7 +227,7 @@ export async function addWebsiteSection(pageId: string, sectionType: WebsiteSect
 export async function deleteWebsiteSection(sectionId: string, pageId: string) {
   const supabase = await createClient();
   const { error } = await supabase.from("website_sections").delete().eq("id", sectionId).eq("page_id", pageId);
-  if (error) throw new Error(error.message);
+  if (error) throw new Error(formatSiteStudioError(error.message));
   revalidatePath(`/admin/website/builder/${pageId}`);
 }
 
@@ -156,7 +238,7 @@ export async function duplicateWebsiteSection(sectionId: string, pageId: string)
     .select("*")
     .eq("id", sectionId)
     .single();
-  if (error || !source) throw new Error(error?.message ?? "Section not found");
+  if (error || !source) throw new Error(formatSiteStudioError(error?.message ?? "Section not found"));
 
   const { data, error: insertError } = await supabase
     .from("website_sections")
@@ -171,7 +253,7 @@ export async function duplicateWebsiteSection(sectionId: string, pageId: string)
     .select("*")
     .single();
 
-  if (insertError) throw new Error(insertError.message);
+  if (insertError) throw new Error(formatSiteStudioError(insertError.message));
   revalidatePath(`/admin/website/builder/${pageId}`);
   return data as WebsiteSectionRow;
 }
@@ -184,15 +266,8 @@ export async function publishWebsitePage(pageId: string, note?: string) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const { data: lastVersion } = await supabase
-    .from("website_publish_history")
-    .select("version_number")
-    .eq("page_id", pageId)
-    .order("version_number", { ascending: false })
-    .limit(1)
-    .maybeSingle();
-
-  const versionNumber = (lastVersion?.version_number ?? 0) + 1;
+  const lastVersion = bundle.publishVersions[0]?.version_number ?? 0;
+  const versionNumber = lastVersion + 1;
   const snapshot = {
     page: bundle.page,
     sections: bundle.sections.filter((s) => s.is_visible),
@@ -200,14 +275,13 @@ export async function publishWebsitePage(pageId: string, note?: string) {
     publishedAt: new Date().toISOString(),
   };
 
-  const { error: historyError } = await supabase.from("website_publish_history").insert({
+  await insertRevision(supabase, {
     page_id: pageId,
     version_number: versionNumber,
     snapshot,
     published_by: user?.id ?? null,
     note: note ?? null,
   });
-  if (historyError) throw new Error(historyError.message);
 
   const { error: pageError } = await supabase
     .from("website_pages")
@@ -217,7 +291,7 @@ export async function publishWebsitePage(pageId: string, note?: string) {
       updated_at: new Date().toISOString(),
     })
     .eq("id", pageId);
-  if (pageError) throw new Error(pageError.message);
+  if (pageError) throw new Error(formatSiteStudioError(pageError.message));
 
   revalidatePath("/");
   revalidatePath("/admin/website");
@@ -225,15 +299,31 @@ export async function publishWebsitePage(pageId: string, note?: string) {
   return { versionNumber };
 }
 
-export async function rollbackWebsitePage(pageId: string, historyId: string) {
+export async function rollbackWebsitePage(pageId: string, revisionId: string) {
   const supabase = await createClient();
-  const { data: history, error } = await supabase
-    .from("website_publish_history")
+
+  let history: { snapshot: unknown; version_number: number } | null = null;
+
+  const { data: rev } = await supabase
+    .from("website_revisions")
     .select("snapshot, version_number")
-    .eq("id", historyId)
+    .eq("id", revisionId)
     .eq("page_id", pageId)
-    .single();
-  if (error || !history) throw new Error(error?.message ?? "Version not found");
+    .maybeSingle();
+
+  if (rev) {
+    history = rev;
+  } else {
+    const { data: legacy } = await supabase
+      .from("website_publish_history")
+      .select("snapshot, version_number")
+      .eq("id", revisionId)
+      .eq("page_id", pageId)
+      .maybeSingle();
+    history = legacy;
+  }
+
+  if (!history) throw new Error("Version not found");
 
   const snapshot = history.snapshot as {
     page?: Record<string, unknown>;
@@ -272,19 +362,16 @@ export async function rollbackWebsitePage(pageId: string, historyId: string) {
 
 export async function saveWebsiteTheme(tokens: Record<string, unknown>, darkMode: boolean) {
   const supabase = await createClient();
-  const { error } = await supabase
-    .from("website_theme")
-    .upsert({
-      id: "default",
-      tokens,
-      dark_mode_enabled: darkMode,
-      updated_at: new Date().toISOString(),
-    });
-  if (error) throw new Error(error.message);
+  const { error } = await supabase.from("website_theme").upsert({
+    id: "default",
+    tokens,
+    dark_mode_enabled: darkMode,
+    updated_at: new Date().toISOString(),
+  });
+  if (error) throw new Error(formatSiteStudioError(error.message));
   revalidatePath("/admin/website");
 }
 
-/** Preview draft by token — service role read */
 export async function getPreviewPageByToken(token: string) {
   const supabase = createServiceClient();
   const { data: page } = await supabase
@@ -303,13 +390,12 @@ export async function getPreviewPageByToken(token: string) {
     page,
     sections: sections ?? [],
     theme: {
-      ...(theme?.tokens as Record<string, unknown> ?? {}),
+      ...((theme?.tokens as Record<string, unknown>) ?? {}),
       darkMode: theme?.dark_mode_enabled ?? false,
     },
   };
 }
 
-/** Published snapshot for public site (when publish workflow enabled) */
 export async function getPublishedPage(slug: string) {
   const supabase = createServiceClient();
   const { data: page } = await supabase
@@ -320,16 +406,10 @@ export async function getPublishedPage(slug: string) {
     .maybeSingle();
   if (!page) return null;
 
-  const { data: history } = await supabase
-    .from("website_publish_history")
-    .select("snapshot")
-    .eq("page_id", page.id)
-    .order("version_number", { ascending: false })
-    .limit(1)
-    .maybeSingle();
+  const snapshot = await getLatestRevisionSnapshot(supabase, page.id);
+  if (!snapshot) return null;
 
-  if (!history?.snapshot) return null;
-  return history.snapshot as {
+  return snapshot as {
     page: Record<string, unknown>;
     sections: WebsiteSectionRow[];
     theme: Record<string, unknown>;
@@ -352,7 +432,7 @@ export async function createWebsitePage(input: {
     })
     .select("id")
     .single();
-  if (error) throw new Error(error.message);
+  if (error) throw new Error(formatSiteStudioError(error.message));
   revalidatePath("/admin/website/pages");
   return data.id as string;
 }

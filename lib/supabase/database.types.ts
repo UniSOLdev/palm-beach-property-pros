@@ -953,6 +953,113 @@ export type Database = {
         }
         Relationships: []
       }
+      website_media: {
+        Row: {
+          alt_text: string | null
+          caption: string | null
+          created_at: string
+          file_size_bytes: number | null
+          height: number | null
+          id: string
+          mime_type: string | null
+          page_id: string | null
+          public_url: string
+          section_id: string | null
+          sort_order: number
+          storage_path: string
+          updated_at: string
+          width: number | null
+        }
+        Insert: {
+          alt_text?: string | null
+          caption?: string | null
+          created_at?: string
+          file_size_bytes?: number | null
+          height?: number | null
+          id?: string
+          mime_type?: string | null
+          page_id?: string | null
+          public_url: string
+          section_id?: string | null
+          sort_order?: number
+          storage_path: string
+          updated_at?: string
+          width?: number | null
+        }
+        Update: {
+          alt_text?: string | null
+          caption?: string | null
+          created_at?: string
+          file_size_bytes?: number | null
+          height?: number | null
+          id?: string
+          mime_type?: string | null
+          page_id?: string | null
+          public_url?: string
+          section_id?: string | null
+          sort_order?: number
+          storage_path?: string
+          updated_at?: string
+          width?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "website_media_page_id_fkey"
+            columns: ["page_id"]
+            isOneToOne: false
+            referencedRelation: "website_pages"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "website_media_section_id_fkey"
+            columns: ["section_id"]
+            isOneToOne: false
+            referencedRelation: "website_sections"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      website_revisions: {
+        Row: {
+          created_at: string
+          id: string
+          note: string | null
+          page_id: string
+          published_by: string | null
+          snapshot: Json
+          status: string
+          version_number: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          note?: string | null
+          page_id: string
+          published_by?: string | null
+          snapshot: Json
+          status?: string
+          version_number: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          note?: string | null
+          page_id?: string
+          published_by?: string | null
+          snapshot?: Json
+          status?: string
+          version_number?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "website_revisions_page_id_fkey"
+            columns: ["page_id"]
+            isOneToOne: false
+            referencedRelation: "website_pages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       website_publish_history: {
         Row: {
           created_at: string

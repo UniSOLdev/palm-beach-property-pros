@@ -3,7 +3,6 @@
  * Apply pending Supabase migrations from supabase/migrations/
  *
  * Preferred: npm run db:push (Supabase CLI linked to project)
- * Production was repaired via apply_migration MCP on 2026-05-24.
  *
  * Usage:
  *   node scripts/db-push.mjs
@@ -28,17 +27,18 @@ for (const file of files) {
   console.log(`  • ${file} (${lines} lines)`);
 }
 
-console.log("\n[PBPP DB] Pushing via Supabase CLI…");
-const result = spawnSync(
-  "npx",
-  ["supabase", "db", "push", "--project-ref", "pfojtrfkeoeymmtkvijo"],
-  { stdio: "inherit", cwd: root, env: process.env },
-);
+console.log("\n[PBPP DB] Pushing via Supabase CLI (linked project)…");
+const result = spawnSync("npx", ["supabase", "db", "push", "--linked", "--yes"], {
+  stdio: "inherit",
+  cwd: root,
+  env: process.env,
+});
 
 if (result.status !== 0) {
   console.error(
-    "\n[PBPP DB] Push failed. Ensure you are logged in: npx supabase login",
+    "\n[PBPP DB] Push failed. Run: npx supabase login && npx supabase link --project-ref pfojtrfkeoeymmtkvijo",
   );
+  console.error("[PBPP DB] Or paste supabase/migrations/20260527120000_site_studio_complete.sql in SQL Editor.");
   process.exit(result.status ?? 1);
 }
 

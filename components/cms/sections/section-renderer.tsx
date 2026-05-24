@@ -76,6 +76,8 @@ function SectionBody({
       return <VideoView content={content} />;
     case "contact":
       return <ContactView content={content} />;
+    case "rich_text":
+      return <RichTextView content={content} />;
     default:
       return null;
   }
@@ -378,6 +380,18 @@ function ContactView({ content }: { content: Record<string, unknown> }) {
             {c.email}
           </a>
         </p>
+      ) : null}
+    </section>
+  );
+}
+
+function RichTextView({ content }: { content: Record<string, unknown> }) {
+  const c = content as { headline?: string; body?: string };
+  return (
+    <section className="prose prose-navy max-w-none px-4 py-12">
+      {c.headline ? <h2 className="text-2xl font-semibold text-navy">{c.headline}</h2> : null}
+      {c.body ? (
+        <div className="mt-4 whitespace-pre-wrap text-charcoal/85 leading-relaxed">{c.body}</div>
       ) : null}
     </section>
   );

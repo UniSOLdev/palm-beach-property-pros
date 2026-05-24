@@ -9,6 +9,9 @@ import { ADMIN_MORE_NAV, ADMIN_NAV, QUICK_ACTIONS } from "@/lib/admin/constants"
 export function AdminShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const isLogin = pathname === "/admin/login";
+  const isWideStudio =
+    pathname.startsWith("/admin/website/builder") || pathname.startsWith("/admin/website/pages");
+  const mainMaxWidth = isWideStudio ? "max-w-7xl" : "max-w-3xl";
   const [fabOpen, setFabOpen] = useState(false);
   const [moreOpen, setMoreOpen] = useState(false);
 
@@ -62,7 +65,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
         ) : null}
       </header>
 
-      <main className="mx-auto max-w-3xl scroll-pt-20 px-4 pb-36 pt-4">{children}</main>
+      <main className={`mx-auto ${mainMaxWidth} scroll-pt-20 px-4 pb-36 pt-4`}>{children}</main>
 
       {fabOpen ? (
         <div

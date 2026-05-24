@@ -19,7 +19,9 @@
 - Slug editor in builder SEO panel
 
 ### Deploy required
-Apply `20260527120000_site_studio_complete.sql` in Supabase SQL Editor, then reload schema cache.
+Migration **`site_studio_complete`** applied to production Supabase on 2026-05-24 via MCP.
+
+If schema cache errors persist: Supabase Dashboard → Settings → API → **Reload schema**.
 
 ---
 

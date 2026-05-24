@@ -1,5 +1,6 @@
 "use server";
 
+import { createClient } from "@/lib/supabase/server";
 import { tryCreateServiceClient } from "@/lib/supabase/service";
 import { formatSiteStudioError } from "@/lib/cms/website-schemas";
 
@@ -21,7 +22,31 @@ const REQUIRED_TABLES = [
 
 const MIGRATION_FILE = "supabase/migrations/20260527120000_site_studio_complete.sql";
 
-/** Check whether Site Studio tables exist in production (service role). */
+type SupabaseLike = {
+  from: (table: string) => {
+    select: (columns: string) => {
+      limit: (n: number) => Promise<{ error: { message: string } | null }>;
+    };
+    eq: (col: string, val: string) => {
+      maybeSingle: () => Promise<{ data: { id: string } | null; error: { message: string } | null }>;
+    };
+  };
+};
+
+async function probeTables(client: SupabaseLike) {
+  const tables: Record<string, boolean> = {};
+  let error: string | null = null;
+
+  for (const table of REQUIRED_TABLES) {
+    const { error: qErr } = await client.from(table).select("id").limit(1);
+    tables[table] = !qErr;
+    if (qErr && !error) error = formatSiteStudioError(qErr.message);
+  }
+
+  return { tables, error };
+}
+
+/** Check whether Site Studio tables exist and are queryable. */
 export async function checkSiteStudioHealth(): Promise<SiteStudioHealth> {
   const base: SiteStudioHealth = {
     ready: false,
@@ -31,26 +56,30 @@ export async function checkSiteStudioHealth(): Promise<SiteStudioHealth> {
     migrationFile: MIGRATION_FILE,
   };
 
-  const supabase = tryCreateServiceClient();
-  if (!supabase) {
-    return {
-      ...base,
-      error: "SUPABASE_SERVICE_ROLE_KEY is not configured on this deployment.",
-    };
+  const authClient = await createClient();
+  const {
+    data: { user },
+  } = await authClient.auth.getUser();
+
+  if (!user) {
+    return { ...base, error: "Sign in required to use Site Studio." };
   }
 
-  for (const table of REQUIRED_TABLES) {
-    const { error } = await supabase.from(table).select("id").limit(1);
-    base.tables[table] = !error;
-    if (error && !base.error) {
-      base.error = formatSiteStudioError(error.message);
+  let probe = await probeTables(authClient as unknown as SupabaseLike);
+
+  if (!REQUIRED_TABLES.every((t) => probe.tables[t])) {
+    const service = tryCreateServiceClient();
+    if (service) {
+      probe = await probeTables(service as unknown as SupabaseLike);
     }
   }
 
-  base.ready = REQUIRED_TABLES.every((t) => base.tables[t]);
+  base.tables = probe.tables;
+  base.error = probe.error;
+  base.ready = REQUIRED_TABLES.every((t) => probe.tables[t]);
 
   if (base.ready) {
-    const { data } = await supabase
+    const { data } = await authClient
       .from("website_pages")
       .select("id")
       .eq("slug", "home")
@@ -63,9 +92,7 @@ export async function checkSiteStudioHealth(): Promise<SiteStudioHealth> {
 
 /** Ensure homepage row exists after migration (idempotent). */
 export async function ensureSiteStudioHomepage(): Promise<string | null> {
-  const supabase = tryCreateServiceClient();
-  if (!supabase) return null;
-
+  const supabase = tryCreateServiceClient() ?? (await createClient());
   const { data: existing } = await supabase
     .from("website_pages")
     .select("id")

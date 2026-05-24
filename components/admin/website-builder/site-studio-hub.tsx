@@ -1,7 +1,9 @@
 import Link from "next/link";
 import { AdminPageHeader } from "@/components/admin/entity-list";
 import { LoadError } from "@/components/admin/load-error";
+import { NavigationEditorPanel } from "@/components/admin/website-builder/navigation-editor-panel";
 import type { SiteStudioHealth } from "@/lib/admin/actions/site-studio-health";
+import type { NavItem } from "@/lib/admin/actions/website-navigation";
 
 type PageRow = {
   id: string;
@@ -18,10 +20,12 @@ export function SiteStudioHub({
   pages,
   health,
   loadError,
+  navItems = [],
 }: {
   pages: PageRow[];
   health: SiteStudioHealth;
   loadError: string | null;
+  navItems?: NavItem[];
 }) {
   const homepage = pages.find((p) => p.slug === "home");
 
@@ -107,6 +111,8 @@ export function SiteStudioHub({
               </ul>
             </div>
           ) : null}
+
+          <NavigationEditorPanel initialItems={navItems} />
 
           <p className="rounded-xl border border-ocean/25 bg-sky/30 px-4 py-3 text-sm leading-relaxed text-navy">
             Public homepage stays locked until you publish from the builder. Only published snapshots render on the live site once wired.

@@ -10,8 +10,8 @@ export type PublicQuoteItem = {
 
 export type PublicQuoteClient = {
   name?: string;
-  email?: string;
-  phone?: string;
+  email?: string | null;
+  phone?: string | null;
   address?: string;
 };
 

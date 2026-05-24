@@ -1,8 +1,9 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { PublicQuoteView } from "@/components/quote/public-quote-view";
-import type { PublicQuote, PublicQuoteItem } from "@/lib/quotes/types";
-import type { QuoteApprovalStatus } from "@/lib/quotes/constants";
+import { QuotePublicPage } from "@/components/quote/quote-public-page";
+import { mapPublicQuote } from "@/lib/quotes/map-public-quote";
+import { getPublicQuoteDocumentUrls } from "@/lib/quotes/public-signed-urls";
+import type { PublicQuoteItem } from "@/lib/quotes/types";
 import { fetchPublicQuote } from "@/lib/supabase/public-share";
 
 export const dynamic = "force-dynamic";
@@ -11,18 +12,6 @@ export const metadata = {
   title: "Quote · Palm Beach Property Pros",
   robots: { index: false, follow: false },
 };
-
-function mapQuote(row: Record<string, unknown>): PublicQuote {
-  const clients = row.clients;
-  return {
-    ...(row as PublicQuote),
-    approval_status: (row.approval_status as QuoteApprovalStatus) ?? "pending",
-    clients:
-      clients && typeof clients === "object" && !Array.isArray(clients)
-        ? (clients as PublicQuote["clients"])
-        : null,
-  };
-}
 
 export default async function ViewQuotePage({ params }: { params: Promise<{ publicId: string }> }) {
   const { publicId } = await params;
@@ -43,8 +32,20 @@ export default async function ViewQuotePage({ params }: { params: Promise<{ publ
     );
   }
 
-  const quote = mapQuote(result.quote as Record<string, unknown>);
-  const items = (result.items ?? []) as PublicQuoteItem[];
+  const { quote, items } = mapPublicQuote(
+    result.quote as Record<string, unknown>,
+    (result.items ?? []) as PublicQuoteItem[],
+  );
 
-  return <PublicQuoteView publicId={publicId} quote={quote} items={items} />;
+  const { signaturePreviewUrl, pdfDownloadUrl } = await getPublicQuoteDocumentUrls(quote);
+
+  return (
+    <QuotePublicPage
+      publicId={publicId}
+      quote={quote}
+      items={items}
+      signaturePreviewUrl={signaturePreviewUrl}
+      pdfDownloadUrl={pdfDownloadUrl}
+    />
+  );
 }

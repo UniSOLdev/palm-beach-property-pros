@@ -1,25 +1,36 @@
-"use client";
-
+import Link from "next/link";
 import { formatCurrency, formatDate } from "@/lib/admin/format";
 import {
   QUOTE_APPROVAL_LABELS,
   quoteApprovalClass,
   type QuoteApprovalStatus,
 } from "@/lib/quotes/constants";
+import { calculateQuoteTotals } from "@/lib/quotes/quote-totals";
 import type { PublicQuote, PublicQuoteItem } from "@/lib/quotes/types";
-import { QuoteSignatureForm, QuoteViewTracker } from "@/components/quote/quote-signature-form";
-import Link from "next/link";
+import { QuoteESignSection, QuoteViewTracker } from "@/components/quote/quote-esign-section";
 
 type Props = {
   publicId: string;
   quote: PublicQuote;
   items: PublicQuoteItem[];
+  signaturePreviewUrl: string | null;
+  pdfDownloadUrl: string | null;
 };
 
-export function PublicQuoteView({ publicId, quote, items }: Props) {
+function formatItemAmount(amount: number) {
+  return amount > 0 ? formatCurrency(amount) : "TBD";
+}
+
+export function QuotePublicPage({
+  publicId,
+  quote,
+  items,
+  signaturePreviewUrl,
+  pdfDownloadUrl,
+}: Props) {
   const client = quote.clients;
-  const subtotal = items.reduce((s, i) => s + Number(i.quantity) * Number(i.unit_price), 0);
-  const approval = (quote.approval_status ?? "pending") as QuoteApprovalStatus;
+  const approval = quote.approval_status as QuoteApprovalStatus;
+  const { lineItems, subtotal, tax, total } = calculateQuoteTotals(items);
 
   return (
     <main className="min-h-screen bg-gradient-to-b from-cream via-cream to-sky/20 px-4 py-8 pb-safe">
@@ -29,7 +40,9 @@ export function PublicQuoteView({ publicId, quote, items }: Props) {
           <p className="text-xs font-bold uppercase tracking-[0.2em] text-ocean">Palm Beach Property Pros</p>
           <h1 className="mt-2 font-serif text-3xl font-bold text-navy">Your Estimate</h1>
           <p className="mt-1 text-sm text-charcoal/60">{quote.quote_number}</p>
-          <span className={`mt-3 inline-block rounded-full px-3 py-1 text-xs font-semibold ${quoteApprovalClass(approval)}`}>
+          <span
+            className={`mt-3 inline-block rounded-full px-3 py-1 text-xs font-semibold ${quoteApprovalClass(approval)}`}
+          >
             {QUOTE_APPROVAL_LABELS[approval] ?? approval}
           </span>
         </header>
@@ -65,24 +78,41 @@ export function PublicQuoteView({ publicId, quote, items }: Props) {
             <h2 className="text-sm font-bold text-navy">Scope & pricing</h2>
           </div>
           <ul className="divide-y divide-navy/5 px-5 py-2">
-            {items.length ? (
-              items.map((item) => (
+            {lineItems.length ? (
+              lineItems.map((item) => (
                 <li key={item.id} className="flex justify-between gap-3 py-3 text-sm">
-                  <span className="text-charcoal/90">{item.description}</span>
-                  <span className="shrink-0 font-semibold text-navy">
-                    {formatCurrency(Number(item.quantity) * Number(item.unit_price))}
-                  </span>
+                  <div className="min-w-0">
+                    <span className="text-charcoal/90">{item.description}</span>
+                    {item.quantity > 1 ? (
+                      <span className="mt-0.5 block text-xs text-charcoal/50">
+                        {item.quantity} × {formatItemAmount(item.unitPrice)}
+                      </span>
+                    ) : null}
+                  </div>
+                  <span className="shrink-0 font-semibold text-navy">{formatItemAmount(item.lineTotal)}</span>
                 </li>
               ))
             ) : (
               <li className="py-4 text-sm text-charcoal/70">
-                Line items will be finalized by your estimator — total reflects agreed scope.
+                Your estimator will finalize line items — contact us if you have questions about pricing.
               </li>
             )}
           </ul>
-          <div className="flex justify-between border-t border-navy/10 bg-gradient-to-r from-navy/5 to-ocean/5 px-5 py-4">
-            <span className="text-lg font-bold text-navy">Total</span>
-            <span className="text-xl font-bold text-navy">{formatCurrency(subtotal)}</span>
+          <div className="space-y-2 border-t border-navy/10 bg-gradient-to-r from-navy/5 to-ocean/5 px-5 py-4 text-sm">
+            <div className="flex justify-between text-charcoal/80">
+              <span>Subtotal</span>
+              <span>{subtotal > 0 ? formatCurrency(subtotal) : "TBD"}</span>
+            </div>
+            {tax > 0 ? (
+              <div className="flex justify-between text-charcoal/80">
+                <span>Tax</span>
+                <span>{formatCurrency(tax)}</span>
+              </div>
+            ) : null}
+            <div className="flex justify-between pt-1 text-lg font-bold text-navy">
+              <span>Total</span>
+              <span>{total > 0 ? formatCurrency(total) : "TBD"}</span>
+            </div>
           </div>
           {quote.deposit_required && quote.deposit_amount ? (
             <p className="border-t border-navy/5 px-5 py-3 text-xs text-charcoal/60">
@@ -105,7 +135,16 @@ export function PublicQuoteView({ publicId, quote, items }: Props) {
           </section>
         ) : null}
 
-        <QuoteSignatureForm publicId={publicId} quote={quote} items={items} subtotal={subtotal} />
+        <QuoteESignSection
+          publicId={publicId}
+          approvalStatus={approval}
+          signedName={quote.signed_name}
+          signedAt={quote.signed_at}
+          clientName={client?.name ?? null}
+          total={total}
+          signaturePreviewUrl={signaturePreviewUrl}
+          pdfDownloadUrl={pdfDownloadUrl}
+        />
 
         <p className="text-center text-xs text-charcoal/50">
           Questions?{" "}

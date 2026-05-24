@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { CreatePageForm } from "@/components/admin/website-builder/create-page-form";
+import { DuplicatePageButton } from "@/components/admin/website-builder/duplicate-page-button";
 import { AdminPageHeader } from "@/components/admin/entity-list";
 import { LoadError } from "@/components/admin/load-error";
 import { listWebsitePages } from "@/lib/admin/actions/website-builder";
@@ -44,7 +45,7 @@ export default async function WebsitePagesPage() {
       </div>
       <ul className="space-y-3">
         {pages.map((page) => (
-          <li key={page.id} className="admin-card flex flex-wrap items-center justify-between gap-3">
+          <li key={page.id} className="studio-panel flex flex-wrap items-center justify-between gap-3">
             <div>
               <p className="font-semibold text-navy">{page.title}</p>
               <p className="text-sm text-charcoal/70">
@@ -56,9 +57,12 @@ export default async function WebsitePagesPage() {
                 {page.status}
               </span>
             </div>
-            <Link href={`/admin/website/builder/${page.id}`} className="admin-btn no-underline text-sm">
-              Open builder
-            </Link>
+            <div className="flex flex-wrap gap-2">
+              <DuplicatePageButton pageId={page.id} />
+              <Link href={`/admin/website/builder/${page.id}`} className="admin-btn no-underline text-sm">
+                Open builder
+              </Link>
+            </div>
           </li>
         ))}
       </ul>

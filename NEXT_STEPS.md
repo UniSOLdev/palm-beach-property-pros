@@ -1,39 +1,71 @@
-# Next Steps — PBPP Admin
+# PBPP Ops — Next Steps
 
-## Immediate (before heavy field use)
+Prioritized follow-ups after the premium platform upgrade. None block current production use.
 
-1. **RLS hardening** — Enable RLS on `tasks`, `cms_sections`, `cms_navigation`, `cms_seo`, `media_folders`, `media_assets` with authenticated `admin_all` policies (test anon cannot read/write).
-2. **iPhone manual QA** — Run checklist in `TEST_RESULTS.md` on device.
-3. **Supabase Auth** — Ensure production operator accounts exist.
-4. **`OPENAI_API_KEY`** — Set in Vercel for receipt scanner extraction (`RECEIPT_SCANNER_REPORT.md`).
+---
 
-## Short term (1–2 sprints)
+## High priority
 
-5. **Client / crew CRUD forms** — Minimal add/edit in admin (still list-only).
-6. **Expense edit/delete** — On job detail and expenses page.
-7. **Invoice payment status** — Toggle Paid/Unpaid on `/admin/invoices/[id]`.
-8. **Expense ↔ supply link** — UI to pick `expense_id` when restocking from receipt.
-9. **Reconcile `job_expense_total`** — On expense delete/archive, decrement job column.
-10. **Receipt scanner** — Batch upload, longer-lived receipt URLs, on-device OCR fallback if API unavailable.
+### 1. Wire CMS publish → live site
+`getPublishedPage()` exists but has no public route caller. When ready:
+- Add `app/(site)/[slug]/page.tsx` for CMS pages (exclude `home` — keep lock)
+- Or add env flag `CMS_HOMEPAGE_ENABLED=true` to swap `PremiumHomePage` for published snapshot
 
-## Change orders / quotes
+### 2. Deploy to Vercel
+Push branch and deploy with env vars:
+- `NEXT_PUBLIC_SUPABASE_URL`
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+- `SUPABASE_SERVICE_ROLE_KEY` (health checks + preview)
 
-- **Change orders** — Implemented (`/admin/change-orders`, `/co/[publicId]`). See `CHANGE_ORDER_REPORT.md`.
-- **Legacy quotes table** — Still in DB; no new quote builder unless product asks. Prefer change orders for scope creep.
+### 3. Connect CMS navigation → public header
+`cms_navigation` saves from Site Studio but `SiteHeader` is still hardcoded. Load nav items server-side when CMS publish is wired.
 
-## Operational intelligence (future — not tonight)
+---
 
-- Background cron for recurring expenses (column exists).
-- Email/SMS reminders for overdue invoices (no automation added).
-- Dashboard “low stock supplies” widget.
-- Weekly margin rollup email.
+## Medium priority
 
-## Website / CMS
+### 4. Theme tokens → section renderers
+CSS vars are injected (`--cms-primary`, etc.) but section components still use Tailwind palette. Migrate `HeroView`, `CtaView` to consume theme vars for true instant theming.
 
-- Gated **publish** workflow: preview CMS → approve → update public routes (homepage stays locked until explicit decision).
-- Do **not** reconnect Site Studio to `/` without publish gate.
+### 5. Rich text WYSIWYG
+`rich_text` sections use plain textarea. Consider Tiptap or similar when editorial content grows.
 
-## Architecture
+### 6. Notification center
+Command palette covers navigation; add persistent notification inbox when Supabase Realtime is needed for leads/quotes.
 
-- Avoid large refactors; extend existing server actions + admin-card patterns.
-- Keep middleware scoped to `/admin/*` only.
+### 7. Scheduled publish UI
+DB supports `published_at`; add date picker in builder publish flow.
+
+---
+
+## Lower priority
+
+### 8. Image compression on upload
+Add client-side resize before Supabase upload in `MediaLibraryPro` for large hero images.
+
+### 9. Section templates library
+Save/reuse section configurations across pages (wow factor extension).
+
+### 10. Lead heatmap
+Visual pipeline board on dashboard using existing `quote_requests` data.
+
+---
+
+## Quick wins (under 1 hour each)
+
+- Seed default `cms_navigation` rows in migration if table is empty
+- Add favicon/logo upload to theme panel (reuse media picker)
+- Default sections when creating new pages (currently empty)
+- Merge `website_media` and `media_assets` pickers into unified library
+
+---
+
+## Verify after deploy
+
+1. `/admin/website` — Site Studio hub loads without readiness error
+2. `/admin/website/builder/{homepage-id}` — builder toolbar, SEO score, health panel
+3. `/admin` — dashboard analytics cards + chart
+4. ⌘K — command palette opens and navigates
+5. `/` — homepage scroll animations + mobile CTA bar
+6. `/sitemap.xml` — includes static + published CMS pages
+7. `/preview/{token}` — draft preview with new section types

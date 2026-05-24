@@ -49,7 +49,11 @@ export const heroContentSchema = z.object({
   eyebrow: z.string().default("Premium Property Operations"),
   headline: z.string().default("Property Care for Palm Beach Living"),
   subheadline: z.string().default(""),
-  imageUrl: z.string().url().optional(),
+  imageUrl: z.string().optional(),
+  overlayOpacity: z.number().min(0).max(100).default(55),
+  alignment: z.enum(["left", "center", "right"]).default("left"),
+  textMaxWidth: z.enum(["sm", "md", "lg", "full"]).default("lg"),
+  animateEntrance: z.boolean().default(true),
   chips: z.array(z.string()).default([]),
   primaryCta: linkSchema.optional(),
   secondaryCta: linkSchema.optional(),
@@ -58,11 +62,15 @@ export const heroContentSchema = z.object({
 export const servicesContentSchema = z.object({
   headline: z.string().default(""),
   subheadline: z.string().default(""),
+  columnCount: z.enum(["2", "3", "4"]).default("3"),
+  cardStyle: z.enum(["minimal", "elevated", "bordered"]).default("elevated"),
   columns: z
     .array(
       z.object({
         title: z.string(),
         body: z.string(),
+        icon: z.string().optional(),
+        imageUrl: z.string().optional(),
         links: z.array(linkSchema).default([]),
       }),
     )
@@ -75,12 +83,14 @@ export const statsContentSchema = z.object({
 
 export const testimonialsContentSchema = z.object({
   headline: z.string().default(""),
+  carousel: z.boolean().default(false),
   items: z
     .array(
       z.object({
         quote: z.string(),
         author: z.string(),
         rating: z.number().min(1).max(5).optional(),
+        photoUrl: z.string().optional(),
       }),
     )
     .default([]),
@@ -96,6 +106,8 @@ export const ctaContentSchema = z.object({
   body: z.string().default(""),
   primaryCta: linkSchema.optional(),
   phone: z.string().optional(),
+  gradientBg: z.boolean().default(true),
+  buttonTheme: z.enum(["light", "dark", "ocean"]).default("light"),
 });
 
 export const quoteFormContentSchema = z.object({
@@ -107,7 +119,15 @@ export const quoteFormContentSchema = z.object({
 
 export const galleryContentSchema = z.object({
   headline: z.string().default(""),
+  layout: z.enum(["grid", "masonry"]).default("masonry"),
   items: z.array(z.object({ label: z.string(), imageUrl: z.string().optional() })).default([]),
+});
+
+export const beforeAfterContentSchema = z.object({
+  headline: z.string().default(""),
+  pairs: z
+    .array(z.object({ label: z.string(), beforeUrl: z.string().optional(), afterUrl: z.string().optional() }))
+    .default([]),
 });
 
 export const richTextContentSchema = z.object({
@@ -166,6 +186,8 @@ export function defaultContentForType(type: WebsiteSectionType): Record<string, 
       return quoteFormContentSchema.parse({});
     case "gallery":
       return galleryContentSchema.parse({});
+    case "before_after":
+      return beforeAfterContentSchema.parse({});
     case "rich_text":
       return richTextContentSchema.parse({});
     default:
@@ -191,6 +213,8 @@ export function parseSectionContent(type: WebsiteSectionType, content: Record<st
       return quoteFormContentSchema.parse({ ...defaultContentForType("quote_form"), ...content });
     case "gallery":
       return galleryContentSchema.parse({ ...defaultContentForType("gallery"), ...content });
+    case "before_after":
+      return beforeAfterContentSchema.parse({ ...defaultContentForType("before_after"), ...content });
     case "rich_text":
       return richTextContentSchema.parse({ ...defaultContentForType("rich_text"), ...content });
     default:

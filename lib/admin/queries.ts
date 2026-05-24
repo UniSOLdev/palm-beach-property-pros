@@ -52,6 +52,34 @@ export async function getDashboardStats() {
   const unpaidInvoices = invoices.filter((i) => i.payment_status !== "Paid").length;
   const expenseTotal = expenses.reduce((sum, e) => sum + Number(e.amount), 0);
 
+  const completedJobs = jobs.filter((j) => j.status === "Completed").length;
+  const activeClientsRes = await supabase
+    .from("clients")
+    .select("id", { count: "exact", head: true })
+    .eq("archived", false);
+  const leadsRes = await supabase
+    .from("quote_requests")
+    .select("id", { count: "exact", head: true })
+    .eq("archived", false);
+
+  const activeClients = activeClientsRes.count ?? 0;
+  const leadCount = leadsRes.count ?? 0;
+  const avgTicket = jobs.length ? pipeline / jobs.length : 0;
+
+  const now = new Date();
+  const thisMonth = jobs.filter((j) => {
+    const d = new Date(j.created_at);
+    return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+  });
+  const lastMonth = jobs.filter((j) => {
+    const d = new Date(j.created_at);
+    const lm = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    return d.getMonth() === lm.getMonth() && d.getFullYear() === lm.getFullYear();
+  });
+  const thisMonthRev = thisMonth.reduce((s, j) => s + Number(j.revenue), 0);
+  const lastMonthRev = lastMonth.reduce((s, j) => s + Number(j.revenue), 0);
+  const monthlyGrowth = lastMonthRev > 0 ? ((thisMonthRev - lastMonthRev) / lastMonthRev) * 100 : 0;
+
   return {
     openTasks,
     urgentTasks,
@@ -60,5 +88,10 @@ export async function getDashboardStats() {
     avgMargin: marginCount ? marginSum / marginCount : 0,
     unpaidInvoices,
     expenseTotal,
+    completedJobs,
+    activeClients,
+    leadCount,
+    avgTicket,
+    monthlyGrowth,
   };
 }

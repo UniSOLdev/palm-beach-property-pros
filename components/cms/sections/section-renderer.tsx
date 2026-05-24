@@ -2,6 +2,8 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { useState } from "react";
+import { BeforeAfterSlider } from "@/components/cms/before-after-slider";
 import { FaqAccordion } from "@/components/faq-accordion";
 import {
   parseSectionContent,
@@ -89,44 +91,55 @@ function HeroView({ content }: { content: Record<string, unknown> }) {
     headline?: string;
     subheadline?: string;
     imageUrl?: string;
+    overlayOpacity?: number;
+    alignment?: "left" | "center" | "right";
+    textMaxWidth?: "sm" | "md" | "lg" | "full";
+    animateEntrance?: boolean;
     chips?: string[];
     primaryCta?: { label: string; href: string };
     secondaryCta?: { label: string; href: string };
   };
+  const alignClass = c.alignment === "center" ? "text-center items-center" : c.alignment === "right" ? "text-right items-end" : "text-left items-start";
+  const maxW = { sm: "max-w-md", md: "max-w-xl", lg: "max-w-3xl", full: "max-w-full" }[c.textMaxWidth ?? "lg"];
+  const overlay = (c.overlayOpacity ?? 55) / 100;
+  const entrance = c.animateEntrance !== false ? "section-soft-in" : "";
+
   return (
-    <section className="relative overflow-hidden rounded-3xl bg-charcoal">
+    <section className={`relative overflow-hidden rounded-3xl bg-charcoal ${entrance}`}>
       {c.imageUrl ? (
         <div className="absolute inset-0">
-          <Image src={c.imageUrl} alt="" fill className="object-cover opacity-55" sizes="100vw" />
-          <div className="absolute inset-0 bg-gradient-to-t from-charcoal via-charcoal/80 to-charcoal/30" />
+          <Image src={c.imageUrl} alt="" fill className="object-cover" sizes="100vw" style={{ opacity: 1 - overlay * 0.3 }} />
+          <div className="absolute inset-0 bg-gradient-to-t from-charcoal via-charcoal/80 to-charcoal/30" style={{ opacity: overlay }} />
         </div>
       ) : null}
-      <div className="relative px-6 py-20 sm:py-28">
-        {c.eyebrow ? (
-          <p className="text-xs font-semibold uppercase tracking-[0.28em] text-aqua/90">{c.eyebrow}</p>
-        ) : null}
-        <h1 className="mt-5 max-w-3xl text-4xl font-semibold tracking-tight text-cream sm:text-5xl">{c.headline}</h1>
-        {c.subheadline ? <p className="mt-6 max-w-2xl text-lg text-silver/95">{c.subheadline}</p> : null}
-        {c.chips?.length ? (
-          <ul className="mt-8 flex flex-wrap gap-2">
-            {c.chips.map((chip) => (
-              <li key={chip} className="rounded-full border border-white/15 bg-white/5 px-4 py-1.5 text-xs text-cream/95 backdrop-blur-md">
-                {chip}
-              </li>
-            ))}
-          </ul>
-        ) : null}
-        <div className="mt-10 flex flex-col gap-3 sm:flex-row">
-          {c.primaryCta ? (
-            <Link href={c.primaryCta.href} className="btn-primary-lg text-center">
-              {c.primaryCta.label}
-            </Link>
+      <div className={`relative flex flex-col px-6 py-20 sm:py-28 ${alignClass}`}>
+        <div className={maxW}>
+          {c.eyebrow ? (
+            <p className="text-xs font-semibold uppercase tracking-[0.28em] text-aqua/90">{c.eyebrow}</p>
           ) : null}
-          {c.secondaryCta ? (
-            <Link href={c.secondaryCta.href} className="btn-secondary-lg border-white/25 bg-white/10 text-cream hover:bg-white/15">
-              {c.secondaryCta.label}
-            </Link>
+          <h1 className="mt-5 text-4xl font-semibold tracking-tight text-cream sm:text-5xl">{c.headline}</h1>
+          {c.subheadline ? <p className="mt-6 text-lg text-silver/95">{c.subheadline}</p> : null}
+          {c.chips?.length ? (
+            <ul className={`mt-8 flex flex-wrap gap-2 ${c.alignment === "center" ? "justify-center" : c.alignment === "right" ? "justify-end" : ""}`}>
+              {c.chips.map((chip) => (
+                <li key={chip} className="rounded-full border border-white/15 bg-white/5 px-4 py-1.5 text-xs text-cream/95 backdrop-blur-md">
+                  {chip}
+                </li>
+              ))}
+            </ul>
           ) : null}
+          <div className={`mt-10 flex flex-col gap-3 sm:flex-row ${c.alignment === "center" ? "sm:justify-center" : c.alignment === "right" ? "sm:justify-end" : ""}`}>
+            {c.primaryCta ? (
+              <Link href={c.primaryCta.href} className="btn-primary-lg text-center">
+                {c.primaryCta.label}
+              </Link>
+            ) : null}
+            {c.secondaryCta ? (
+              <Link href={c.secondaryCta.href} className="btn-secondary-lg border-white/25 bg-white/10 text-cream hover:bg-white/15">
+                {c.secondaryCta.label}
+              </Link>
+            ) : null}
+          </div>
         </div>
       </div>
     </section>
@@ -137,17 +150,33 @@ function ServicesView({ content }: { content: Record<string, unknown> }) {
   const c = content as {
     headline?: string;
     subheadline?: string;
-    columns?: Array<{ title: string; body: string; links?: Array<{ label: string; href: string }> }>;
+    columnCount?: string;
+    cardStyle?: "minimal" | "elevated" | "bordered";
+    columns?: Array<{ title: string; body: string; icon?: string; imageUrl?: string; links?: Array<{ label: string; href: string }> }>;
   };
+  const cols = c.columnCount ?? "3";
+  const gridClass = cols === "2" ? "lg:grid-cols-2" : cols === "4" ? "lg:grid-cols-4" : "lg:grid-cols-3";
+  const cardClass =
+    c.cardStyle === "minimal"
+      ? "p-4"
+      : c.cardStyle === "bordered"
+        ? "rounded-2xl border border-navy/10 p-6 transition hover:border-ocean/30"
+        : "rounded-2xl bg-white/80 p-6 shadow-card transition hover:shadow-lift hover:-translate-y-0.5";
+
   return (
     <section className="rounded-3xl border border-navy/10 bg-gradient-to-b from-white to-cream/80 py-16 shadow-card">
       <div className="mx-auto max-w-2xl text-center px-4">
         {c.headline ? <h2 className="text-3xl font-semibold text-navy">{c.headline}</h2> : null}
         {c.subheadline ? <p className="mt-4 text-charcoal/80">{c.subheadline}</p> : null}
       </div>
-      <div className="mt-12 grid gap-10 px-4 lg:grid-cols-3">
+      <div className={`mt-12 grid gap-8 px-4 ${gridClass}`}>
         {(c.columns ?? []).map((col) => (
-          <div key={col.title}>
+          <div key={col.title} className={cardClass}>
+            {col.icon ? <span className="text-2xl text-ocean">{col.icon}</span> : null}
+            {col.imageUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={col.imageUrl} alt="" className="mb-4 h-32 w-full rounded-xl object-cover" />
+            ) : null}
             <h3 className="text-sm font-bold uppercase tracking-[0.2em] text-charcoal/80">{col.title}</h3>
             <p className="mt-2 text-sm text-charcoal/75">{col.body}</p>
             <ul className="mt-6 space-y-3">
@@ -185,17 +214,52 @@ function StatsView({ content }: { content: Record<string, unknown> }) {
 function TestimonialsView({ content }: { content: Record<string, unknown> }) {
   const c = content as {
     headline?: string;
-    items?: Array<{ quote: string; author: string; rating?: number }>;
+    carousel?: boolean;
+    items?: Array<{ quote: string; author: string; rating?: number; photoUrl?: string }>;
   };
+  const items = c.items ?? [];
+  const [active, setActive] = useState(0);
+
+  if (c.carousel && items.length > 1) {
+    const item = items[active] ?? items[0];
+    return (
+      <section className="py-16 px-4">
+        {c.headline ? <h2 className="text-center text-2xl font-semibold text-navy">{c.headline}</h2> : null}
+        <div className="mx-auto mt-10 max-w-2xl glass-panel p-8 text-center">
+          {item.photoUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={item.photoUrl} alt={item.author} className="mx-auto h-16 w-16 rounded-full object-cover" />
+          ) : null}
+          {item.rating ? <p className="mt-4 text-aqua">{"★".repeat(item.rating)}</p> : null}
+          <p className="mt-4 text-lg text-charcoal/85">&ldquo;{item.quote}&rdquo;</p>
+          <p className="mt-4 text-sm font-semibold text-navy">— {item.author}</p>
+          <div className="mt-6 flex justify-center gap-2">
+            {items.map((_, i) => (
+              <button key={i} type="button" onClick={() => setActive(i)} className={`h-2 w-2 rounded-full transition ${i === active ? "bg-ocean w-6" : "bg-charcoal/20"}`} aria-label={`Testimonial ${i + 1}`} />
+            ))}
+          </div>
+        </div>
+      </section>
+    );
+  }
+
   return (
     <section className="py-16">
       {c.headline ? <h2 className="text-center text-2xl font-semibold text-navy">{c.headline}</h2> : null}
       <ul className="mt-10 grid gap-5 px-4 md:grid-cols-2">
-        {(c.items ?? []).map((item, i) => (
-          <li key={i} className="glass-panel p-6">
-            {item.rating ? <p className="text-aqua">{"★".repeat(item.rating)}</p> : null}
+        {items.map((item, i) => (
+          <li key={i} className="glass-panel p-6 transition hover:shadow-lift">
+            <div className="flex items-center gap-3">
+              {item.photoUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={item.photoUrl} alt={item.author} className="h-10 w-10 rounded-full object-cover" />
+              ) : null}
+              <div>
+                {item.rating ? <p className="text-aqua text-sm">{"★".repeat(item.rating)}</p> : null}
+                <p className="text-sm font-semibold text-navy">{item.author}</p>
+              </div>
+            </div>
             <p className="mt-3 text-charcoal/85">&ldquo;{item.quote}&rdquo;</p>
-            <p className="mt-4 text-sm font-semibold text-navy">— {item.author}</p>
           </li>
         ))}
       </ul>
@@ -228,14 +292,26 @@ function CtaView({ content }: { content: Record<string, unknown> }) {
     body?: string;
     primaryCta?: { label: string; href: string };
     phone?: string;
+    gradientBg?: boolean;
+    buttonTheme?: "light" | "dark" | "ocean";
   };
+  const bgClass = c.gradientBg !== false
+    ? "bg-gradient-to-br from-navy via-navy to-ocean"
+    : "bg-navy";
+  const btnClass =
+    c.buttonTheme === "ocean"
+      ? "btn-primary-lg"
+      : c.buttonTheme === "dark"
+        ? "btn-secondary-lg border-white/25 bg-white/10 text-cream"
+        : "btn-inverse-lg";
+
   return (
-    <section className="rounded-3xl bg-navy px-6 py-16 text-center text-cream">
+    <section className={`rounded-3xl px-6 py-16 text-center text-cream ${bgClass}`}>
       {c.headline ? <h2 className="text-3xl font-semibold">{c.headline}</h2> : null}
       {c.body ? <p className="mx-auto mt-4 max-w-xl text-silver/90">{c.body}</p> : null}
       <div className="mt-8 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
         {c.primaryCta ? (
-          <Link href={c.primaryCta.href} className="btn-inverse-lg">
+          <Link href={c.primaryCta.href} className={btnClass}>
             {c.primaryCta.label}
           </Link>
         ) : null}
@@ -267,16 +343,18 @@ function QuoteFormView({ content }: { content: Record<string, unknown> }) {
 }
 
 function GalleryView({ content }: { content: Record<string, unknown> }) {
-  const c = content as { headline?: string; items?: Array<{ label: string; imageUrl?: string }> };
+  const c = content as { headline?: string; layout?: "grid" | "masonry"; items?: Array<{ label: string; imageUrl?: string }> };
+  const isMasonry = (c.layout ?? "masonry") === "masonry";
+
   return (
     <section className="py-12 px-4">
       {c.headline ? <h2 className="text-2xl font-semibold text-navy">{c.headline}</h2> : null}
-      <ul className="mt-8 columns-2 gap-3 md:columns-3">
+      <ul className={`mt-8 gap-3 ${isMasonry ? "columns-2 md:columns-3" : "grid grid-cols-2 md:grid-cols-3"}`}>
         {(c.items ?? []).map((item, i) => (
-          <li key={i} className="mb-3 break-inside-avoid overflow-hidden rounded-xl">
+          <li key={i} className={`overflow-hidden rounded-xl ${isMasonry ? "mb-3 break-inside-avoid" : ""}`}>
             {item.imageUrl ? (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={item.imageUrl} alt={item.label} className="w-full object-cover" loading="lazy" />
+              <img src={item.imageUrl} alt={item.label} className="w-full object-cover transition hover:scale-[1.02]" loading="lazy" />
             ) : (
               <div className="flex aspect-square items-center justify-center bg-sky/30 text-sm text-charcoal/50">
                 {item.label || "Image"}
@@ -299,26 +377,8 @@ function BeforeAfterView({ content }: { content: Record<string, unknown> }) {
       {c.headline ? <h2 className="text-2xl font-semibold text-navy">{c.headline}</h2> : null}
       <ul className="mt-8 grid gap-6 md:grid-cols-2">
         {(c.pairs ?? []).map((pair, i) => (
-          <li key={i} className="admin-card overflow-hidden p-0">
-            <div className="grid grid-cols-2">
-              <div className="relative aspect-[4/3] bg-charcoal/10">
-                {pair.beforeUrl ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={pair.beforeUrl} alt="Before" className="h-full w-full object-cover" />
-                ) : (
-                  <span className="flex h-full items-center justify-center text-xs text-charcoal/50">Before</span>
-                )}
-              </div>
-              <div className="relative aspect-[4/3] bg-ocean/10">
-                {pair.afterUrl ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={pair.afterUrl} alt="After" className="h-full w-full object-cover" />
-                ) : (
-                  <span className="flex h-full items-center justify-center text-xs text-charcoal/50">After</span>
-                )}
-              </div>
-            </div>
-            {pair.label ? <p className="p-3 text-sm font-medium text-navy">{pair.label}</p> : null}
+          <li key={i}>
+            <BeforeAfterSlider beforeUrl={pair.beforeUrl} afterUrl={pair.afterUrl} label={pair.label} />
           </li>
         ))}
       </ul>
@@ -413,6 +473,12 @@ function themeToCss(theme?: ThemeTokens): React.CSSProperties | undefined {
     ["--cms-primary" as string]: (theme.colorPrimary as string) ?? undefined,
     ["--cms-accent" as string]: (theme.colorAccent as string) ?? undefined,
     ["--cms-bg" as string]: (theme.colorBackground as string) ?? undefined,
+    ["--cms-surface" as string]: (theme.colorSurface as string) ?? undefined,
+    ["--cms-radius" as string]: (theme.radiusLg as string) ?? undefined,
+    ["--cms-shadow" as string]: (theme.shadowSoft as string) ?? undefined,
+    ["--cms-gradient" as string]: (theme.gradientHero as string) ?? undefined,
+    fontFamily: (theme.fontBody as string) ?? undefined,
+    backgroundColor: (theme.colorBackground as string) ?? undefined,
   };
 }
 
@@ -420,18 +486,35 @@ export function PagePreview({
   sections,
   theme,
   selectedId,
+  onSelectSection,
 }: {
   sections: WebsiteSectionRow[];
   theme?: ThemeTokens;
   selectedId?: string | null;
+  onSelectSection?: (id: string) => void;
 }) {
+  const wrapperStyle = themeToCss(theme);
+
   return (
-    <div className="space-y-8 bg-cream/50 p-4 md:p-8">
+    <div className="space-y-6 bg-cream/50 p-4 md:p-8" style={wrapperStyle}>
       {sections.map((section) => (
         <div
           key={section.id}
-          className={`transition ${selectedId === section.id ? "ring-2 ring-ocean ring-offset-2 rounded-3xl" : ""}`}
+          role={onSelectSection ? "button" : undefined}
+          tabIndex={onSelectSection ? 0 : undefined}
+          onClick={() => onSelectSection?.(section.id)}
+          onKeyDown={(e) => e.key === "Enter" && onSelectSection?.(section.id)}
+          className={`group relative cursor-pointer rounded-3xl transition-all duration-300 ${
+            selectedId === section.id
+              ? "ring-2 ring-ocean ring-offset-2 shadow-lift"
+              : "hover:ring-1 hover:ring-ocean/30"
+          } ${!section.is_visible ? "opacity-40" : ""}`}
         >
+          {onSelectSection ? (
+            <span className="absolute right-3 top-3 z-10 rounded-full bg-navy/80 px-2 py-0.5 text-[10px] font-semibold text-white opacity-0 transition group-hover:opacity-100">
+              Edit
+            </span>
+          ) : null}
           <SectionRenderer section={section} theme={theme} preview />
         </div>
       ))}

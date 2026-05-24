@@ -436,3 +436,43 @@ export async function createWebsitePage(input: {
   revalidatePath("/admin/website/pages");
   return data.id as string;
 }
+
+/** Duplicate a page with all sections (draft). */
+export async function duplicateWebsitePage(pageId: string) {
+  const supabase = await createClient();
+  const bundle = await getBuilderPage(pageId);
+
+  const newSlug = `${bundle.page.slug}-copy-${Date.now().toString(36).slice(-4)}`;
+  const { data: page, error } = await supabase
+    .from("website_pages")
+    .insert({
+      slug: newSlug,
+      title: `${bundle.page.title} (copy)`,
+      page_type: bundle.page.page_type,
+      seo_title: bundle.page.seo_title,
+      meta_description: bundle.page.meta_description,
+      og_image_url: bundle.page.og_image_url,
+      status: "draft",
+    })
+    .select("id")
+    .single();
+
+  if (error || !page) throw new Error(formatSiteStudioError(error?.message ?? "Duplicate failed"));
+
+  if (bundle.sections.length) {
+    const { error: secErr } = await supabase.from("website_sections").insert(
+      bundle.sections.map((s, i) => ({
+        page_id: page.id,
+        section_type: s.section_type,
+        label: s.label,
+        sort_order: i,
+        is_visible: s.is_visible,
+        content: s.content,
+      })),
+    );
+    if (secErr) throw new Error(formatSiteStudioError(secErr.message));
+  }
+
+  revalidatePath("/admin/website/pages");
+  return page.id as string;
+}

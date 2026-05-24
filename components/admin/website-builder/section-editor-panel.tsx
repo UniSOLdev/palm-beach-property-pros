@@ -2,6 +2,9 @@
 
 import { useState } from "react";
 import { MediaPickerModal } from "@/components/admin/media-picker-modal";
+import { EnhanceButton, IconPicker, SelectField, SliderField, ToggleField } from "@/components/admin/website-builder/editor-controls";
+import { enhanceBody, enhanceHeadline, suggestSectionCopy } from "@/lib/cms/ai-copy";
+import { ICON_OPTIONS } from "@/lib/design/tokens";
 import {
   SECTION_TYPE_LABELS,
   type WebsiteSectionRow,
@@ -88,11 +91,11 @@ function SectionFields({
             { key: "rating", label: "Rating (1-5)", type: "number" },
           ]}
           extras={
-            <TextField
-              label="Headline"
-              value={(content.headline as string) ?? ""}
-              onChange={(v) => onChange({ ...content, headline: v })}
-            />
+            <>
+              <TextField label="Headline" value={(content.headline as string) ?? ""} onChange={(v) => onChange({ ...content, headline: v })} />
+              <ToggleField label="Carousel mode" checked={Boolean(content.carousel)} onChange={(v) => onChange({ ...content, carousel: v })} />
+              <TestimonialPhotos content={content} onChange={onChange} />
+            </>
           }
         />
       );
@@ -163,17 +166,50 @@ function SectionFields({
 }
 
 function HeroEditor({ content, onChange }: { content: Record<string, unknown>; onChange: (c: Record<string, unknown>) => void }) {
-  const c = content as Record<string, string | string[] | { label: string; href: string } | undefined>;
+  const c = content as Record<string, string | string[] | number | boolean | { label: string; href: string } | undefined>;
   const chips = (c.chips as string[]) ?? [];
   const primary = c.primaryCta as { label: string; href: string } | undefined;
   const secondary = c.secondaryCta as { label: string; href: string } | undefined;
 
   return (
     <div className="space-y-3">
+      <EnhanceButton
+        onClick={() => {
+          const s = suggestSectionCopy("hero");
+          onChange({
+            ...content,
+            headline: enhanceHeadline((c.headline as string) || s.headline),
+            subheadline: enhanceBody((c.subheadline as string) || s.body),
+          });
+        }}
+      />
       <TextField label="Eyebrow" value={(c.eyebrow as string) ?? ""} onChange={(v) => onChange({ ...content, eyebrow: v })} />
       <TextField label="Headline" value={(c.headline as string) ?? ""} onChange={(v) => onChange({ ...content, headline: v })} />
       <TextField label="Subheadline" value={(c.subheadline as string) ?? ""} onChange={(v) => onChange({ ...content, subheadline: v })} multiline />
       <MediaField label="Hero image" value={(c.imageUrl as string) ?? ""} onChange={(v) => onChange({ ...content, imageUrl: v })} />
+      <SliderField label="Overlay opacity" value={Number(c.overlayOpacity ?? 55)} min={0} max={100} unit="%" onChange={(v) => onChange({ ...content, overlayOpacity: v })} />
+      <SelectField
+        label="Alignment"
+        value={(c.alignment as string) ?? "left"}
+        options={[
+          { value: "left", label: "Left" },
+          { value: "center", label: "Center" },
+          { value: "right", label: "Right" },
+        ]}
+        onChange={(v) => onChange({ ...content, alignment: v })}
+      />
+      <SelectField
+        label="Text max width"
+        value={(c.textMaxWidth as string) ?? "lg"}
+        options={[
+          { value: "sm", label: "Narrow" },
+          { value: "md", label: "Medium" },
+          { value: "lg", label: "Wide" },
+          { value: "full", label: "Full" },
+        ]}
+        onChange={(v) => onChange({ ...content, textMaxWidth: v })}
+      />
+      <ToggleField label="Animated entrance" checked={c.animateEntrance !== false} onChange={(v) => onChange({ ...content, animateEntrance: v })} />
       <TextField
         label="Chips (comma-separated)"
         value={chips.join(", ")}
@@ -186,38 +222,71 @@ function HeroEditor({ content, onChange }: { content: Record<string, unknown>; o
 }
 
 function ServicesEditor({ content, onChange }: { content: Record<string, unknown>; onChange: (c: Record<string, unknown>) => void }) {
-  const columns = (content.columns as Array<{ title: string; body: string; links: Array<{ label: string; href: string }> }>) ?? [];
+  const columns = (content.columns as Array<{ title: string; body: string; icon?: string; imageUrl?: string; links: Array<{ label: string; href: string }> }>) ?? [];
 
   function updateColumn(i: number, patch: Partial<(typeof columns)[0]>) {
     const next = columns.map((col, idx) => (idx === i ? { ...col, ...patch } : col));
     onChange({ ...content, columns: next });
   }
 
+  function updateLink(colIndex: number, linkIndex: number, patch: Partial<{ label: string; href: string }>) {
+    const col = columns[colIndex];
+    const links = (col.links ?? []).map((l, i) => (i === linkIndex ? { ...l, ...patch } : l));
+    updateColumn(colIndex, { links });
+  }
+
+  function addLink(colIndex: number) {
+    const col = columns[colIndex];
+    updateColumn(colIndex, { links: [...(col.links ?? []), { label: "Learn more", href: "/" }] });
+  }
+
   function addColumn() {
-    onChange({ ...content, columns: [...columns, { title: "New column", body: "", links: [] }] });
+    onChange({ ...content, columns: [...columns, { title: "New column", body: "", icon: "✦", links: [] }] });
   }
 
   return (
     <div className="space-y-3">
       <TextField label="Headline" value={(content.headline as string) ?? ""} onChange={(v) => onChange({ ...content, headline: v })} />
       <TextField label="Subheadline" value={(content.subheadline as string) ?? ""} onChange={(v) => onChange({ ...content, subheadline: v })} multiline />
+      <SelectField
+        label="Columns"
+        value={(content.columnCount as string) ?? "3"}
+        options={[
+          { value: "2", label: "2 columns" },
+          { value: "3", label: "3 columns" },
+          { value: "4", label: "4 columns" },
+        ]}
+        onChange={(v) => onChange({ ...content, columnCount: v })}
+      />
+      <SelectField
+        label="Card style"
+        value={(content.cardStyle as string) ?? "elevated"}
+        options={[
+          { value: "minimal", label: "Minimal" },
+          { value: "elevated", label: "Elevated" },
+          { value: "bordered", label: "Bordered" },
+        ]}
+        onChange={(v) => onChange({ ...content, cardStyle: v })}
+      />
       {columns.map((col, i) => (
         <div key={i} className="rounded-xl border border-navy/10 bg-sky/20 p-3 space-y-2">
           <p className="text-xs font-bold uppercase text-ocean">Column {i + 1}</p>
+          <IconPicker label="Icon" value={col.icon ?? "✦"} icons={ICON_OPTIONS} onChange={(v) => updateColumn(i, { icon: v })} />
           <TextField label="Title" value={col.title} onChange={(v) => updateColumn(i, { title: v })} />
           <TextField label="Body" value={col.body} onChange={(v) => updateColumn(i, { body: v })} multiline />
-          <button
-            type="button"
-            className="text-xs font-semibold text-red-700"
-            onClick={() => onChange({ ...content, columns: columns.filter((_, idx) => idx !== i) })}
-          >
-            Remove column
-          </button>
+          <MediaField label="Image (optional)" value={col.imageUrl ?? ""} onChange={(v) => updateColumn(i, { imageUrl: v })} />
+          {(col.links ?? []).map((link, li) => (
+            <div key={li} className="rounded-lg border border-navy/10 bg-white p-2 space-y-1">
+              <TextField label="Link label" value={link.label} onChange={(v) => updateLink(i, li, { label: v })} />
+              <TextField label="Link URL" value={link.href} onChange={(v) => updateLink(i, li, { href: v })} />
+              <button type="button" className="text-[10px] text-red-700" onClick={() => updateColumn(i, { links: col.links.filter((_, idx) => idx !== li) })}>Remove link</button>
+            </div>
+          ))}
+          <button type="button" className="text-xs font-semibold text-ocean" onClick={() => addLink(i)}>+ Add link</button>
+          <button type="button" className="text-xs font-semibold text-red-700" onClick={() => onChange({ ...content, columns: columns.filter((_, idx) => idx !== i) })}>Remove column</button>
         </div>
       ))}
-      <button type="button" className="admin-btn-secondary w-full text-xs" onClick={addColumn}>
-        + Add column
-      </button>
+      <button type="button" className="admin-btn-secondary w-full text-xs" onClick={addColumn}>+ Add column</button>
     </div>
   );
 }
@@ -230,6 +299,17 @@ function CtaEditor({ content, onChange }: { content: Record<string, unknown>; on
       <TextField label="Body" value={(content.body as string) ?? ""} onChange={(v) => onChange({ ...content, body: v })} multiline />
       <LinkPair label="Primary CTA" link={primary} onChange={(link) => onChange({ ...content, primaryCta: link })} />
       <TextField label="Phone" value={(content.phone as string) ?? ""} onChange={(v) => onChange({ ...content, phone: v })} />
+      <ToggleField label="Gradient background" checked={content.gradientBg !== false} onChange={(v) => onChange({ ...content, gradientBg: v })} />
+      <SelectField
+        label="Button theme"
+        value={(content.buttonTheme as string) ?? "light"}
+        options={[
+          { value: "light", label: "Light (inverse)" },
+          { value: "dark", label: "Dark glass" },
+          { value: "ocean", label: "Ocean primary" },
+        ]}
+        onChange={(v) => onChange({ ...content, buttonTheme: v })}
+      />
     </div>
   );
 }
@@ -251,6 +331,15 @@ function GalleryEditor({ content, onChange }: { content: Record<string, unknown>
   return (
     <div className="space-y-3">
       <TextField label="Headline" value={(content.headline as string) ?? ""} onChange={(v) => onChange({ ...content, headline: v })} />
+      <SelectField
+        label="Layout"
+        value={(content.layout as string) ?? "masonry"}
+        options={[
+          { value: "masonry", label: "Masonry" },
+          { value: "grid", label: "Grid" },
+        ]}
+        onChange={(v) => onChange({ ...content, layout: v })}
+      />
       {items.map((item, i) => (
         <div key={i} className="rounded-xl border border-navy/10 p-3 space-y-2">
           <TextField label="Label" value={item.label} onChange={(v) => {
@@ -416,10 +505,34 @@ function MediaField({ label, value, onChange }: { label: string; value: string; 
         </button>
       </div>
       {value ? (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img src={value} alt="" className="mt-2 h-20 w-full rounded-lg object-cover" />
+        <>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={value} alt="" className="mt-2 h-20 w-full rounded-lg object-cover" />
+          <button type="button" className="mt-1 text-[10px] font-semibold text-ocean" onClick={() => navigator.clipboard.writeText(value)}>Copy URL</button>
+        </>
       ) : null}
       <MediaPickerModal open={open} onClose={() => setOpen(false)} onSelect={(url) => { onChange(url); setOpen(false); }} />
+    </div>
+  );
+}
+
+function TestimonialPhotos({ content, onChange }: { content: Record<string, unknown>; onChange: (c: Record<string, unknown>) => void }) {
+  const items = (content.items as Array<{ quote: string; author: string; photoUrl?: string }>) ?? [];
+  if (!items.length) return null;
+  return (
+    <div className="space-y-2">
+      <p className="text-xs font-semibold text-navy">Profile photos</p>
+      {items.map((item, i) => (
+        <MediaField
+          key={i}
+          label={item.author || `Testimonial ${i + 1}`}
+          value={item.photoUrl ?? ""}
+          onChange={(v) => {
+            const next = items.map((it, idx) => (idx === i ? { ...it, photoUrl: v } : it));
+            onChange({ ...content, items: next });
+          }}
+        />
+      ))}
     </div>
   );
 }

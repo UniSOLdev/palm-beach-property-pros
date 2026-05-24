@@ -4,13 +4,13 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState, type ReactNode } from "react";
 import { AdminToastProvider } from "@/components/admin/admin-toast";
+import { CommandPalette, CommandPaletteMobileTrigger } from "@/components/admin/command-palette";
 import { ADMIN_MORE_NAV, ADMIN_NAV, QUICK_ACTIONS } from "@/lib/admin/constants";
 
 export function AdminShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const isLogin = pathname === "/admin/login";
-  const isWideStudio =
-    pathname.startsWith("/admin/website/builder") || pathname.startsWith("/admin/website/pages");
+  const isWideStudio = pathname.startsWith("/admin/website");
   const mainMaxWidth = isWideStudio ? "max-w-7xl" : "max-w-3xl";
   const [fabOpen, setFabOpen] = useState(false);
   const [moreOpen, setMoreOpen] = useState(false);
@@ -34,6 +34,8 @@ export function AdminShell({ children }: { children: ReactNode }) {
             <p className="text-sm font-bold text-navy">Field Operations</p>
           </div>
           <div className="flex items-center gap-2">
+            <CommandPalette />
+            <CommandPaletteMobileTrigger />
             <button
               type="button"
               onClick={() => setMoreOpen((v) => !v)}

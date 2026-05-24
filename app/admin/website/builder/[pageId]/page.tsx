@@ -1,8 +1,6 @@
 import { AdminPageHeader } from "@/components/admin/entity-list";
 import { LoadError } from "@/components/admin/load-error";
-import { NavigationEditorPanel } from "@/components/admin/website-builder/navigation-editor-panel";
 import { WebsiteBuilder } from "@/components/admin/website-builder/website-builder";
-import { listSiteNavigation } from "@/lib/admin/actions/website-navigation";
 import { getBuilderPage } from "@/lib/admin/actions/website-builder";
 
 export const dynamic = "force-dynamic";
@@ -21,17 +19,8 @@ export default async function WebsiteBuilderPage({ params }: { params: Promise<{
   const { pageId } = await params;
 
   try {
-    const [bundle, navItems] = await Promise.all([getBuilderPage(pageId), listSiteNavigation()]);
-    return (
-      <div className="space-y-4">
-        <AdminPageHeader
-          title={bundle.page.title}
-          subtitle={`Visual builder · ${bundle.page.status === "published" ? "Published" : "Draft"}`}
-        />
-        <WebsiteBuilder bundle={bundle} />
-        <NavigationEditorPanel initialItems={navItems} />
-      </div>
-    );
+    const bundle = await getBuilderPage(pageId);
+    return <WebsiteBuilder bundle={bundle} />;
   } catch (err) {
     return (
       <div className="space-y-4">

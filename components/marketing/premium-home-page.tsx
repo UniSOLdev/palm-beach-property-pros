@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { FaqAccordion } from "@/components/faq-accordion";
+import { ScrollReveal } from "@/components/marketing/scroll-reveal";
 import { FAQ_ITEMS } from "@/lib/faq";
 import { PHONE_DISPLAY, PHONE_TEL, SITE_NAME } from "@/lib/site";
 
@@ -138,7 +139,8 @@ export function PremiumHomePage() {
         </div>
       </section>
 
-      <section className="animate-fade-up border-y border-navy/10 bg-white/60 py-10 backdrop-blur-sm">
+      <ScrollReveal>
+      <section className="border-y border-navy/10 bg-white/60 py-10 backdrop-blur-sm">
         <div className="mx-auto flex max-w-4xl flex-col gap-4 text-center">
           <h2 className="text-lg font-semibold tracking-tight text-navy">One secure client platform</h2>
           <p className="text-sm leading-relaxed text-charcoal/85 sm:text-base">
@@ -150,8 +152,10 @@ export function PremiumHomePage() {
           </Link>
         </div>
       </section>
+      </ScrollReveal>
 
-      <section className="animate-fade-up py-20">
+      <ScrollReveal delay={60}>
+      <section className="py-20">
         <div className="mx-auto max-w-2xl text-center">
           <p className="text-xs font-semibold uppercase tracking-[0.22em] text-ocean">Property care plans</p>
           <h2 className="mt-3 text-3xl font-semibold tracking-tight text-navy sm:text-4xl">
@@ -178,8 +182,10 @@ export function PremiumHomePage() {
           ))}
         </div>
       </section>
+      </ScrollReveal>
 
-      <section className="animate-fade-up rounded-3xl border border-navy/10 bg-gradient-to-b from-white to-cream/80 py-20 shadow-card">
+      <ScrollReveal delay={120}>
+      <section className="rounded-3xl border border-navy/10 bg-gradient-to-b from-white to-cream/80 py-20 shadow-card">
         <div className="mx-auto max-w-2xl text-center">
           <p className="text-xs font-semibold uppercase tracking-[0.22em] text-ocean">Divisions</p>
           <h2 className="mt-3 text-3xl font-semibold tracking-tight text-navy sm:text-4xl">
@@ -215,6 +221,7 @@ export function PremiumHomePage() {
           Crews, equipment, and checklists aligned to coastal substrates and access realities.
         </p>
       </section>
+      </ScrollReveal>
 
       <section className="animate-fade-up py-20">
         <div className="grid gap-10 lg:grid-cols-2 lg:items-center">

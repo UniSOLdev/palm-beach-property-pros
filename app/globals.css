@@ -106,4 +106,81 @@
   .glass-panel {
     @apply rounded-2xl border border-navy/10 bg-white/80 backdrop-blur-sm;
   }
+
+  /* ── Site Studio / premium admin ── */
+  .studio-glass {
+    @apply rounded-2xl border border-white/60 bg-white/85 shadow-studio backdrop-blur-xl;
+  }
+
+  .studio-panel {
+    @apply rounded-2xl border border-navy/10 bg-white p-4 shadow-card transition-shadow duration-300 hover:shadow-lift;
+  }
+
+  .studio-toolbar {
+    @apply sticky top-0 z-30 border-b border-navy/10 bg-cream/90 px-4 py-3 backdrop-blur-xl;
+  }
+
+  .studio-section-row {
+    @apply rounded-xl border border-navy/10 bg-white p-3 transition-all duration-200 hover:border-ocean/30 hover:shadow-card;
+  }
+
+  .studio-section-row-active {
+    @apply border-ocean/50 bg-sky/20 ring-2 ring-ocean/40 shadow-card;
+  }
+
+  .studio-viewport-btn {
+    @apply rounded-lg px-3 py-2 text-xs font-semibold capitalize transition-all duration-200;
+  }
+
+  .studio-viewport-btn-active {
+    @apply bg-navy text-white shadow-md;
+  }
+
+  .studio-viewport-btn-idle {
+    @apply bg-sky/40 text-navy hover:bg-sky/70;
+  }
+
+  .studio-save-indicator {
+    @apply inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium;
+  }
+
+  .studio-save-unsaved {
+    @apply bg-amber-100 text-amber-900;
+  }
+
+  .studio-save-saving {
+    @apply bg-sky/60 text-navy;
+  }
+
+  .studio-save-saved {
+    @apply bg-green-100 text-green-800;
+  }
+
+  .studio-save-error {
+    @apply bg-red-100 text-red-800;
+  }
+
+  .skeleton-shimmer {
+    @apply animate-shimmer rounded-xl bg-gradient-to-r from-sky/30 via-white to-sky/30 bg-[length:200%_100%];
+  }
+
+  .metric-card {
+    @apply studio-panel block min-h-[96px] no-underline;
+  }
+
+  .metric-card-value {
+    @apply mt-2 text-2xl font-bold tracking-tight text-navy;
+  }
+
+  .metric-card-label {
+    @apply text-[11px] font-semibold uppercase tracking-[0.14em] text-charcoal/55;
+  }
+
+  .cmd-palette-overlay {
+    @apply fixed inset-0 z-[100] bg-navy/40 backdrop-blur-sm;
+  }
+
+  .cmd-palette-panel {
+    @apply mx-auto mt-[15vh] w-full max-w-lg overflow-hidden rounded-2xl border border-navy/10 bg-white shadow-lift;
+  }
 }

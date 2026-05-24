@@ -1,5 +1,33 @@
 # Changelog
 
+## May 24, 2026 — Premium SaaS platform upgrade
+
+### Site Studio / Website Builder (Phases 1–4, 9–10)
+- **Premium builder UX** — sticky toolbar, unsaved-changes indicator, tabbed sidebar (Sections / SEO / Theme), click-to-edit preview, polished drag handles, viewport spring animation
+- **Expanded section editors** — hero (overlay, alignment, max-width, animation), services (icons, links, card styles, columns), testimonials (photos, carousel), gallery (masonry/grid), CTA (gradients, button themes)
+- **AI copy enhancer** — rule-based headline/body/SEO improvements (`lib/cms/ai-copy.ts`)
+- **Website health scoring** — live grade panel with SEO, content, media, publish checks
+- **SEO scoring panel** — A–F grade, slug validation, character counts, enhance buttons
+- **Instant theme switching** — 4 presets (Luxury Coastal, Dark Luxury, Modern Executive, Clean Contractor)
+- **Page duplication** — one-click copy with all sections
+- **Design system** — `lib/design/tokens.ts`, studio CSS utilities, animation presets
+
+### Admin / Operations (Phases 6, 8)
+- **Command palette** — ⌘K global search across admin routes
+- **Dashboard analytics** — revenue pipeline chart, 8 metric cards, MoM growth, leads/clients/jobs
+- Wider admin layout for all `/admin/website/*` routes
+
+### Public site (Phase 5, 7)
+- Scroll-reveal animations on homepage sections (respects reduced motion)
+- Polished mobile CTA bar (thumb-friendly 48px targets)
+- `sitemap.xml` + `robots.txt` generation
+
+### CMS infrastructure
+- `duplicateWebsitePage()` server action
+- Extended `getDashboardStats()` with leads, clients, avg ticket, growth
+
+---
+
 ## May 24, 2026 — Site Studio production fix
 
 ### Root cause

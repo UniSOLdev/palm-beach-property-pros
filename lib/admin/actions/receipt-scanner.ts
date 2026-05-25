@@ -91,3 +91,54 @@ export async function saveScannedExpenseAction(input: {
 
   revalidatePath("/admin/expenses");
 }
+
+export type BulkExpenseSaveInput = {
+  expense_date: string;
+  category: string;
+  vendor: string;
+  description: string;
+  amount: number;
+  payment_method: string;
+  receipt_url: string | null;
+  receipt_storage_path?: string | null;
+  optimized_image_url?: string | null;
+  job_id?: string | null;
+  notes?: string | null;
+  reimbursable?: boolean;
+  tax_amount?: number | null;
+  subtotal?: number | null;
+  receipt_id?: string | null;
+  scan_confidence?: number | null;
+  scan_status?: string | null;
+  ocr_version?: string | null;
+};
+
+export type BulkExpenseSaveResult = {
+  saved: number;
+  failed: { index: number; vendor: string; error: string }[];
+};
+
+export async function saveBulkScannedExpensesAction(
+  rows: BulkExpenseSaveInput[],
+): Promise<BulkExpenseSaveResult> {
+  const failed: BulkExpenseSaveResult["failed"] = [];
+  let saved = 0;
+
+  for (let i = 0; i < rows.length; i++) {
+    const row = rows[i];
+    try {
+      await saveScannedExpenseAction(row);
+      saved += 1;
+    } catch (e) {
+      failed.push({
+        index: i,
+        vendor: row.vendor || `Row ${i + 1}`,
+        error: e instanceof Error ? e.message : "Could not save",
+      });
+    }
+  }
+
+  revalidatePath("/admin/expenses");
+  revalidatePath("/admin/expenses/scan");
+  return { saved, failed };
+}

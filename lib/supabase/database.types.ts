@@ -456,7 +456,13 @@ export type Database = {
           ocr_version: string | null
           optimized_image_url: string | null
           payment_method: string
+          receipt_original_path: string | null
+          receipt_optimized_path: string | null
+          receipt_processed_at: string | null
+          receipt_processing_error: string | null
+          receipt_processing_status: string | null
           receipt_storage_path: string | null
+          receipt_thumbnail_path: string | null
           receipt_url: string | null
           recurring_interval: string | null
           reimbursable: boolean
@@ -483,7 +489,13 @@ export type Database = {
           ocr_version?: string | null
           optimized_image_url?: string | null
           payment_method: string
+          receipt_original_path?: string | null
+          receipt_optimized_path?: string | null
+          receipt_processed_at?: string | null
+          receipt_processing_error?: string | null
+          receipt_processing_status?: string | null
           receipt_storage_path?: string | null
+          receipt_thumbnail_path?: string | null
           receipt_url?: string | null
           recurring_interval?: string | null
           reimbursable?: boolean
@@ -510,7 +522,13 @@ export type Database = {
           ocr_version?: string | null
           optimized_image_url?: string | null
           payment_method?: string
+          receipt_original_path?: string | null
+          receipt_optimized_path?: string | null
+          receipt_processed_at?: string | null
+          receipt_processing_error?: string | null
+          receipt_processing_status?: string | null
           receipt_storage_path?: string | null
+          receipt_thumbnail_path?: string | null
           receipt_url?: string | null
           recurring_interval?: string | null
           reimbursable?: boolean

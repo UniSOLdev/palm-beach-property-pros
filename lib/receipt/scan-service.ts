@@ -4,15 +4,14 @@ import { logPipelineError, logPipelineInfo } from "@/lib/pipeline/logger";
 import { suggestJobMatch, type JobMatchCandidate } from "@/lib/receipt/job-matching";
 import {
   normalizeReceiptMime,
-  toDataUrl,
   validateReceiptUpload,
 } from "@/lib/receipt/image-pipeline";
 import { normalizeUploadToScanImages } from "@/lib/receipt/normalize-upload";
-import { mergeOcrResults } from "@/lib/receipt/ocr-merge";
-import { runReceiptOcr, type OcrParseResult } from "@/lib/receipt/ocr";
+import { ocrScanPages } from "@/lib/receipt/ocr-runner";
 import { uploadReceiptBuffers } from "@/lib/receipt/storage";
 import type { ReceiptScanResponse } from "@/lib/receipt/scan-types";
 import { confidenceTier } from "@/lib/receipt/scan-types";
+import type { ReceiptProcessingStatus } from "@/lib/receipt/processing-status";
 
 function fileExtension(mime: string, fileName: string): string {
   if (mime === "application/pdf") return "pdf";
@@ -24,19 +23,9 @@ function fileExtension(mime: string, fileName: string): string {
   return "jpg";
 }
 
-async function ocrAllPages(
-  pages: Awaited<ReturnType<typeof normalizeUploadToScanImages>>,
-): Promise<OcrParseResult> {
-  const results: OcrParseResult[] = [];
-  for (const page of pages) {
-    results.push(await runReceiptOcr(toDataUrl(page.buffer, page.mime)));
-  }
-  return mergeOcrResults(results);
-}
-
 export async function scanReceiptFromFile(
   file: File,
-  options: { pathPrefix?: string; userId?: string | null } = {},
+  options: { pathPrefix?: string; userId?: string | null; expenseId?: string | null } = {},
 ): Promise<ReceiptScanResponse> {
   const started = Date.now();
   const pathPrefix = options.pathPrefix ?? "expenses";
@@ -44,19 +33,27 @@ export async function scanReceiptFromFile(
   const mime = normalizeReceiptMime(file.type, file.name);
   const inputBuffer = Buffer.from(await file.arrayBuffer());
 
+  let processingStatus: ReceiptProcessingStatus = "converting";
   const pages = await normalizeUploadToScanImages(inputBuffer, mime);
-  const ocr = await ocrAllPages(pages);
+
+  processingStatus = "optimizing";
   const ext = fileExtension(mime, file.name);
 
   const uploaded = await uploadReceiptBuffers({
     pathPrefix,
+    expenseId: options.expenseId,
     original: { buffer: inputBuffer, mime, ext },
     optimizedPages: pages.map((p) => ({
       buffer: p.buffer,
+      thumbnail: p.thumbnail,
       mime: p.mime,
       page: p.pageIndex,
     })),
   });
+
+  processingStatus = "scanning";
+  const ocr = await ocrScanPages(pages);
+  processingStatus = "completed";
 
   const jobs = await loadJobsForMatching();
   const jobMatch = suggestJobMatch(jobs, {
@@ -103,12 +100,18 @@ export async function scanReceiptFromFile(
     warnings,
     receipt_url: uploaded.receipt_url,
     optimized_image_url: uploaded.optimized_image_url,
+    thumbnail_url: uploaded.thumbnail_url,
     receipt_storage_path: uploaded.receipt_storage_path,
+    receipt_original_path: uploaded.receipt_original_path,
     optimized_storage_path: uploaded.optimized_storage_path,
+    receipt_optimized_path: uploaded.receipt_optimized_path,
+    receipt_thumbnail_path: uploaded.receipt_thumbnail_path,
+    receipt_processing_status: processingStatus,
     scan_status,
     ocr_version: ocr.ocr_version,
     description,
     page_count: pages.length,
+    normalized_paths: uploaded.normalized_paths,
   };
 
   await persistScanArtifacts({
@@ -120,6 +123,7 @@ export async function scanReceiptFromFile(
     ocrModel: ocr.model,
     rawResponse: ocr.raw,
     durationMs: Date.now() - started,
+    thumbnailPaths: uploaded.thumbnail_paths,
   });
 
   logPipelineInfo("receipt scan completed", {
@@ -168,6 +172,7 @@ async function persistScanArtifacts(input: {
   ocrModel: string | null;
   rawResponse: unknown;
   durationMs: number;
+  thumbnailPaths: string[];
 }) {
   try {
     const supabase = createServiceClient();
@@ -187,9 +192,16 @@ async function persistScanArtifacts(input: {
         receipt_number: input.response.receipt_number || null,
         suggested_job_id: input.response.suggested_job_id || null,
         receipt_storage_path: input.response.receipt_storage_path,
+        receipt_original_path: input.response.receipt_original_path ?? input.response.receipt_storage_path,
         optimized_storage_path: input.response.optimized_storage_path,
+        receipt_optimized_path: input.response.receipt_optimized_path ?? input.response.optimized_storage_path,
+        receipt_thumbnail_path: input.response.receipt_thumbnail_path ?? null,
+        receipt_thumbnail_url: input.response.thumbnail_url ?? null,
         receipt_url: input.response.receipt_url,
         optimized_image_url: input.response.optimized_image_url,
+        receipt_processing_status: input.response.receipt_processing_status ?? "completed",
+        receipt_processed_at: new Date().toISOString(),
+        normalized_paths: input.response.normalized_paths ?? [],
         scan_status: input.response.scan_status,
         scan_confidence: input.response.confidence,
         scan_raw_response: input.rawResponse,

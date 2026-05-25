@@ -112,16 +112,18 @@ export function PremiumHomePage() {
           />
         </div>
         <div className="relative px-4 py-20 sm:px-6 sm:py-24 md:px-6 md:py-28">
-          <p className="text-xs font-semibold uppercase tracking-[0.22em] text-aqua/90 md:tracking-[0.28em]">
-            Premium Property Operations
-          </p>
-          <h1 className="mt-5 max-w-3xl text-4xl font-semibold leading-[1.1] tracking-tight text-cream sm:text-5xl sm:leading-[1.08] md:max-w-3xl md:text-5xl">
-            Property Care for Palm Beach Living
-          </h1>
-          <p className="mt-6 max-w-xl text-base leading-relaxed text-silver/95 sm:text-lg md:mt-6 md:max-w-2xl md:text-xl">
-            Residential, commercial, and coastal property services delivered with professional crews,
-            modern systems, and detail-focused execution.
-          </p>
+          <div className="max-w-xl md:max-w-3xl">
+            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-aqua/90 md:tracking-[0.28em]">
+              Premium Property Operations
+            </p>
+            <h1 className="mt-5 text-4xl font-semibold leading-[1.1] tracking-tight text-cream sm:text-5xl sm:leading-[1.08] md:text-5xl">
+              Property Care for Palm Beach Living
+            </h1>
+            <p className="mt-6 max-w-xl text-base leading-relaxed text-silver/95 sm:text-lg md:mt-8 md:max-w-none md:text-xl">
+              Residential, commercial, and coastal property services delivered with professional crews,
+              modern systems, and detail-focused execution.
+            </p>
+          </div>
           <ul className="mt-8 flex flex-wrap justify-center gap-3 md:justify-start">
             {HERO_CHIPS.map((chip) => (
               <li
@@ -132,7 +134,7 @@ export function PremiumHomePage() {
               </li>
             ))}
           </ul>
-          <div className="mt-10 flex w-full max-w-xl flex-col gap-3 sm:max-w-none md:mt-10 md:max-w-xl md:flex-row md:flex-wrap md:items-center">
+          <div className="mt-10 flex w-full max-w-xl flex-col gap-3 sm:max-w-none md:mt-10 md:max-w-3xl md:flex-row md:flex-wrap md:items-center">
             <Link
               href="/quote"
               className="btn-primary-lg min-h-[56px] w-full rounded-2xl text-center transition duration-200 active:scale-[0.98] sm:w-auto md:min-h-0 md:w-auto md:rounded-xl"

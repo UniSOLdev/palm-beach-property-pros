@@ -59,6 +59,9 @@ export default async function AdminExpensesPage() {
         <Link href="/admin/expenses/import" className="admin-btn-secondary inline-flex no-underline">
           Import spreadsheet
         </Link>
+        <Link href="/admin/expenses/migration" className="admin-btn-secondary inline-flex no-underline">
+          Upgrade receipts
+        </Link>
       </div>
       {!jobsResult.ok ? (
         <p className="rounded-xl bg-amber-50 px-4 py-3 text-sm text-amber-900">

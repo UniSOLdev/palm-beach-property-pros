@@ -1,11 +1,11 @@
-import { createServiceClient } from "@/lib/supabase/service";
-import { ReceiptScanError } from "@/lib/receipt/errors";
-import { toDataUrl } from "@/lib/receipt/image-pipeline";
-import { normalizeUploadToScanImages } from "@/lib/receipt/normalize-upload";
-import { mergeOcrResults } from "@/lib/receipt/ocr-merge";
-import { runReceiptOcr, type OcrParseResult } from "@/lib/receipt/ocr";
-import { suggestJobMatch, type JobMatchCandidate } from "@/lib/receipt/job-matching";
 import { createClient } from "@/lib/supabase/server";
+import { createServiceClient } from "@/lib/supabase/service";
+import { legacyOriginalBucketForPath } from "@/lib/receipt/buckets";
+import { ReceiptScanError } from "@/lib/receipt/errors";
+import { normalizeUploadToScanImages } from "@/lib/receipt/normalize-upload";
+import { ocrScanPages } from "@/lib/receipt/ocr-runner";
+import { suggestJobMatch, type JobMatchCandidate } from "@/lib/receipt/job-matching";
+import { signReceiptAssets } from "@/lib/receipt/signed-urls";
 import type { ReceiptScanResponse } from "@/lib/receipt/scan-types";
 import { confidenceTier } from "@/lib/receipt/scan-types";
 
@@ -32,19 +32,10 @@ async function loadJobsForMatching(): Promise<JobMatchCandidate[]> {
   }
 }
 
-async function ocrAllPages(
-  pages: Awaited<ReturnType<typeof normalizeUploadToScanImages>>,
-): Promise<OcrParseResult> {
-  const results: OcrParseResult[] = [];
-  for (const page of pages) {
-    results.push(await runReceiptOcr(toDataUrl(page.buffer, page.mime)));
-  }
-  return mergeOcrResults(results);
-}
-
 export async function retryReceiptOcr(receiptStoragePath: string): Promise<ReceiptScanResponse> {
   const supabase = createServiceClient();
-  const { data, error } = await supabase.storage.from("receipts").download(receiptStoragePath);
+  const bucket = legacyOriginalBucketForPath(receiptStoragePath);
+  const { data, error } = await supabase.storage.from(bucket).download(receiptStoragePath);
   if (error || !data) {
     throw new ReceiptScanError("UPLOAD", "Could not load receipt for rescan.");
   }
@@ -54,7 +45,7 @@ export async function retryReceiptOcr(receiptStoragePath: string): Promise<Recei
   const mime = isPdf ? "application/pdf" : "image/jpeg";
 
   const pages = await normalizeUploadToScanImages(raw, mime);
-  const ocr = await ocrAllPages(pages);
+  const ocr = await ocrScanPages(pages);
   const jobs = await loadJobsForMatching();
   const jobMatch = suggestJobMatch(jobs, {
     vendor: ocr.vendor,
@@ -62,6 +53,11 @@ export async function retryReceiptOcr(receiptStoragePath: string): Promise<Recei
     category: ocr.suggested_category,
     rawText: ocr.notes,
     lineItems: ocr.line_items,
+  });
+
+  const signed = await signReceiptAssets({
+    receipt_original_path: receiptStoragePath,
+    receipt_optimized_path: receiptStoragePath.replace("-original.", "-ocr.").replace(/\.(pdf|heic|heif|png|webp)$/i, ".jpg"),
   });
 
   return {
@@ -81,10 +77,13 @@ export async function retryReceiptOcr(receiptStoragePath: string): Promise<Recei
     notes: ocr.notes,
     line_items: ocr.line_items,
     warnings: ocr.warnings,
-    receipt_url: null,
-    optimized_image_url: null,
+    receipt_url: signed.receipt_url,
+    optimized_image_url: signed.optimized_image_url,
+    thumbnail_url: signed.thumbnail_url,
     receipt_storage_path: receiptStoragePath,
+    receipt_original_path: receiptStoragePath,
     optimized_storage_path: null,
+    receipt_processing_status: "completed",
     scan_status: confidenceTier(ocr.confidence) === "low" ? "partial" : "scanned",
     ocr_version: ocr.ocr_version,
     description: ocr.vendor || "Receipt expense",

@@ -35,6 +35,10 @@ export default async function ExpenseScanPage() {
         <Link href="/admin/expenses/import" className="font-semibold text-ocean no-underline">
           Import spreadsheet →
         </Link>
+        {" · "}
+        <Link href="/admin/expenses/migration" className="font-semibold text-ocean no-underline">
+          Upgrade legacy receipts →
+        </Link>
       </p>
     </div>
   );

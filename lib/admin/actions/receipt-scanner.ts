@@ -31,7 +31,11 @@ export async function saveScannedExpenseAction(input: {
   payment_method: string;
   receipt_url: string | null;
   receipt_storage_path?: string | null;
+  receipt_original_path?: string | null;
+  receipt_optimized_path?: string | null;
+  receipt_thumbnail_path?: string | null;
   optimized_image_url?: string | null;
+  receipt_processing_status?: string | null;
   job_id?: string | null;
   notes?: string | null;
   reimbursable?: boolean;
@@ -60,8 +64,13 @@ export async function saveScannedExpenseAction(input: {
     amount: input.amount,
     payment_method: input.payment_method,
     receipt_url: input.receipt_url,
-    receipt_storage_path: input.receipt_storage_path ?? null,
+    receipt_storage_path: input.receipt_storage_path ?? input.receipt_original_path ?? null,
+    receipt_original_path: input.receipt_original_path ?? input.receipt_storage_path ?? null,
+    receipt_optimized_path: input.receipt_optimized_path ?? null,
+    receipt_thumbnail_path: input.receipt_thumbnail_path ?? null,
     optimized_image_url: input.optimized_image_url ?? null,
+    receipt_processing_status: input.receipt_processing_status ?? "completed",
+    receipt_processed_at: new Date().toISOString(),
     job_id: input.job_id ?? null,
     notes,
     reimbursable: input.reimbursable ?? false,
@@ -101,7 +110,11 @@ export type BulkExpenseSaveInput = {
   payment_method: string;
   receipt_url: string | null;
   receipt_storage_path?: string | null;
+  receipt_original_path?: string | null;
+  receipt_optimized_path?: string | null;
+  receipt_thumbnail_path?: string | null;
   optimized_image_url?: string | null;
+  receipt_processing_status?: string | null;
   job_id?: string | null;
   notes?: string | null;
   reimbursable?: boolean;

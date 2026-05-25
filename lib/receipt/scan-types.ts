@@ -1,3 +1,5 @@
+import type { ReceiptProcessingStatus } from "@/lib/receipt/processing-status";
+
 export type ReceiptLineItem = {
   description: string;
   amount: number;
@@ -21,20 +23,24 @@ export type ReceiptScanResponse = {
   notes: string;
   line_items: ReceiptLineItem[];
   warnings: string[];
-  /** Internal / UI */
   receipt_id?: string;
   receipt_url: string | null;
   optimized_image_url: string | null;
+  thumbnail_url?: string | null;
   receipt_storage_path: string;
+  receipt_original_path?: string;
   optimized_storage_path: string | null;
+  receipt_optimized_path?: string | null;
+  receipt_thumbnail_path?: string | null;
+  receipt_processing_status?: ReceiptProcessingStatus;
   scan_status: "scanned" | "partial" | "failed" | "manual";
   ocr_version: string;
   description: string;
-  /** Normalized pages sent to OCR (PDF may be >1). */
   page_count?: number;
+  normalized_paths?: string[];
 };
 
-export const OCR_VERSION = "openai-vision-v2";
+export const OCR_VERSION = "openai-vision-v3";
 export const OCR_MODEL = process.env.OPENAI_RECEIPT_MODEL?.trim() || "gpt-4.1-mini";
 
 export function confidenceTier(confidence: number): "high" | "medium" | "low" {

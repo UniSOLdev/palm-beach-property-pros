@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useCallback, useRef, useState, useTransition } from "react";
+import { useCallback, useEffect, useRef, useState, useTransition } from "react";
 import {
   retryReceiptScanAction,
   saveBulkScannedExpensesAction,
@@ -16,16 +16,27 @@ import {
   BULK_SCAN_MAX_FILES,
   isImagePreviewable,
   isPdfFile,
-  processReceiptsInBatches,
   scanReceiptViaApi,
   validateBulkReceiptFile,
 } from "@/lib/receipt/bulk-scan-client";
+import {
+  BULK_QUEUE_STALL_MS,
+  BULK_QUEUE_WATCHDOG_INTERVAL_MS,
+  computeQueueMetrics,
+  logBulkScan,
+  runBulkScanBatches,
+  type BulkQueueItemStatus,
+  type BulkQueueMetrics,
+} from "@/lib/receipt/bulk-scan-queue";
 import type { ReceiptScanResponse } from "@/lib/receipt/scan-types";
 import { confidenceTier } from "@/lib/receipt/scan-types";
 
 type JobOption = { id: string; label: string };
 
-export type BulkReceiptStatus = "queued" | "processing" | "ready" | "error" | "saved" | "removed";
+/** Scan/save lifecycle — `saved` = persisted expense */
+export type BulkReceiptStatus = BulkQueueItemStatus | "saved" | "removed";
+
+const IN_FLIGHT_STATUSES: BulkReceiptStatus[] = ["uploading", "converting", "scanning"];
 
 export type BulkReceiptRow = {
   id: string;
@@ -60,8 +71,11 @@ function rowFromScan(file: File, scan: ReceiptScanResponse, defaultJobId?: strin
     id: newRowId(),
     fileName: file.name,
     file,
-    previewUrl: scan.optimized_image_url ?? (isImagePreviewable(file) ? URL.createObjectURL(file) : null),
-    status: "ready",
+    previewUrl:
+      scan.thumbnail_url ??
+      scan.optimized_image_url ??
+      (isImagePreviewable(file) ? URL.createObjectURL(file) : null),
+    status: "completed",
     error: warn,
     approved: scan.total > 0 && tier !== "low",
     saving: false,
@@ -85,7 +99,7 @@ function rowFromValidationError(file: File, error: string): BulkReceiptRow {
     fileName: file.name,
     file,
     previewUrl: isImagePreviewable(file) ? URL.createObjectURL(file) : null,
-    status: "ready",
+    status: "failed",
     error,
     approved: false,
     saving: false,
@@ -113,7 +127,11 @@ function toSaveInput(row: BulkReceiptRow): BulkExpenseSaveInput {
     payment_method: row.paymentMethod,
     receipt_url: row.scan?.receipt_url ?? null,
     receipt_storage_path: row.scan?.receipt_storage_path ?? null,
+    receipt_original_path: row.scan?.receipt_original_path ?? row.scan?.receipt_storage_path ?? null,
+    receipt_optimized_path: row.scan?.receipt_optimized_path ?? row.scan?.optimized_storage_path ?? null,
+    receipt_thumbnail_path: row.scan?.receipt_thumbnail_path ?? null,
     optimized_image_url: row.scan?.optimized_image_url ?? null,
+    receipt_processing_status: row.scan?.receipt_processing_status ?? "completed",
     job_id: row.jobId || null,
     notes: row.notes || null,
     reimbursable: false,
@@ -129,16 +147,60 @@ function toSaveInput(row: BulkReceiptRow): BulkExpenseSaveInput {
 function StatusPill({ status }: { status: BulkReceiptStatus }) {
   const map: Record<BulkReceiptStatus, string> = {
     queued: "bg-sky/40 text-navy",
-    processing: "bg-ocean/20 text-navy animate-pulse",
-    ready: "bg-green-100 text-green-900",
-    error: "bg-red-100 text-red-800",
+    uploading: "bg-ocean/10 text-navy animate-pulse",
+    converting: "bg-ocean/15 text-navy animate-pulse",
+    scanning: "bg-ocean/25 text-navy animate-pulse",
+    saving: "bg-amber-100 text-amber-900 animate-pulse",
+    completed: "bg-green-100 text-green-900",
+    failed: "bg-red-100 text-red-800",
     saved: "bg-green-200 text-green-950",
     removed: "bg-charcoal/10 text-charcoal/50",
   };
   return (
-    <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase ${map[status]}`}>
+    <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase ${map[status] ?? "bg-charcoal/10"}`}>
       {status}
     </span>
+  );
+}
+
+function QueueProgressPanel({
+  metrics,
+  processing,
+  currentBatch,
+}: {
+  metrics: BulkQueueMetrics;
+  processing: boolean;
+  currentBatch: number;
+}) {
+  if (!processing && metrics.total === 0) return null;
+  const heartbeatAgeSec = Math.max(0, Math.round((Date.now() - metrics.lastHeartbeatAt) / 1000));
+
+  return (
+    <div className="rounded-xl border border-ocean/20 bg-sky/15 p-4 space-y-3">
+      <div className="flex flex-wrap items-center justify-between gap-2 text-sm">
+        <span className="font-bold text-navy">
+          {processing ? "Processing queue…" : "Queue idle"}
+        </span>
+        <span className="text-charcoal/60">
+          Batch {currentBatch || metrics.batchIndex || 0}
+          {metrics.batchCount > 0 ? ` / ${metrics.batchCount}` : ""} · heartbeat {heartbeatAgeSec}s ago
+        </span>
+      </div>
+      <div className="h-2 overflow-hidden rounded-full bg-charcoal/10">
+        <div
+          className="h-full rounded-full bg-ocean transition-all duration-300"
+          style={{ width: `${metrics.percent}%` }}
+        />
+      </div>
+      <div className="flex flex-wrap gap-3 text-xs font-semibold text-charcoal/70">
+        <span>{metrics.percent}%</span>
+        <span>Queued {metrics.queued}</span>
+        <span>Active {metrics.active}</span>
+        <span className="text-green-800">Done {metrics.completed}</span>
+        <span className="text-red-700">Failed {metrics.failed}</span>
+        <span>Total {metrics.total}</span>
+      </div>
+    </div>
   );
 }
 
@@ -157,31 +219,65 @@ export function BulkReceiptScanner({
   const [processing, setProcessing] = useState(false);
   const [globalError, setGlobalError] = useState("");
   const [bulkResult, setBulkResult] = useState<string | null>(null);
+  const [queueMetrics, setQueueMetrics] = useState<BulkQueueMetrics>(() =>
+    computeQueueMetrics([]),
+  );
+  const [currentBatch, setCurrentBatch] = useState(0);
   const fileRef = useRef<HTMLInputElement>(null);
-  const processingRef = useRef(false);
+
+  const rowsRef = useRef(rows);
+  const workerRunningRef = useRef(false);
+  const drainPendingRef = useRef(false);
+  const heartbeatRef = useRef(Date.now());
+  const batchIndexRef = useRef(0);
+
+  useEffect(() => {
+    rowsRef.current = rows;
+  }, [rows]);
 
   const activeRows = rows.filter((r) => r.status !== "removed");
-  const readyCount = activeRows.filter((r) => r.status === "ready" || r.status === "error").length;
-  const approvedRows = activeRows.filter((r) => r.approved && r.status !== "saved" && r.vendor.trim() && r.total > 0);
+  const reviewCount = activeRows.filter((r) => r.status === "completed" || r.status === "failed").length;
+  const approvedRows = activeRows.filter(
+    (r) => r.approved && r.status !== "saved" && r.vendor.trim() && r.total > 0,
+  );
 
-  const updateRow = useCallback((id: string, patch: Partial<BulkReceiptRow>) => {
-    setRows((prev) => prev.map((r) => (r.id === id ? { ...r, ...patch } : r)));
+  const syncMetrics = useCallback((batchIndex?: number, batchCount?: number) => {
+    const statuses = rowsRef.current
+      .filter((r) => r.status !== "removed")
+      .map((r) => r.status as BulkQueueItemStatus);
+    heartbeatRef.current = Date.now();
+    setQueueMetrics(
+      computeQueueMetrics(statuses, batchIndex ?? batchIndexRef.current, batchCount ?? 0),
+    );
   }, []);
 
-  const processQueue = useCallback(
-    async (queue: BulkReceiptRow[]) => {
-      if (processingRef.current) return;
-      processingRef.current = true;
-      setProcessing(true);
-      setGlobalError("");
+  const patchRow = useCallback((id: string, patch: Partial<BulkReceiptRow>) => {
+    setRows((prev) => {
+      const next = prev.map((r) => (r.id === id ? { ...r, ...patch } : r));
+      rowsRef.current = next;
+      return next;
+    });
+  }, []);
 
-      const toProcess = queue.filter((r) => r.status === "queued" && r.file);
-      await processReceiptsInBatches(toProcess, BULK_SCAN_BATCH_SIZE, async (item) => {
-        setRows((prev) =>
-          prev.map((r) => (r.id === item.id ? { ...r, status: "processing" as const, error: null } : r)),
-        );
+  const updateRow = patchRow;
 
-        const file = item.file!;
+  const processOneReceipt = useCallback(
+    async (item: BulkReceiptRow, ctx: { batchIndex: number }) => {
+      const file = item.file;
+      if (!file) {
+        patchRow(item.id, { status: "failed", error: "Missing file — re-upload to retry." });
+        return;
+      }
+
+      batchIndexRef.current = ctx.batchIndex;
+      setCurrentBatch(ctx.batchIndex);
+
+      try {
+        patchRow(item.id, { status: "uploading", error: null });
+        await new Promise((r) => setTimeout(r, 50));
+        patchRow(item.id, { status: "converting" });
+        patchRow(item.id, { status: "scanning" });
+
         const result = await scanReceiptViaApi(file, {
           pathPrefix: storagePrefix,
           jobId: defaultJobId,
@@ -189,50 +285,144 @@ export function BulkReceiptScanner({
 
         if (result.ok) {
           const mapped = rowFromScan(file, result.data, defaultJobId);
-          setRows((prev) =>
-            prev.map((r) =>
-              r.id === item.id
-                ? { ...mapped, id: item.id, previewUrl: mapped.previewUrl ?? r.previewUrl }
-                : r,
-            ),
-          );
-        } else if (result.data && typeof result.data === "object") {
-          const partial = rowFromScan(file, result.data as ReceiptScanResponse, defaultJobId);
-          setRows((prev) =>
-            prev.map((r) =>
-              r.id === item.id
-                ? {
-                    ...partial,
-                    id: item.id,
-                    file,
-                    previewUrl: partial.previewUrl ?? r.previewUrl,
-                    error: result.error,
-                    approved: false,
-                  }
-                : r,
-            ),
-          );
-        } else {
-          setRows((prev) =>
-            prev.map((r) =>
-              r.id === item.id
-                ? {
-                    ...r,
-                    status: "error" as const,
-                    error: result.error,
-                    approved: false,
-                  }
-                : r,
-            ),
-          );
+          patchRow(item.id, {
+            ...mapped,
+            id: item.id,
+            file,
+            previewUrl: mapped.previewUrl ?? item.previewUrl,
+          });
+          return;
         }
+
+        if (result.data && typeof result.data === "object") {
+          const partial = rowFromScan(file, result.data as ReceiptScanResponse, defaultJobId);
+          patchRow(item.id, {
+            ...partial,
+            id: item.id,
+            file,
+            previewUrl: partial.previewUrl ?? item.previewUrl,
+            status: "completed",
+            error: result.error,
+            approved: false,
+          });
+          return;
+        }
+
+        patchRow(item.id, {
+          status: "failed",
+          error: result.error,
+          approved: false,
+        });
+      } catch (err) {
+        logBulkScan("error", "row processing exception", {
+          id: item.id,
+          file: item.fileName,
+          error: err instanceof Error ? err.message : String(err),
+        });
+        patchRow(item.id, {
+          status: "failed",
+          error: err instanceof Error ? err.message : "Scan failed unexpectedly",
+          approved: false,
+        });
+      }
+    },
+    [defaultJobId, storagePrefix, patchRow],
+  );
+
+  const drainQueue = useCallback(async () => {
+    if (workerRunningRef.current) {
+      drainPendingRef.current = true;
+      logBulkScan("info", "drain scheduled — worker already active");
+      return;
+    }
+
+    workerRunningRef.current = true;
+    drainPendingRef.current = false;
+    setProcessing(true);
+    setGlobalError("");
+    heartbeatRef.current = Date.now();
+    logBulkScan("info", "drain start");
+
+    try {
+      const summary = await runBulkScanBatches({
+        batchSize: BULK_SCAN_BATCH_SIZE,
+        getQueuedItems: () =>
+          rowsRef.current.filter((r) => r.status === "queued" && r.file),
+        onHeartbeat: () => {
+          heartbeatRef.current = Date.now();
+          syncMetrics(batchIndexRef.current);
+        },
+        processOne: async (item, ctx) => {
+          await processOneReceipt(item, { batchIndex: ctx.batchIndex });
+          syncMetrics(ctx.batchIndex);
+        },
       });
 
-      processingRef.current = false;
+      logBulkScan("info", "drain complete", summary);
+    } catch (err) {
+      logBulkScan("error", "drain fatal (lock released)", {
+        error: err instanceof Error ? err.message : String(err),
+      });
+      setGlobalError("Queue processor error — retrying remaining files…");
+    } finally {
+      workerRunningRef.current = false;
       setProcessing(false);
-    },
-    [defaultJobId, storagePrefix],
-  );
+      setCurrentBatch(0);
+      syncMetrics(0, 0);
+
+      const stuck = rowsRef.current.filter((r) => IN_FLIGHT_STATUSES.includes(r.status));
+      if (stuck.length) {
+        logBulkScan("warn", "releasing stuck in-flight rows", { count: stuck.length });
+        setRows((prev) => {
+          const next = prev.map((r) =>
+            IN_FLIGHT_STATUSES.includes(r.status)
+              ? { ...r, status: "queued" as const, error: "Reset after queue stall — processing again…" }
+              : r,
+          );
+          rowsRef.current = next;
+          return next;
+        });
+      }
+
+      const stillQueued = rowsRef.current.some((r) => r.status === "queued" && r.file);
+      if (stillQueued) {
+        logBulkScan("info", "queued items remain — chaining drain");
+        void drainQueue();
+      } else if (drainPendingRef.current) {
+        drainPendingRef.current = false;
+        logBulkScan("info", "running pending chained drain");
+        void drainQueue();
+      }
+    }
+  }, [processOneReceipt, syncMetrics]);
+
+  useEffect(() => {
+    if (!processing) return;
+    const id = setInterval(() => {
+      const elapsed = Date.now() - heartbeatRef.current;
+      if (elapsed > BULK_QUEUE_STALL_MS && workerRunningRef.current) {
+        logBulkScan("warn", "watchdog: stall recovery", { elapsedMs: elapsed });
+        workerRunningRef.current = false;
+        setProcessing(false);
+        setRows((prev) => {
+          const next = prev.map((r) =>
+            IN_FLIGHT_STATUSES.includes(r.status)
+              ? {
+                  ...r,
+                  status: "queued" as const,
+                  error: "Queue stalled — auto-recovering…",
+                }
+              : r,
+          );
+          rowsRef.current = next;
+          return next;
+        });
+        heartbeatRef.current = Date.now();
+        void drainQueue();
+      }
+    }, BULK_QUEUE_WATCHDOG_INTERVAL_MS);
+    return () => clearInterval(id);
+  }, [processing, drainQueue]);
 
   function enqueueFiles(fileList: FileList | File[]) {
     const files = Array.from(fileList);
@@ -271,9 +461,13 @@ export function BulkReceiptScanner({
       }
     }
 
-    setRows((prev) => [...prev, ...newRows]);
-    const queued = newRows.filter((r) => r.status === "queued");
-    if (queued.length) void processQueue(queued);
+    setRows((prev) => {
+      const next = [...prev, ...newRows];
+      rowsRef.current = next;
+      return next;
+    });
+    syncMetrics();
+    if (newRows.some((r) => r.status === "queued")) void drainQueue();
   }
 
   function retryRow(row: BulkReceiptRow) {
@@ -285,7 +479,7 @@ export function BulkReceiptScanner({
     startTransition(async () => {
       const scanMeta = row.scan;
       if (!row.file && scanMeta?.receipt_storage_path) {
-        updateRow(row.id, { status: "processing", error: null });
+        updateRow(row.id, { status: "scanning", error: null });
         try {
           const result = await retryReceiptScanAction(scanMeta.receipt_storage_path);
           updateRow(row.id, {
@@ -303,31 +497,15 @@ export function BulkReceiptScanner({
           });
         } catch (e) {
           updateRow(row.id, {
-            status: "ready",
+            status: "failed",
             error: e instanceof Error ? e.message : "Rescan failed",
           });
         }
         return;
       }
 
-      updateRow(row.id, { status: "processing", error: null });
-      const result = await scanReceiptViaApi(row.file!, { pathPrefix: storagePrefix, jobId: defaultJobId });
-      if (result.ok) {
-        const mapped = rowFromScan(row.file!, result.data, defaultJobId);
-        updateRow(row.id, { ...mapped, id: row.id, file: row.file, previewUrl: mapped.previewUrl ?? row.previewUrl });
-      } else if (result.data && typeof result.data === "object") {
-        const mapped = rowFromScan(row.file!, result.data as ReceiptScanResponse, defaultJobId);
-        updateRow(row.id, {
-          ...mapped,
-          id: row.id,
-          file: row.file,
-          previewUrl: mapped.previewUrl ?? row.previewUrl,
-          error: result.error,
-          approved: false,
-        });
-      } else {
-        updateRow(row.id, { status: "ready", error: result.error });
-      }
+      updateRow(row.id, { status: "queued", error: null });
+      void drainQueue();
     });
   }
 
@@ -336,11 +514,12 @@ export function BulkReceiptScanner({
       updateRow(row.id, { error: "Vendor and total are required." });
       return;
     }
-    updateRow(row.id, { saving: true, error: null });
+    updateRow(row.id, { saving: true, status: "saving", error: null });
     startTransition(async () => {
       try {
         await saveScannedExpenseAction(toSaveInput(row));
         updateRow(row.id, { status: "saved", saving: false, approved: false });
+        syncMetrics();
         router.refresh();
       } catch (e) {
         updateRow(row.id, {
@@ -359,14 +538,14 @@ export function BulkReceiptScanner({
     }
     setBulkResult(null);
     setGlobalError("");
-    targets.forEach((r) => updateRow(r.id, { saving: true }));
+    targets.forEach((r) => updateRow(r.id, { saving: true, status: "saving" }));
     startTransition(async () => {
       const result = await saveBulkScannedExpensesAction(targets.map(toSaveInput));
       targets.forEach((r) => updateRow(r.id, { saving: false, status: "saved", approved: false }));
       if (result.failed.length) {
         result.failed.forEach((f) => {
           const row = targets[f.index];
-          if (row) updateRow(row.id, { status: "ready", error: f.error });
+          if (row) updateRow(row.id, { status: "completed", error: f.error, saving: false });
         });
         setBulkResult(`Saved ${result.saved} of ${targets.length}. ${result.failed.length} failed.`);
       } else {
@@ -424,9 +603,7 @@ export function BulkReceiptScanner({
             </span>
           </label>
         </div>
-        {processing ? (
-          <p className="text-center text-sm font-semibold text-ocean">Processing queue…</p>
-        ) : null}
+        <QueueProgressPanel metrics={queueMetrics} processing={processing} currentBatch={currentBatch} />
       </div>
 
       {activeRows.length > 0 ? (
@@ -451,7 +628,7 @@ export function BulkReceiptScanner({
                   </div>
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-sm font-medium text-navy">{row.fileName}</p>
-                    {row.status === "ready" || row.status === "error" ? (
+                    {row.status === "completed" || row.status === "failed" ? (
                       <p className="truncate text-xs text-charcoal/60">
                         {row.vendor || "—"} · {row.expenseDate} ·{" "}
                         {row.total > 0 ? `$${row.total.toFixed(2)}` : "—"} · {row.category}
@@ -468,7 +645,7 @@ export function BulkReceiptScanner({
             </ul>
           </div>
 
-          {readyCount > 0 ? (
+          {reviewCount > 0 ? (
             <div className="admin-card overflow-x-auto">
               <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
                 <h3 className="text-sm font-bold text-navy">Review before save</h3>
@@ -499,7 +676,12 @@ export function BulkReceiptScanner({
                 </thead>
                 <tbody>
                   {activeRows
-                    .filter((r) => r.status !== "queued" && r.status !== "processing")
+                    .filter(
+                      (r) =>
+                        r.status !== "queued" &&
+                        !IN_FLIGHT_STATUSES.includes(r.status) &&
+                        r.status !== "saving",
+                    )
                     .map((row) => (
                       <tr key={row.id} className="border-b border-navy/5 align-top">
                         <td className="py-2 pr-2">

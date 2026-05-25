@@ -1,15 +1,13 @@
 import { createCanvas } from "@napi-rs/canvas";
 import * as pdfjs from "pdfjs-dist/legacy/build/pdf.mjs";
-import sharp from "sharp";
+import { buildOcrImage } from "@/lib/receipt/asset-pipeline";
 import { ReceiptScanError } from "@/lib/receipt/errors";
 import type { ProcessedReceiptImage } from "@/lib/receipt/image-pipeline";
 
 export const MAX_PDF_PAGES = 6;
 const PDF_RENDER_SCALE = 2;
-const JPEG_QUALITY = 85;
-const MAX_WIDTH = 2000;
 
-/** Render PDF pages to JPEG buffers optimized for OCR. */
+/** Render PDF pages to normalized JPEG buffers for OCR. */
 export async function pdfToScanImages(pdfBuffer: Buffer): Promise<ProcessedReceiptImage[]> {
   const data = new Uint8Array(pdfBuffer);
 
@@ -56,18 +54,14 @@ export async function pdfToScanImages(pdfBuffer: Buffer): Promise<ProcessedRecei
       }).promise;
 
       const pngBuffer = canvas.toBuffer("image/png");
-      const optimized = await sharp(pngBuffer)
-        .rotate()
-        .resize({ width: MAX_WIDTH, withoutEnlargement: true, fit: "inside" })
-        .jpeg({ quality: JPEG_QUALITY, mozjpeg: true })
-        .toBuffer();
-      const meta = await sharp(optimized).metadata();
+      const assets = await buildOcrImage(pngBuffer, "image/png");
 
       pages.push({
-        buffer: optimized,
+        buffer: assets.ocr,
+        thumbnail: assets.thumbnail,
         mime: "image/jpeg",
-        width: meta.width ?? 0,
-        height: meta.height ?? 0,
+        width: assets.width,
+        height: assets.height,
         wasHeic: false,
       });
     } catch (err) {

@@ -6,7 +6,6 @@ import { TaskQuickAdd } from "@/components/admin/task-quick-add";
 import { createExpense } from "@/lib/admin/actions/expenses";
 import type { CrewOption } from "@/lib/admin/types";
 import { EXPENSE_CATEGORIES, PAYMENT_METHODS } from "@/lib/admin/constants";
-import { uploadAdminFile } from "@/lib/admin/upload";
 import { formatCurrency, formatDate } from "@/lib/admin/format";
 
 type JobOption = { id: string; label: string };
@@ -113,10 +112,25 @@ export function ExpenseManager({
               setError("");
               try {
                 let receipt_url: string | null = null;
+                let receipt_storage_path: string | null = null;
+                let receipt_original_path: string | null = null;
+                let receipt_optimized_path: string | null = null;
+                let receipt_thumbnail_path: string | null = null;
+                let optimized_image_url: string | null = null;
                 const file = (fd.get("receipt") as File | null) ?? null;
                 if (file && file.size > 0) {
-                  const uploaded = await uploadAdminFile("receipts", file, "expenses");
-                  receipt_url = uploaded.publicUrl;
+                  const { scanReceiptViaApi } = await import("@/lib/receipt/bulk-scan-client");
+                  const scanned = await scanReceiptViaApi(file, { pathPrefix: "expenses" });
+                  if (scanned.ok) {
+                    receipt_url = scanned.data.receipt_url;
+                    receipt_storage_path = scanned.data.receipt_storage_path;
+                    receipt_original_path = scanned.data.receipt_original_path ?? scanned.data.receipt_storage_path;
+                    receipt_optimized_path = scanned.data.receipt_optimized_path ?? scanned.data.optimized_storage_path;
+                    receipt_thumbnail_path = scanned.data.receipt_thumbnail_path ?? null;
+                    optimized_image_url = scanned.data.optimized_image_url;
+                  } else {
+                    throw new Error(scanned.error);
+                  }
                 }
                 const linkedJob = String(fd.get("job_id") || "");
                 await createExpense({
@@ -127,6 +141,12 @@ export function ExpenseManager({
                   amount: Number(fd.get("amount")),
                   payment_method: String(fd.get("payment_method")),
                   receipt_url,
+                  receipt_storage_path,
+                  receipt_original_path,
+                  receipt_optimized_path,
+                  receipt_thumbnail_path,
+                  optimized_image_url,
+                  receipt_processing_status: file && file.size > 0 ? "completed" : null,
                   job_id: linkedJob || null,
                   reimbursable: fd.get("reimbursable") === "on",
                   expense_type: linkedJob ? "Job" : "Operating",

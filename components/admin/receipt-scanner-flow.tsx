@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useCallback, useRef, useState, useTransition } from "react";
 import { retryReceiptScanAction, saveScannedExpenseAction } from "@/lib/admin/actions/receipt-scanner";
+import { ReceiptProcessingProgress } from "@/components/admin/receipt-processing-progress";
 import { RECEIPT_EXPENSE_CATEGORIES } from "@/lib/admin/receipt-categories";
 import { PAYMENT_METHODS } from "@/lib/admin/constants";
 import type { ReceiptScanResponse } from "@/lib/receipt/scan-types";
@@ -10,14 +11,7 @@ import { confidenceTier } from "@/lib/receipt/scan-types";
 
 type JobOption = { id: string; label: string };
 
-type Phase = "pick" | "uploading" | "scanning" | "confirm";
-
-const PROGRESS_LABELS: Record<Phase, string> = {
-  pick: "",
-  uploading: "Uploading & optimizing…",
-  scanning: "Running OCR…",
-  confirm: "",
-};
+type Phase = "pick" | "converting" | "optimizing" | "scanning" | "confirm";
 
 function ConfidenceBadge({ confidence }: { confidence: number }) {
   const tier = confidenceTier(confidence);
@@ -86,16 +80,16 @@ export function ReceiptScannerFlow({
     if (result.suggested_job_id && !defaultJobId) {
       setJobId(result.suggested_job_id);
     }
-    if (result.optimized_image_url) {
-      setReceiptPreview(result.optimized_image_url);
+    if (result.thumbnail_url || result.optimized_image_url) {
+      setReceiptPreview(result.thumbnail_url ?? result.optimized_image_url ?? null);
     }
   }, [defaultJobId]);
 
   async function runScan(file: File) {
     setError("");
     setWarnings([]);
-    setUploadPct(10);
-    setPhase("uploading");
+    setUploadPct(12);
+    setPhase("converting");
 
     const preview = URL.createObjectURL(file);
     setReceiptPreview(preview);
@@ -105,7 +99,9 @@ export function ReceiptScannerFlow({
     form.append("pathPrefix", storagePrefix);
     if (defaultJobId) form.append("jobId", defaultJobId);
 
-    setUploadPct(35);
+    setUploadPct(40);
+    setPhase("optimizing");
+    setUploadPct(55);
     setPhase("scanning");
 
     const res = await fetch("/api/admin/expenses/scan", {
@@ -215,20 +211,17 @@ export function ReceiptScannerFlow({
     );
   }
 
-  if (phase === "uploading" || phase === "scanning") {
+  if (phase === "converting" || phase === "optimizing" || phase === "scanning") {
     return (
       <div className="admin-card space-y-4 text-center">
         {receiptPreview ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img src={receiptPreview} alt="Receipt" className="mx-auto max-h-48 rounded-xl object-contain" />
         ) : null}
-        <p className="text-sm font-semibold text-navy">{PROGRESS_LABELS[phase]}</p>
-        <div className="mx-auto h-2 max-w-xs overflow-hidden rounded-full bg-sky/40">
-          <div
-            className="h-full rounded-full bg-ocean transition-all duration-300"
-            style={{ width: `${uploadPct}%` }}
-          />
-        </div>
+        <ReceiptProcessingProgress
+          status={phase === "scanning" ? "scanning" : phase === "optimizing" ? "optimizing" : "converting"}
+          percent={uploadPct}
+        />
       </div>
     );
   }
@@ -406,7 +399,11 @@ export function ReceiptScannerFlow({
                     payment_method: paymentMethod,
                     receipt_url: scan?.receipt_url ?? null,
                     receipt_storage_path: scan?.receipt_storage_path ?? null,
+                    receipt_original_path: scan?.receipt_original_path ?? scan?.receipt_storage_path ?? null,
+                    receipt_optimized_path: scan?.receipt_optimized_path ?? scan?.optimized_storage_path ?? null,
+                    receipt_thumbnail_path: scan?.receipt_thumbnail_path ?? null,
                     optimized_image_url: scan?.optimized_image_url ?? null,
+                    receipt_processing_status: scan?.receipt_processing_status ?? "completed",
                     job_id: jobId || defaultJobId || null,
                     notes: notes || null,
                     reimbursable,

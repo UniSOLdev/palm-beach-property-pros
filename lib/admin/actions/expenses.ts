@@ -15,7 +15,12 @@ export async function createExpense(input: {
   crew_member_id?: string | null;
   receipt_url?: string | null;
   receipt_storage_path?: string | null;
+  receipt_original_path?: string | null;
+  receipt_optimized_path?: string | null;
+  receipt_thumbnail_path?: string | null;
   optimized_image_url?: string | null;
+  receipt_processing_status?: string | null;
+  receipt_processed_at?: string | null;
   notes?: string | null;
   reimbursable?: boolean;
   is_recurring?: boolean;
@@ -41,8 +46,13 @@ export async function createExpense(input: {
       job_id: jobId,
       crew_member_id: input.crew_member_id ?? null,
       receipt_url: input.receipt_url ?? null,
-      receipt_storage_path: input.receipt_storage_path ?? null,
+      receipt_storage_path: input.receipt_storage_path ?? input.receipt_original_path ?? null,
+      receipt_original_path: input.receipt_original_path ?? input.receipt_storage_path ?? null,
+      receipt_optimized_path: input.receipt_optimized_path ?? null,
+      receipt_thumbnail_path: input.receipt_thumbnail_path ?? null,
       optimized_image_url: input.optimized_image_url ?? null,
+      receipt_processing_status: input.receipt_processing_status ?? "completed",
+      receipt_processed_at: input.receipt_processed_at ?? new Date().toISOString(),
       notes: input.notes ?? null,
       expense_type: expenseType,
       reimbursable: input.reimbursable ?? false,

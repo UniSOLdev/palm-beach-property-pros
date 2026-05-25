@@ -8,7 +8,7 @@ const coreCities = SERVICE_CITIES.filter((c) => !c.toLowerCase().startsWith("and
 export function SiteFooter() {
   return (
     <footer className="border-t border-navy/10 bg-navy text-cream">
-      <div className="mx-auto max-w-6xl px-6 py-12">
+      <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6 md:px-6 md:py-12">
         <div className="grid gap-10 lg:grid-cols-12">
           <div className="lg:col-span-4">
             <div className="inline-block rounded-xl bg-white p-3 shadow-md">

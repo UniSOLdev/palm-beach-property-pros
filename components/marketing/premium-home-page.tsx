@@ -102,42 +102,46 @@ export function PremiumHomePage() {
             alt="Coastal luxury home exterior at dusk"
             fill
             priority
-            className="object-cover object-center opacity-[0.48] md:object-center md:opacity-55"
+            className="object-cover object-center opacity-[0.5] md:opacity-55"
             sizes="100vw"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-charcoal via-charcoal/[0.92] to-charcoal/45 md:via-charcoal/80 md:to-charcoal/30" />
+          <div className="absolute inset-0 bg-black/45 md:hidden" aria-hidden />
+          <div
+            className="absolute inset-0 bg-gradient-to-t from-charcoal via-charcoal/85 to-charcoal/35 md:from-charcoal md:via-charcoal/80 md:to-charcoal/30"
+            aria-hidden
+          />
         </div>
-        <div className="relative px-1 py-14 sm:px-2 sm:py-20 md:px-6 md:py-28">
-          <p className="text-[10px] font-semibold uppercase tracking-[0.24em] text-aqua/90 sm:text-xs sm:tracking-[0.28em]">
+        <div className="relative px-4 py-20 sm:px-6 sm:py-24 md:px-6 md:py-28">
+          <p className="text-xs font-semibold uppercase tracking-[0.22em] text-aqua/90 md:tracking-[0.28em]">
             Premium Property Operations
           </p>
-          <h1 className="mt-4 max-w-3xl text-4xl font-semibold leading-[1.12] tracking-tight text-cream sm:mt-5 sm:text-5xl sm:leading-[1.08] md:text-5xl">
+          <h1 className="mt-5 max-w-3xl text-4xl font-semibold leading-[1.1] tracking-tight text-cream sm:text-5xl sm:leading-[1.08] md:max-w-3xl md:text-5xl">
             Property Care for Palm Beach Living
           </h1>
-          <p className="mt-5 max-w-2xl text-base leading-[1.65] text-silver/95 sm:mt-6 sm:text-lg sm:leading-relaxed md:text-xl">
+          <p className="mt-6 max-w-xl text-base leading-relaxed text-silver/95 sm:text-lg md:mt-6 md:max-w-2xl md:text-xl">
             Residential, commercial, and coastal property services delivered with professional crews,
             modern systems, and detail-focused execution.
           </p>
-          <ul className="mt-6 flex flex-wrap gap-2 sm:mt-8 sm:gap-3">
+          <ul className="mt-8 flex flex-wrap justify-center gap-3 md:justify-start">
             {HERO_CHIPS.map((chip) => (
               <li
                 key={chip}
-                className="rounded-full border border-white/15 bg-white/5 px-3 py-2 text-sm font-medium text-cream/95 backdrop-blur-md sm:px-4 sm:py-1.5 sm:text-xs"
+                className="rounded-full border border-white/15 bg-white/5 px-4 py-1.5 text-sm font-medium text-cream/95 backdrop-blur-md md:text-xs"
               >
                 {chip}
               </li>
             ))}
           </ul>
-          <div className="mt-8 flex w-full max-w-xl flex-col gap-3 sm:mt-10 md:flex-row md:flex-wrap md:items-center">
+          <div className="mt-10 flex w-full max-w-xl flex-col gap-3 sm:max-w-none md:mt-10 md:max-w-xl md:flex-row md:flex-wrap md:items-center">
             <Link
               href="/quote"
-              className="btn-primary-lg min-h-[56px] w-full text-center active:scale-[0.98] md:min-h-0 md:w-auto"
+              className="btn-primary-lg min-h-[56px] w-full rounded-2xl text-center transition duration-200 active:scale-[0.98] sm:w-auto md:min-h-0 md:w-auto md:rounded-xl"
             >
               Get Free Quote
             </Link>
             <a
               href={PHONE_TEL}
-              className="btn-secondary-lg min-h-[56px] w-full border-white/25 bg-white/10 text-center text-cream active:scale-[0.98] hover:bg-white/15 md:min-h-0 md:w-auto"
+              className="btn-secondary-lg min-h-[56px] w-full rounded-2xl border-white/25 bg-white/10 text-center text-cream transition duration-200 active:scale-[0.98] hover:bg-white/15 sm:w-auto md:min-h-0 md:w-auto md:rounded-2xl"
             >
               Call or Text {PHONE_DISPLAY}
             </a>
@@ -146,7 +150,7 @@ export function PremiumHomePage() {
       </section>
 
       <ScrollReveal>
-      <section className="border-y border-navy/10 bg-white/60 py-10 backdrop-blur-sm">
+      <section className="border-y border-navy/10 bg-white/60 py-10 backdrop-blur-sm md:py-10">
         <div className="mx-auto flex max-w-4xl flex-col gap-4 text-center">
           <h2 className="text-lg font-semibold tracking-tight text-navy">One secure client platform</h2>
           <p className="text-sm leading-relaxed text-charcoal/85 sm:text-base">
@@ -161,10 +165,10 @@ export function PremiumHomePage() {
       </ScrollReveal>
 
       <ScrollReveal delay={60}>
-      <section className="py-20">
+      <section className="py-12 md:py-20">
         <div className="mx-auto max-w-2xl text-center">
           <p className="text-xs font-semibold uppercase tracking-[0.22em] text-ocean">Property care plans</p>
-          <h2 className="mt-3 text-3xl font-semibold tracking-tight text-navy sm:text-4xl">
+          <h2 className="mt-3 text-2xl font-semibold tracking-tight text-navy sm:text-3xl md:text-4xl">
             Recurring programs, luxury cadence
           </h2>
           <p className="mt-4 text-charcoal/80">
@@ -172,7 +176,7 @@ export function PremiumHomePage() {
             runs—not generic &quot;recurring cleanings.&quot;
           </p>
         </div>
-        <div className="mt-12 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+        <div className="mt-8 grid gap-4 md:mt-12 md:grid-cols-2 md:gap-5 lg:grid-cols-3">
           {CARE_PLANS.map((plan) => (
             <article
               key={plan.title}
@@ -191,10 +195,10 @@ export function PremiumHomePage() {
       </ScrollReveal>
 
       <ScrollReveal delay={120}>
-      <section className="rounded-3xl border border-navy/10 bg-gradient-to-b from-white to-cream/80 py-20 shadow-card">
+      <section className="rounded-2xl border border-navy/10 bg-gradient-to-b from-white to-cream/80 py-12 shadow-card md:rounded-3xl md:py-20">
         <div className="mx-auto max-w-2xl text-center">
           <p className="text-xs font-semibold uppercase tracking-[0.22em] text-ocean">Divisions</p>
-          <h2 className="mt-3 text-3xl font-semibold tracking-tight text-navy sm:text-4xl">
+          <h2 className="mt-3 text-2xl font-semibold tracking-tight text-navy sm:text-3xl md:text-4xl">
             Organized service lines
           </h2>
           <p className="mt-4 text-charcoal/80">
@@ -202,7 +206,7 @@ export function PremiumHomePage() {
             programs.
           </p>
         </div>
-        <div className="mt-14 grid gap-10 lg:grid-cols-3">
+        <div className="mt-8 grid gap-8 md:mt-14 md:gap-10 lg:grid-cols-3">
           {SERVICE_LINES.map((line) => (
             <div key={line.title} className="flex flex-col">
               <h3 className="text-sm font-bold uppercase tracking-[0.2em] text-charcoal/80">{line.title}</h3>
@@ -229,9 +233,9 @@ export function PremiumHomePage() {
       </section>
       </ScrollReveal>
 
-      <section className="animate-fade-up py-20">
-        <div className="grid gap-10 lg:grid-cols-2 lg:items-center">
-          <div className="relative min-h-[280px] overflow-hidden rounded-3xl border border-navy/10 shadow-lift sm:min-h-[360px]">
+      <section className="animate-fade-up py-12 md:py-20">
+        <div className="grid min-w-0 gap-8 md:gap-10 lg:grid-cols-2 lg:items-center">
+          <div className="relative min-h-[220px] overflow-hidden rounded-2xl border border-navy/10 shadow-lift sm:min-h-[280px] md:min-h-[360px] md:rounded-3xl">
             <Image
               src={MAINTENANCE_IMAGE}
               alt="Professional property maintenance"
@@ -241,16 +245,16 @@ export function PremiumHomePage() {
             />
           </div>
           <div>
-            <h2 className="text-3xl font-semibold tracking-tight text-navy sm:text-4xl">Who we work with</h2>
+            <h2 className="text-2xl font-semibold tracking-tight text-navy sm:text-3xl md:text-4xl">Who we work with</h2>
             <p className="mt-4 text-charcoal/80">
               From estate driveways to dealership glass lines—one operations mindset: quiet execution,
               written scope, and repeatability.
             </p>
-            <ul className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-3">
+            <ul className="mt-6 grid grid-cols-2 gap-2 sm:mt-8 sm:gap-3 md:grid-cols-3">
               {WHO_WE_SERVE.map((label) => (
                 <li
                   key={label}
-                  className="rounded-xl border border-navy/10 bg-white/90 px-4 py-3 text-center text-sm font-medium text-navy shadow-sm"
+                  className="min-w-0 rounded-xl border border-navy/10 bg-white/90 px-3 py-3 text-center text-sm font-medium text-navy shadow-sm sm:px-4"
                 >
                   {label}
                 </li>
@@ -260,7 +264,7 @@ export function PremiumHomePage() {
         </div>
       </section>
 
-      <section className="animate-fade-up rounded-3xl border border-navy/10 bg-navy py-16 text-cream">
+      <section className="animate-fade-up rounded-2xl border border-navy/10 bg-navy py-12 text-cream md:rounded-3xl md:py-16">
         <div className="mx-auto max-w-3xl text-center">
           <h2 className="text-2xl font-semibold tracking-tight sm:text-3xl">Local operations, county-wide</h2>
           <p className="mt-4 text-cream/85">
@@ -275,9 +279,9 @@ export function PremiumHomePage() {
         </div>
       </section>
 
-      <section className="animate-fade-up py-20">
-        <h2 className="text-3xl font-semibold tracking-tight text-navy">How it works</h2>
-        <ol className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+      <section className="animate-fade-up py-12 md:py-20">
+        <h2 className="text-2xl font-semibold tracking-tight text-navy sm:text-3xl md:text-3xl">How it works</h2>
+        <ol className="mt-8 grid gap-4 sm:grid-cols-2 sm:gap-5 md:mt-10 lg:grid-cols-4">
           {HOW_IT_WORKS.map((step, i) => (
             <li
               key={step}
@@ -290,7 +294,7 @@ export function PremiumHomePage() {
         </ol>
       </section>
 
-      <section className="animate-fade-up border-y border-navy/10 bg-white/70 py-16 backdrop-blur-sm">
+      <section className="animate-fade-up border-y border-navy/10 bg-white/70 py-12 backdrop-blur-sm md:py-16">
         <div className="mx-auto max-w-3xl">
           <h2 className="text-2xl font-semibold tracking-tight text-navy sm:text-3xl">Documentation &amp; trust</h2>
           <p className="mt-4 text-charcoal/85">
@@ -301,7 +305,7 @@ export function PremiumHomePage() {
         </div>
       </section>
 
-      <section className="animate-fade-up py-16">
+      <section className="animate-fade-up py-12 md:py-16">
         <div className="mx-auto w-full max-w-3xl">
           <h2 className="text-2xl font-semibold tracking-tight text-navy sm:text-3xl">FAQ</h2>
           <div className="mt-8">
@@ -310,17 +314,23 @@ export function PremiumHomePage() {
         </div>
       </section>
 
-      <section className="animate-fade-up rounded-3xl border border-white/10 bg-charcoal px-6 py-14 text-center text-cream">
+      <section className="animate-fade-up rounded-2xl border border-white/10 bg-charcoal px-4 py-12 text-center text-cream sm:px-6 md:rounded-3xl md:px-6 md:py-14">
         <h2 className="text-2xl font-semibold tracking-tight sm:text-3xl">Ready when you are</h2>
         <p className="mx-auto mt-3 max-w-xl text-cream/80">
           Same team for quotes, service delivery, invoices, and reviews—organized like modern property
           operations should be.
         </p>
-        <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
-          <Link href="/quote" className="btn-primary-lg">
+        <div className="mt-8 flex w-full max-w-xl flex-col items-stretch gap-3 sm:mx-auto sm:max-w-none sm:flex-row sm:items-center sm:justify-center">
+          <Link
+            href="/quote"
+            className="btn-primary-lg min-h-[56px] w-full rounded-2xl transition duration-200 active:scale-[0.98] sm:w-auto md:rounded-xl"
+          >
             Get Free Quote
           </Link>
-          <a href={PHONE_TEL} className="btn-secondary-lg border-white/25 bg-white/10 text-cream hover:bg-white/15">
+          <a
+            href={PHONE_TEL}
+            className="btn-secondary-lg min-h-[56px] w-full rounded-2xl border-white/25 bg-white/10 text-cream transition duration-200 active:scale-[0.98] hover:bg-white/15 sm:w-auto md:rounded-2xl"
+          >
             Call or Text {PHONE_DISPLAY}
           </a>
         </div>

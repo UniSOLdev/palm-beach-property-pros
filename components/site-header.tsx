@@ -18,12 +18,12 @@ export function SiteHeader() {
   return (
     <header className="sticky top-0 z-40 overflow-x-hidden border-b border-white/[0.06] bg-graphite/75 shadow-[0_8px_32px_rgba(0,0,0,0.28)] backdrop-blur-xl backdrop-saturate-150">
       <nav
-        className="mx-auto flex w-full min-w-0 max-w-6xl items-center justify-between gap-2 px-4 py-3 sm:gap-3 sm:px-5 sm:py-4 md:gap-4 md:px-6"
+        className="mx-auto flex w-full min-w-0 max-w-6xl items-center justify-between gap-2 px-4 py-3 sm:gap-3 sm:px-5 sm:py-4 md:gap-4 md:px-6 md:py-4"
         aria-label="Primary"
       >
         <Link
           href="/"
-          className="min-w-0 shrink no-underline pr-2"
+          className="min-w-0 shrink-0 no-underline pr-2"
           aria-label="Palm Beach Property Pros home"
         >
           <Image
@@ -54,7 +54,7 @@ export function SiteHeader() {
         <div className="flex shrink-0 items-center md:hidden">
           <button
             type="button"
-            className="inline-flex h-12 w-12 min-h-[48px] min-w-[48px] items-center justify-center rounded-xl border border-white/15 text-cream transition active:scale-95 active:bg-white/10"
+            className="inline-flex h-11 w-11 min-h-[44px] min-w-[44px] items-center justify-center rounded-xl border border-white/15 text-cream transition duration-200 active:scale-95 active:bg-white/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-aqua"
             aria-expanded={open}
             aria-controls="mobile-nav"
             onClick={() => setOpen((v) => !v)}
@@ -76,7 +76,10 @@ export function SiteHeader() {
       </nav>
 
       {open ? (
-        <div id="mobile-nav" className="border-t border-white/10 bg-graphite px-4 pb-4 pt-2 sm:px-5 md:hidden">
+        <div
+          id="mobile-nav"
+          className="border-t border-white/10 bg-graphite px-4 pb-4 pt-2 transition-[opacity,transform] duration-200 ease-out sm:px-5 md:hidden"
+        >
           <div className="mx-auto flex max-w-6xl flex-col gap-1">
             {nav.map((item) => (
               <Link

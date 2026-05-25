@@ -14,6 +14,7 @@ export const RECEIPT_EXPENSE_CATEGORIES = [
   "Storage",
   "Vehicle",
   "PPE",
+  "Meals",
   "Misc",
 ] as const;
 
@@ -22,7 +23,9 @@ export type ReceiptExpenseCategory = (typeof RECEIPT_EXPENSE_CATEGORIES)[number]
 const LEGACY_MAP: Record<string, ReceiptExpenseCategory> = {
   Fuel: "Gas/Fuel",
   "Truck Rental": "Rentals",
-  Meals: "Misc",
+  Meal: "Meals",
+  Meals: "Meals",
+  Restaurant: "Meals",
   Supplies: "Supplies",
   Chemicals: "Chemicals",
   Equipment: "Equipment",
@@ -48,7 +51,25 @@ export function normalizeReceiptCategory(raw: string | null | undefined): Receip
   if (/repair|service/i.test(lower)) return "Repairs";
   if (/storage|unit/i.test(lower)) return "Storage";
   if (/vehicle|auto|tire/i.test(lower)) return "Vehicle";
+  if (/restaurant|cafe|coffee|mcdonald|starbucks|chipotle|subway|dining|meal|grubhub|doordash/i.test(lower)) {
+    return "Meals";
+  }
   return "Misc";
+}
+
+/** Vendor-based category hint for OCR fallback */
+export function suggestCategoryFromVendor(vendor: string): ReceiptExpenseCategory {
+  const v = vendor.trim();
+  if (!v) return "Misc";
+  const lower = v.toLowerCase();
+  if (/shell|chevron|bp |wawa|sunoco|exxon|mobil|gas|fuel/i.test(lower)) return "Gas/Fuel";
+  if (/u-?haul|budget truck|penske|enterprise rent/i.test(lower)) return "Rentals";
+  if (/home depot|lowes|lowe's|harbor freight|ace hardware/i.test(lower)) return "Tools";
+  if (/sam's club|walmart|costco|target|dollar general/i.test(lower)) return "Supplies";
+  if (/restaurant|cafe|starbucks|mcdonald|chipotle|dunkin|subway|grubhub|doordash/i.test(lower)) return "Meals";
+  if (/dump|landfill|waste management/i.test(lower)) return "Dump Fees";
+  if (/adobe|google workspace|quickbooks|stripe|software|saas/i.test(lower)) return "Software";
+  return normalizeReceiptCategory(v);
 }
 
 export function normalizePaymentMethod(raw: string | null | undefined): string {

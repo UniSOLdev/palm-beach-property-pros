@@ -453,11 +453,18 @@ export type Database = {
           is_recurring: boolean
           job_id: string | null
           notes: string | null
+          ocr_version: string | null
+          optimized_image_url: string | null
           payment_method: string
+          receipt_storage_path: string | null
           receipt_url: string | null
           recurring_interval: string | null
           reimbursable: boolean
           reimbursed: boolean
+          scan_confidence: number | null
+          scan_raw_response: Json | null
+          scan_status: string | null
+          updated_at: string
           vendor: string
         }
         Insert: {
@@ -473,11 +480,18 @@ export type Database = {
           is_recurring?: boolean
           job_id?: string | null
           notes?: string | null
+          ocr_version?: string | null
+          optimized_image_url?: string | null
           payment_method: string
+          receipt_storage_path?: string | null
           receipt_url?: string | null
           recurring_interval?: string | null
           reimbursable?: boolean
           reimbursed?: boolean
+          scan_confidence?: number | null
+          scan_raw_response?: Json | null
+          scan_status?: string | null
+          updated_at?: string
           vendor: string
         }
         Update: {
@@ -493,11 +507,18 @@ export type Database = {
           is_recurring?: boolean
           job_id?: string | null
           notes?: string | null
+          ocr_version?: string | null
+          optimized_image_url?: string | null
           payment_method?: string
+          receipt_storage_path?: string | null
           receipt_url?: string | null
           recurring_interval?: string | null
           reimbursable?: boolean
           reimbursed?: boolean
+          scan_confidence?: number | null
+          scan_raw_response?: Json | null
+          scan_status?: string | null
+          updated_at?: string
           vendor?: string
         }
         Relationships: [

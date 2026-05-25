@@ -1,13 +1,25 @@
 "use server";
 
-import { extractReceiptFromImageUrl } from "@/lib/admin/receipt-extraction";
+import { revalidatePath } from "next/cache";
 import { createExpense } from "@/lib/admin/actions/expenses";
+import { extractReceiptFromImageUrl } from "@/lib/admin/receipt-extraction";
+import { retryReceiptOcr } from "@/lib/receipt/scan-service";
+import type { ReceiptScanResponse } from "@/lib/receipt/scan-types";
+import { createServiceClient } from "@/lib/supabase/service";
 
+/** Legacy URL-based extraction — prefer POST /api/admin/expenses/scan */
 export async function extractReceiptAction(receiptImageUrl: string) {
   if (!receiptImageUrl?.startsWith("http")) {
     throw new Error("Invalid receipt image URL");
   }
   return extractReceiptFromImageUrl(receiptImageUrl);
+}
+
+export async function retryReceiptScanAction(receiptStoragePath: string): Promise<ReceiptScanResponse> {
+  if (!receiptStoragePath?.trim()) {
+    throw new Error("Missing receipt path for rescan");
+  }
+  return retryReceiptOcr(receiptStoragePath);
 }
 
 export async function saveScannedExpenseAction(input: {
@@ -19,11 +31,17 @@ export async function saveScannedExpenseAction(input: {
   payment_method: string;
   receipt_url: string | null;
   receipt_storage_path?: string | null;
+  optimized_image_url?: string | null;
   job_id?: string | null;
   notes?: string | null;
   reimbursable?: boolean;
   tax_amount?: number | null;
   subtotal?: number | null;
+  receipt_id?: string | null;
+  scan_confidence?: number | null;
+  scan_status?: string | null;
+  scan_raw_response?: unknown;
+  ocr_version?: string | null;
 }) {
   let notes = input.notes?.trim() || null;
   if (input.tax_amount != null || input.subtotal != null) {
@@ -34,7 +52,7 @@ export async function saveScannedExpenseAction(input: {
     notes = notes ? `${notes} · ${extra}` : extra;
   }
 
-  await createExpense({
+  const expenseId = await createExpense({
     expense_date: input.expense_date,
     category: input.category,
     vendor: input.vendor,
@@ -42,9 +60,34 @@ export async function saveScannedExpenseAction(input: {
     amount: input.amount,
     payment_method: input.payment_method,
     receipt_url: input.receipt_url,
+    receipt_storage_path: input.receipt_storage_path ?? null,
+    optimized_image_url: input.optimized_image_url ?? null,
     job_id: input.job_id ?? null,
     notes,
     reimbursable: input.reimbursable ?? false,
     expense_type: input.job_id ? "Job" : "Operating",
+    scan_confidence: input.scan_confidence ?? null,
+    scan_status: input.scan_status ?? "manual",
+    scan_raw_response: input.scan_raw_response ?? null,
+    ocr_version: input.ocr_version ?? null,
   });
+
+  if (input.receipt_id) {
+    try {
+      const supabase = createServiceClient();
+      await supabase
+        .from("expense_receipts")
+        .update({
+          expense_id: expenseId,
+          job_id: input.job_id ?? null,
+          status: "linked",
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", input.receipt_id);
+    } catch {
+      /* non-blocking */
+    }
+  }
+
+  revalidatePath("/admin/expenses");
 }

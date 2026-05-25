@@ -41,7 +41,20 @@ export function ExpenseManager({
     initialFocus === "receipt" || initialFocus === "scan",
   );
   const [showManualForm, setShowManualForm] = useState(initialFocus === "form");
+  const [search, setSearch] = useState("");
+  const [categoryFilter, setCategoryFilter] = useState("");
   const formRef = useRef<HTMLFormElement>(null);
+
+  const filtered = initial.filter((e) => {
+    const q = search.trim().toLowerCase();
+    if (categoryFilter && e.category !== categoryFilter) return false;
+    if (!q) return true;
+    return (
+      e.vendor.toLowerCase().includes(q) ||
+      e.description.toLowerCase().includes(q) ||
+      e.category.toLowerCase().includes(q)
+    );
+  });
 
   useEffect(() => {
     if (initialFocus === "form") {
@@ -193,17 +206,42 @@ export function ExpenseManager({
         </form>
       ) : null}
 
+      <div className="admin-card flex flex-col gap-2 sm:flex-row">
+        <input
+          type="search"
+          placeholder="Search vendor, description…"
+          className="admin-input flex-1"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+        />
+        <select
+          className="admin-input sm:max-w-[180px]"
+          value={categoryFilter}
+          onChange={(e) => setCategoryFilter(e.target.value)}
+        >
+          <option value="">All categories</option>
+          {EXPENSE_CATEGORIES.map((c) => (
+            <option key={c} value={c}>
+              {c}
+            </option>
+          ))}
+        </select>
+      </div>
+
       <ul className="space-y-3">
-        {initial.length === 0 ? (
-          <li className="admin-card text-center text-sm text-charcoal/60">No expenses logged yet.</li>
+        {filtered.length === 0 ? (
+          <li className="admin-card text-center text-sm text-charcoal/60">
+            {initial.length === 0 ? "No expenses logged yet." : "No expenses match your filters."}
+          </li>
         ) : (
-          initial.map((e) => (
+          filtered.map((e) => (
             <li key={e.id} className="admin-card">
               <div className="flex items-start justify-between gap-2">
                 <div>
                   <p className="font-semibold text-navy">{e.description}</p>
                   <p className="text-xs text-charcoal/60">
                     {e.category} · {e.vendor} · {formatDate(e.expense_date)}
+                    {e.reimbursable ? " · Reimbursable" : ""}
                   </p>
                 </div>
                 <p className="font-bold text-navy">{formatCurrency(Number(e.amount))}</p>

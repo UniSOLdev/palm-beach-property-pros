@@ -29,7 +29,7 @@ const EXTRACTION_SCHEMA = {
   subtotal: "subtotal before tax if visible or null",
   payment_method: "e.g. Visa, Cash, Card — never full card number",
   card_last4: "last 4 digits only if visible, else null",
-  category: "one of: Chemicals, Gas/Fuel, Equipment, Tools, Rentals, Dump Fees, Labor, Marketing, Software, Supplies, Repairs, Storage, Vehicle, PPE, Misc",
+  category: "one of: Chemicals, Gas/Fuel, Equipment, Tools, Rentals, Dump Fees, Labor, Marketing, Software, Supplies, Repairs, Storage, Vehicle, PPE, Meals, Misc",
   description: "short expense description",
   notes: "any extra line items or memo, null if none",
   confidence: "0 to 1 how confident you are in the extraction",
@@ -50,7 +50,7 @@ export async function extractReceiptFromImageUrl(imageUrl: string): Promise<Rece
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "gpt-4o-mini",
+        model: process.env.OPENAI_RECEIPT_MODEL?.trim() || "gpt-4.1-mini",
         temperature: 0.1,
         max_tokens: 800,
         response_format: { type: "json_object" },

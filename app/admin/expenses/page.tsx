@@ -3,7 +3,9 @@ import { Suspense } from "react";
 import { TaskQuickAdd } from "@/components/admin/task-quick-add";
 import { TaskWorkflowBar } from "@/components/admin/task-workflow-bar";
 import { AdminPageHeader } from "@/components/admin/entity-list";
+import { ExpenseAnalyticsPanel } from "@/components/admin/expense-analytics";
 import { ExpenseManagerClient } from "@/components/admin/expense-manager-client";
+import { getExpenseAnalytics } from "@/lib/admin/expense-analytics";
 import { LoadError } from "@/components/admin/load-error";
 import { listJobsForExpenseLink } from "@/lib/admin/actions/expenses";
 import { listCrewOptions } from "@/lib/admin/actions/tasks";
@@ -15,7 +17,7 @@ export const metadata = { title: "Expenses" };
 
 export default async function AdminExpensesPage() {
   const supabase = await createClient();
-  const [crew, jobsResult, expensesResult] = await Promise.all([
+  const [crew, jobsResult, expensesResult, analytics] = await Promise.all([
     listCrewOptions(),
     listJobsForExpenseLink(),
     supabase
@@ -23,6 +25,7 @@ export default async function AdminExpensesPage() {
       .select("*")
       .eq("archived", false)
       .order("expense_date", { ascending: false }),
+    getExpenseAnalytics(),
   ]);
 
   const expensesQuery = fromSupabase(expensesResult.data, expensesResult.error, {
@@ -62,6 +65,7 @@ export default async function AdminExpensesPage() {
           Job linking unavailable: {jobsResult.error}
         </p>
       ) : null}
+      <ExpenseAnalyticsPanel analytics={analytics} />
       <TaskQuickAdd crew={crew} variant="primary" label="+ Add expense task" className="w-full" defaults={{ category: "Expense/Receipt" }} />
       <TaskWorkflowBar context="expense" defaults={{ category: "Expense/Receipt" }} />
       <Suspense fallback={<p className="text-sm text-charcoal/60">Loading expenses…</p>}>

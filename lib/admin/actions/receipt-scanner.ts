@@ -3,7 +3,6 @@
 import { revalidatePath } from "next/cache";
 import { createExpense } from "@/lib/admin/actions/expenses";
 import { extractReceiptFromImageUrl } from "@/lib/admin/receipt-extraction";
-import { retryReceiptOcr } from "@/lib/receipt/scan-service";
 import type { ReceiptScanResponse } from "@/lib/receipt/scan-types";
 import { createServiceClient } from "@/lib/supabase/service";
 
@@ -19,6 +18,7 @@ export async function retryReceiptScanAction(receiptStoragePath: string): Promis
   if (!receiptStoragePath?.trim()) {
     throw new Error("Missing receipt path for rescan");
   }
+  const { retryReceiptOcr } = await import("@/lib/receipt/retry-ocr");
   return retryReceiptOcr(receiptStoragePath);
 }
 

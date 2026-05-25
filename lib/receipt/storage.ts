@@ -5,12 +5,14 @@ const SIGNED_TTL_SEC = 60 * 60 * 24 * 7;
 export async function uploadReceiptBuffers(input: {
   original: { buffer: Buffer; mime: string; ext: string };
   optimized?: { buffer: Buffer; mime: string };
+  optimizedPages?: { buffer: Buffer; mime: string; page: number }[];
   pathPrefix: string;
 }): Promise<{
   receipt_storage_path: string;
   optimized_storage_path: string | null;
   receipt_url: string;
   optimized_image_url: string | null;
+  normalized_paths: string[];
 }> {
   const supabase = createServiceClient();
   const id = crypto.randomUUID();
@@ -22,17 +24,27 @@ export async function uploadReceiptBuffers(input: {
   });
   if (origErr) throw new Error(`Receipt upload failed: ${origErr.message}`);
 
+  const pagesToUpload =
+    input.optimizedPages?.length
+      ? input.optimizedPages
+      : input.optimized
+        ? [{ buffer: input.optimized.buffer, mime: input.optimized.mime, page: 1 }]
+        : [];
+
+  const normalized_paths: string[] = [];
   let optimizedPath: string | null = null;
-  if (input.optimized) {
-    optimizedPath = `${input.pathPrefix}/${id}-ocr.jpg`;
-    const { error: optErr } = await supabase.storage
-      .from("receipts-optimized")
-      .upload(optimizedPath, input.optimized.buffer, {
-        contentType: input.optimized.mime,
-        cacheControl: "3600",
-        upsert: false,
-      });
+
+  for (const page of pagesToUpload) {
+    const suffix = page.page === 1 ? "ocr" : `ocr-p${page.page}`;
+    const path = `${input.pathPrefix}/${id}-${suffix}.jpg`;
+    const { error: optErr } = await supabase.storage.from("receipts-optimized").upload(path, page.buffer, {
+      contentType: page.mime,
+      cacheControl: "3600",
+      upsert: false,
+    });
     if (optErr) throw new Error(`Optimized receipt upload failed: ${optErr.message}`);
+    normalized_paths.push(path);
+    if (page.page === 1) optimizedPath = path;
   }
 
   const { data: receiptSigned, error: signErr } = await supabase.storage
@@ -54,5 +66,6 @@ export async function uploadReceiptBuffers(input: {
     optimized_storage_path: optimizedPath,
     receipt_url: receiptSigned.signedUrl,
     optimized_image_url,
+    normalized_paths,
   };
 }

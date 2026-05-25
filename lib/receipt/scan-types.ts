@@ -30,6 +30,8 @@ export type ReceiptScanResponse = {
   scan_status: "scanned" | "partial" | "failed" | "manual";
   ocr_version: string;
   description: string;
+  /** Normalized pages sent to OCR (PDF may be >1). */
+  page_count?: number;
 };
 
 export const OCR_VERSION = "openai-vision-v2";

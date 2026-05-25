@@ -11,6 +11,7 @@ import {
 import { RECEIPT_EXPENSE_CATEGORIES } from "@/lib/admin/receipt-categories";
 import { PAYMENT_METHODS } from "@/lib/admin/constants";
 import {
+  BULK_ALLOWED_LABEL,
   BULK_SCAN_BATCH_SIZE,
   BULK_SCAN_MAX_FILES,
   isImagePreviewable,
@@ -396,8 +397,8 @@ export function BulkReceiptScanner({
       <div className="admin-card space-y-3">
         <h2 className="text-lg font-bold text-navy">Bulk receipt upload</h2>
         <p className="text-sm text-charcoal/70">
-          Select multiple receipts (JPG, PNG, WebP, PDF). Files scan in batches of {BULK_SCAN_BATCH_SIZE} to
-          stay within API limits.
+          Select multiple receipts ({BULK_ALLOWED_LABEL}). Each file is normalized server-side (HEIC→JPEG,
+          PDF→pages) then scanned in batches of {BULK_SCAN_BATCH_SIZE}.
         </p>
         <div
           onDragOver={(e) => e.preventDefault()}
@@ -409,7 +410,7 @@ export function BulkReceiptScanner({
               ref={fileRef}
               type="file"
               multiple
-              accept=".jpg,.jpeg,.png,.webp,.pdf,image/jpeg,image/png,image/webp,application/pdf"
+              accept=".jpg,.jpeg,.png,.webp,.heic,.heif,.pdf,image/jpeg,image/png,image/webp,image/heic,image/heif,application/pdf"
               className="sr-only"
               onChange={(e) => {
                 if (e.target.files?.length) enqueueFiles(e.target.files);
@@ -419,7 +420,7 @@ export function BulkReceiptScanner({
             <span className="text-2xl">📁</span>
             <span>Choose files or drop receipts here</span>
             <span className="text-xs font-normal text-charcoal/55">
-              Up to {BULK_SCAN_MAX_FILES} files · 12 MB each
+              {BULK_ALLOWED_LABEL} · up to {BULK_SCAN_MAX_FILES} files · 12 MB each
             </span>
           </label>
         </div>
@@ -454,6 +455,9 @@ export function BulkReceiptScanner({
                       <p className="truncate text-xs text-charcoal/60">
                         {row.vendor || "—"} · {row.expenseDate} ·{" "}
                         {row.total > 0 ? `$${row.total.toFixed(2)}` : "—"} · {row.category}
+                        {row.scan?.page_count && row.scan.page_count > 1
+                          ? ` · ${row.scan.page_count} pages`
+                          : ""}
                       </p>
                     ) : null}
                     {row.error ? <p className="text-xs text-red-700">{row.error}</p> : null}

@@ -4,15 +4,35 @@ import { logPipelineError, logPipelineInfo } from "@/lib/pipeline/logger";
 import { suggestJobMatch, type JobMatchCandidate } from "@/lib/receipt/job-matching";
 import {
   normalizeReceiptMime,
-  processReceiptImage,
   toDataUrl,
   validateReceiptUpload,
 } from "@/lib/receipt/image-pipeline";
-import { runReceiptOcr } from "@/lib/receipt/ocr";
+import { normalizeUploadToScanImages } from "@/lib/receipt/normalize-upload";
+import { mergeOcrResults } from "@/lib/receipt/ocr-merge";
+import { runReceiptOcr, type OcrParseResult } from "@/lib/receipt/ocr";
 import { uploadReceiptBuffers } from "@/lib/receipt/storage";
 import type { ReceiptScanResponse } from "@/lib/receipt/scan-types";
-import { OCR_VERSION, confidenceTier } from "@/lib/receipt/scan-types";
-import { ReceiptScanError } from "@/lib/receipt/errors";
+import { confidenceTier } from "@/lib/receipt/scan-types";
+
+function fileExtension(mime: string, fileName: string): string {
+  if (mime === "application/pdf") return "pdf";
+  const ext = fileName.split(".").pop()?.toLowerCase();
+  if (ext && ["heic", "heif", "jpg", "jpeg", "png", "webp", "pdf"].includes(ext)) return ext;
+  if (mime === "image/heic" || mime === "image/heif") return "heic";
+  if (mime === "image/png") return "png";
+  if (mime === "image/webp") return "webp";
+  return "jpg";
+}
+
+async function ocrAllPages(
+  pages: Awaited<ReturnType<typeof normalizeUploadToScanImages>>,
+): Promise<OcrParseResult> {
+  const results: OcrParseResult[] = [];
+  for (const page of pages) {
+    results.push(await runReceiptOcr(toDataUrl(page.buffer, page.mime)));
+  }
+  return mergeOcrResults(results);
+}
 
 export async function scanReceiptFromFile(
   file: File,
@@ -22,22 +42,20 @@ export async function scanReceiptFromFile(
   const pathPrefix = options.pathPrefix ?? "expenses";
   validateReceiptUpload({ name: file.name, size: file.size, type: file.type });
   const mime = normalizeReceiptMime(file.type, file.name);
-
-  if (mime === "application/pdf") {
-    return scanPdfFallback(file, pathPrefix, options.userId, started);
-  }
-
   const inputBuffer = Buffer.from(await file.arrayBuffer());
-  const processed = await processReceiptImage(inputBuffer, mime);
-  const dataUrl = toDataUrl(processed.buffer, processed.mime);
 
-  const ocr = await runReceiptOcr(dataUrl);
-  const ext = processed.wasHeic ? "heic" : file.name.split(".").pop()?.toLowerCase() ?? "jpg";
+  const pages = await normalizeUploadToScanImages(inputBuffer, mime);
+  const ocr = await ocrAllPages(pages);
+  const ext = fileExtension(mime, file.name);
 
   const uploaded = await uploadReceiptBuffers({
     pathPrefix,
     original: { buffer: inputBuffer, mime, ext },
-    optimized: { buffer: processed.buffer, mime: processed.mime },
+    optimizedPages: pages.map((p) => ({
+      buffer: p.buffer,
+      mime: p.mime,
+      page: p.pageIndex,
+    })),
   });
 
   const jobs = await loadJobsForMatching();
@@ -54,12 +72,17 @@ export async function scanReceiptFromFile(
     tier === "low" || ocr.total <= 0 ? "partial" : tier === "medium" ? "partial" : "scanned";
 
   const warnings = [...ocr.warnings];
-  if (processed.wasHeic) warnings.push("iPhone HEIC photo converted for scanning.");
+  if (pages.some((p) => p.wasHeic)) warnings.push("HEIC/HEIF converted to JPEG for scanning.");
+  if (mime === "application/pdf") {
+    warnings.unshift(
+      pages.length > 1
+        ? `PDF scanned across ${pages.length} pages.`
+        : "PDF converted to image for scanning.",
+    );
+  }
 
   const description =
-    ocr.vendor ||
-    (ocr.line_items[0]?.description ?? "") ||
-    "Receipt expense";
+    ocr.vendor || (ocr.line_items[0]?.description ?? "") || "Receipt expense";
 
   const response: ReceiptScanResponse = {
     success: true,
@@ -85,6 +108,7 @@ export async function scanReceiptFromFile(
     scan_status,
     ocr_version: ocr.ocr_version,
     description,
+    page_count: pages.length,
   };
 
   await persistScanArtifacts({
@@ -92,7 +116,7 @@ export async function scanReceiptFromFile(
     userId: options.userId,
     originalMime: mime,
     originalSize: file.size,
-    optimizedSize: processed.buffer.length,
+    optimizedSize: pages.reduce((s, p) => s + p.buffer.length, 0),
     ocrModel: ocr.model,
     rawResponse: ocr.raw,
     durationMs: Date.now() - started,
@@ -103,61 +127,10 @@ export async function scanReceiptFromFile(
     details: {
       confidence: ocr.confidence,
       scan_status,
+      pages: pages.length,
+      mime,
       durationMs: Date.now() - started,
     },
-  });
-
-  return response;
-}
-
-async function scanPdfFallback(
-  file: File,
-  pathPrefix: string,
-  userId: string | null | undefined,
-  started: number,
-): Promise<ReceiptScanResponse> {
-  const buffer = Buffer.from(await file.arrayBuffer());
-  const uploaded = await uploadReceiptBuffers({
-    pathPrefix,
-    original: { buffer, mime: "application/pdf", ext: "pdf" },
-  });
-
-  const today = new Date().toISOString().slice(0, 10);
-  const response: ReceiptScanResponse = {
-    success: true,
-    confidence: 0.2,
-    vendor: "",
-    date: today,
-    total: 0,
-    subtotal: 0,
-    tax: 0,
-    payment_method: "Card",
-    card_last4: null,
-    receipt_number: "",
-    suggested_category: "Misc",
-    suggested_job_id: "",
-    suggested_job_label: "",
-    notes: "",
-    line_items: [],
-    warnings: ["PDF uploaded — OCR works best on photos. Enter details manually or retry with a photo."],
-    receipt_url: uploaded.receipt_url,
-    optimized_image_url: null,
-    receipt_storage_path: uploaded.receipt_storage_path,
-    optimized_storage_path: null,
-    scan_status: "partial",
-    ocr_version: OCR_VERSION,
-    description: "PDF receipt",
-  };
-
-  await persistScanArtifacts({
-    response,
-    userId,
-    originalMime: "application/pdf",
-    originalSize: file.size,
-    optimizedSize: null,
-    ocrModel: null,
-    rawResponse: null,
-    durationMs: Date.now() - started,
   });
 
   return response;
@@ -252,59 +225,4 @@ async function persistScanArtifacts(input: {
   } catch (err) {
     logPipelineError("persistScanArtifacts exception", err, { step: "persistScanArtifacts" });
   }
-}
-
-export async function retryReceiptOcr(receiptStoragePath: string): Promise<ReceiptScanResponse> {
-  const supabase = createServiceClient();
-  const optPath = receiptStoragePath.replace(/-original\.[^/]+$/, "-ocr.jpg");
-  let buffer: Buffer | null = null;
-
-  const { data: optData, error: optErr } = await supabase.storage.from("receipts-optimized").download(optPath);
-  if (!optErr && optData) {
-    buffer = Buffer.from(await optData.arrayBuffer());
-  } else {
-    const { data, error } = await supabase.storage.from("receipts").download(receiptStoragePath);
-    if (error || !data) {
-      throw new ReceiptScanError("UPLOAD", "Could not load receipt for rescan.");
-    }
-    const raw = Buffer.from(await data.arrayBuffer());
-    const processed = await processReceiptImage(raw, "image/jpeg");
-    buffer = processed.buffer;
-  }
-
-  const ocr = await runReceiptOcr(toDataUrl(buffer, "image/jpeg"));
-  const jobs = await loadJobsForMatching();
-  const jobMatch = suggestJobMatch(jobs, {
-    vendor: ocr.vendor,
-    expenseDate: ocr.date,
-    category: ocr.suggested_category,
-    rawText: ocr.notes,
-    lineItems: ocr.line_items,
-  });
-
-  return {
-    success: true,
-    confidence: ocr.confidence,
-    vendor: ocr.vendor,
-    date: ocr.date,
-    total: ocr.total,
-    subtotal: ocr.subtotal,
-    tax: ocr.tax,
-    payment_method: ocr.payment_method,
-    card_last4: ocr.card_last4,
-    receipt_number: ocr.receipt_number,
-    suggested_category: ocr.suggested_category,
-    suggested_job_id: jobMatch?.job_id ?? "",
-    suggested_job_label: jobMatch?.label ?? "",
-    notes: ocr.notes,
-    line_items: ocr.line_items,
-    warnings: ocr.warnings,
-    receipt_url: null,
-    optimized_image_url: null,
-    receipt_storage_path: receiptStoragePath,
-    optimized_storage_path: null,
-    scan_status: confidenceTier(ocr.confidence) === "low" ? "partial" : "scanned",
-    ocr_version: ocr.ocr_version,
-    description: ocr.vendor || "Receipt expense",
-  };
 }

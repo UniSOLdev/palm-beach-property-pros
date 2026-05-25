@@ -35,6 +35,8 @@ export function normalizeReceiptMime(type: string, fileName: string): string {
   return t || "application/octet-stream";
 }
 
+const SUPPORTED_LABEL = "JPG, JPEG, PNG, WebP, HEIC, HEIF, or PDF";
+
 export function validateReceiptUpload(file: { name: string; size: number; type: string }): void {
   if (!file.name?.trim()) throw new ReceiptScanError("VALIDATION", "File name is required.");
   if (file.size <= 0) throw new ReceiptScanError("VALIDATION", "File is empty.");
@@ -44,11 +46,19 @@ export function validateReceiptUpload(file: { name: string; size: number; type: 
   const mime = normalizeReceiptMime(file.type, file.name);
   if (mime === "application/pdf") return;
   if (!IMAGE_MIMES.has(mime)) {
-    throw new ReceiptScanError(
-      "VALIDATION",
-      "Use a photo (JPG, PNG, HEIC) or PDF receipt.",
-    );
+    throw new ReceiptScanError("VALIDATION", `Unsupported file type. Use ${SUPPORTED_LABEL}.`);
   }
+}
+
+export type NormalizedScanPage = ProcessedReceiptImage & { pageIndex: number };
+
+/** Normalize image uploads (not PDF) into OCR-ready JPEG. */
+export async function normalizeImageToScanPages(
+  buffer: Buffer,
+  mime: string,
+): Promise<NormalizedScanPage[]> {
+  const processed = await processReceiptImage(buffer, mime);
+  return [{ ...processed, pageIndex: 1 }];
 }
 
 export async function processReceiptImage(

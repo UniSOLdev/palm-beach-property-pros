@@ -35,6 +35,8 @@ const config: Config = {
       backgroundImage: {
         "luxury-radial": "radial-gradient(ellipse 80% 60% at 70% 20%, rgba(106, 171, 188, 0.08), transparent 55%)",
         "luxury-vignette": "radial-gradient(ellipse 120% 80% at 50% 100%, rgba(8, 26, 46, 0.5), transparent 70%)",
+        "luxury-mesh":
+          "radial-gradient(circle at 20% 20%, rgba(106, 171, 188, 0.06), transparent 42%), radial-gradient(circle at 80% 0%, rgba(42, 111, 151, 0.05), transparent 38%)",
       },
       fontFamily: {
         sans: ["var(--font-sans)", "system-ui", "sans-serif"],
@@ -60,12 +62,17 @@ const config: Config = {
           "0%, 100%": { opacity: "1" },
           "50%": { opacity: "0.6" },
         },
+        "ken-burns": {
+          "0%": { transform: "scale(1.04)" },
+          "100%": { transform: "scale(1.08)" },
+        },
       },
       animation: {
         shimmer: "shimmer 2s linear infinite",
         "fade-in": "fade-in 0.4s cubic-bezier(0.22, 1, 0.36, 1) both",
         "slide-up": "slide-up 0.5s cubic-bezier(0.22, 1, 0.36, 1) both",
         "pulse-soft": "pulse-soft 2s ease-in-out infinite",
+        "ken-burns": "ken-burns 24s ease-in-out infinite alternate",
       },
     },
   },

@@ -32,7 +32,14 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .section-soft-in {
+  .section-soft-in,
+  .animate-fade-up,
+  .animate-ken-burns,
+  .hero-glow {
+    animation: none;
+  }
+
+  .image-reveal-root:not(.is-loaded) .image-skeleton {
     animation: none;
   }
 }
@@ -61,6 +68,17 @@
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+@keyframes hero-glow-drift {
+  from {
+    opacity: 0.55;
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    opacity: 0.85;
+    transform: translate3d(0, -6px, 0);
   }
 }
 
@@ -116,6 +134,79 @@
     @apply rounded-2xl border border-navy/[0.08] bg-gradient-to-b from-white/95 to-cream/50 p-6 shadow-card backdrop-blur-sm transition duration-500 ease-out hover:border-aqua/20 hover:shadow-lift md:rounded-3xl md:p-7;
   }
 
+  .care-plan-card {
+    @apply relative overflow-hidden rounded-2xl border border-navy/[0.08] bg-gradient-to-br from-white via-white to-cream-warm/50 p-6 shadow-card backdrop-blur-sm transition duration-500 ease-out hover:-translate-y-0.5 hover:border-aqua/20 hover:shadow-lift md:rounded-3xl md:p-7;
+  }
+
+  .care-plan-card::before {
+    content: "";
+    @apply pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-aqua/25 to-transparent opacity-0 transition duration-500;
+  }
+
+  .care-plan-card:hover::before {
+    @apply opacity-100;
+  }
+
+  .care-plan-icon-wrap {
+    @apply mb-5 inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-aqua/15 bg-gradient-to-br from-sky/80 to-white/90 shadow-sm transition duration-500 group-hover:border-aqua/30 group-hover:shadow-card;
+  }
+
+  .service-link-card {
+    @apply flex items-center justify-between rounded-xl border border-navy/[0.08] bg-white/75 px-4 py-3.5 text-sm font-medium text-navy shadow-sm no-underline backdrop-blur-md transition duration-500 hover:border-aqua/25 hover:bg-white hover:shadow-card hover:-translate-y-px;
+  }
+
+  .audience-chip {
+    @apply min-w-0 rounded-xl border border-navy/[0.08] bg-white/85 px-3 py-3.5 text-center text-sm font-medium text-navy shadow-sm backdrop-blur-sm transition duration-500 hover:border-aqua/20 hover:bg-white hover:shadow-card sm:px-4;
+  }
+
+  .image-frame {
+    @apply rounded-2xl border border-navy/[0.08] shadow-lift md:rounded-3xl;
+  }
+
+  .image-overlay-cinematic {
+    background:
+      linear-gradient(to top, rgba(8, 26, 46, 0.72) 0%, rgba(8, 26, 46, 0.18) 45%, rgba(12, 35, 64, 0.08) 100%),
+      radial-gradient(ellipse 90% 70% at 50% 100%, rgba(8, 26, 46, 0.35), transparent 65%);
+  }
+
+  .image-overlay-card {
+    background:
+      linear-gradient(to top, rgba(8, 26, 46, 0.55) 0%, transparent 55%),
+      linear-gradient(to right, rgba(8, 26, 46, 0.08), transparent 40%);
+  }
+
+  .image-overlay-subtle {
+    background: linear-gradient(to top, rgba(8, 26, 46, 0.35) 0%, transparent 50%);
+  }
+
+  .image-skeleton {
+    @apply animate-shimmer bg-gradient-to-r from-cream-warm via-white to-cream-warm bg-[length:200%_100%];
+  }
+
+  .image-reveal-root.is-loaded .image-skeleton {
+    @apply pointer-events-none opacity-0 transition-opacity duration-700;
+  }
+
+  .trust-band {
+    @apply relative;
+  }
+
+  .trust-metric {
+    @apply flex flex-col items-center rounded-2xl border border-white/[0.08] bg-white/[0.04] px-4 py-5 text-center backdrop-blur-md transition duration-500 hover:border-aqua/20 hover:bg-white/[0.06];
+  }
+
+  .trust-metric-value {
+    @apply text-xl font-semibold tracking-tight text-cream sm:text-2xl;
+  }
+
+  .trust-metric-label {
+    @apply mt-2 text-[11px] font-medium uppercase tracking-[0.14em] text-silver/75;
+  }
+
+  .trust-quote {
+    @apply rounded-2xl border border-white/[0.08] bg-white/[0.04] p-6 text-left backdrop-blur-md transition duration-500 hover:border-aqua/15 hover:bg-white/[0.06];
+  }
+
   .luxury-pill {
     @apply rounded-full border border-white/20 bg-white/[0.08] px-4 py-1.5 text-sm font-medium text-cream/95 shadow-sm backdrop-blur-lg md:text-xs;
   }
@@ -156,6 +247,18 @@
     pointer-events: none;
     background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
     opacity: 0.35;
+  }
+
+  .hero-glow {
+    pointer-events: none;
+    background:
+      radial-gradient(ellipse 55% 45% at 18% 28%, rgba(106, 171, 188, 0.12), transparent 60%),
+      radial-gradient(ellipse 40% 35% at 82% 18%, rgba(42, 111, 151, 0.1), transparent 55%);
+    animation: hero-glow-drift 18s ease-in-out infinite alternate;
+  }
+
+  .hero-image-layer.is-loaded .image-skeleton {
+    @apply opacity-0 transition-opacity duration-700;
   }
 
   .link-luxury {

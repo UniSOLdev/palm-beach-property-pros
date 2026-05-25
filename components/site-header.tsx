@@ -16,19 +16,23 @@ export function SiteHeader() {
   const [open, setOpen] = useState(false);
 
   return (
-    <header className="sticky top-0 z-40 border-b border-white/[0.06] bg-graphite/75 shadow-[0_8px_32px_rgba(0,0,0,0.28)] backdrop-blur-xl backdrop-saturate-150">
+    <header className="sticky top-0 z-40 overflow-x-hidden border-b border-white/[0.06] bg-graphite/75 shadow-[0_8px_32px_rgba(0,0,0,0.28)] backdrop-blur-xl backdrop-saturate-150">
       <nav
-        className="mx-auto flex w-full max-w-6xl items-center justify-between gap-4 py-4"
+        className="mx-auto flex w-full min-w-0 max-w-6xl items-center justify-between gap-2 px-4 py-3 sm:gap-3 sm:px-5 sm:py-4 md:gap-4 md:px-6"
         aria-label="Primary"
       >
-        <Link href="/" className="shrink-0 no-underline" aria-label="Palm Beach Property Pros home">
+        <Link
+          href="/"
+          className="min-w-0 shrink no-underline pr-2"
+          aria-label="Palm Beach Property Pros home"
+        >
           <Image
             src="/brand/pbpp-wordmark-light.svg"
             alt="Palm Beach Property Pros"
             width={280}
             height={42}
             priority
-            className="h-9 w-auto max-w-[min(100%,16rem)] sm:h-10"
+            className="h-8 w-auto max-w-[10.75rem] sm:h-9 sm:max-w-[13rem] md:h-10 md:max-w-[16rem]"
           />
         </Link>
 
@@ -47,10 +51,10 @@ export function SiteHeader() {
           </a>
         </div>
 
-        <div className="flex items-center gap-3 md:hidden">
+        <div className="flex shrink-0 items-center md:hidden">
           <button
             type="button"
-            className="inline-flex h-11 w-11 items-center justify-center rounded-xl border border-white/15 text-cream"
+            className="inline-flex h-12 w-12 min-h-[48px] min-w-[48px] items-center justify-center rounded-xl border border-white/15 text-cream transition active:scale-95 active:bg-white/10"
             aria-expanded={open}
             aria-controls="mobile-nav"
             onClick={() => setOpen((v) => !v)}
@@ -72,7 +76,7 @@ export function SiteHeader() {
       </nav>
 
       {open ? (
-        <div id="mobile-nav" className="border-t border-white/10 bg-graphite px-6 pb-4 pt-2 md:hidden">
+        <div id="mobile-nav" className="border-t border-white/10 bg-graphite px-4 pb-4 pt-2 sm:px-5 md:hidden">
           <div className="mx-auto flex max-w-6xl flex-col gap-1">
             {nav.map((item) => (
               <Link

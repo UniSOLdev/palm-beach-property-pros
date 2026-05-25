@@ -95,44 +95,50 @@ const HOW_IT_WORKS = [
 export function PremiumHomePage() {
   return (
     <>
-      <section className="animate-fade-up relative -mx-6 overflow-hidden rounded-none bg-charcoal md:mx-0 md:rounded-3xl">
+      <section className="animate-fade-up relative -mx-4 overflow-hidden rounded-none bg-charcoal sm:-mx-6 md:mx-0 md:rounded-3xl">
         <div className="absolute inset-0">
           <Image
             src={HERO_IMAGE}
             alt="Coastal luxury home exterior at dusk"
             fill
             priority
-            className="object-cover opacity-55"
+            className="object-cover object-center opacity-[0.48] md:object-center md:opacity-55"
             sizes="100vw"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-charcoal via-charcoal/80 to-charcoal/30" />
+          <div className="absolute inset-0 bg-gradient-to-t from-charcoal via-charcoal/[0.92] to-charcoal/45 md:via-charcoal/80 md:to-charcoal/30" />
         </div>
-        <div className="relative px-6 py-20 sm:py-28">
-          <p className="text-xs font-semibold uppercase tracking-[0.28em] text-aqua/90">
+        <div className="relative px-1 py-14 sm:px-2 sm:py-20 md:px-6 md:py-28">
+          <p className="text-[10px] font-semibold uppercase tracking-[0.24em] text-aqua/90 sm:text-xs sm:tracking-[0.28em]">
             Premium Property Operations
           </p>
-          <h1 className="mt-5 max-w-3xl text-4xl font-semibold tracking-tight text-cream sm:text-5xl sm:leading-[1.08]">
+          <h1 className="mt-4 max-w-3xl text-4xl font-semibold leading-[1.12] tracking-tight text-cream sm:mt-5 sm:text-5xl sm:leading-[1.08] md:text-5xl">
             Property Care for Palm Beach Living
           </h1>
-          <p className="mt-6 max-w-2xl text-lg leading-relaxed text-silver/95 sm:text-xl">
+          <p className="mt-5 max-w-2xl text-base leading-[1.65] text-silver/95 sm:mt-6 sm:text-lg sm:leading-relaxed md:text-xl">
             Residential, commercial, and coastal property services delivered with professional crews,
             modern systems, and detail-focused execution.
           </p>
-          <ul className="mt-8 flex flex-wrap gap-2">
+          <ul className="mt-6 flex flex-wrap gap-2 sm:mt-8 sm:gap-3">
             {HERO_CHIPS.map((chip) => (
               <li
                 key={chip}
-                className="rounded-full border border-white/15 bg-white/5 px-4 py-1.5 text-xs font-medium text-cream/95 backdrop-blur-md"
+                className="rounded-full border border-white/15 bg-white/5 px-3 py-2 text-sm font-medium text-cream/95 backdrop-blur-md sm:px-4 sm:py-1.5 sm:text-xs"
               >
                 {chip}
               </li>
             ))}
           </ul>
-          <div className="mt-10 flex max-w-xl flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
-            <Link href="/quote" className="btn-primary-lg text-center">
+          <div className="mt-8 flex w-full max-w-xl flex-col gap-3 sm:mt-10 md:flex-row md:flex-wrap md:items-center">
+            <Link
+              href="/quote"
+              className="btn-primary-lg min-h-[56px] w-full text-center active:scale-[0.98] md:min-h-0 md:w-auto"
+            >
               Get Free Quote
             </Link>
-            <a href={PHONE_TEL} className="btn-secondary-lg border-white/25 bg-white/10 text-center text-cream hover:bg-white/15">
+            <a
+              href={PHONE_TEL}
+              className="btn-secondary-lg min-h-[56px] w-full border-white/25 bg-white/10 text-center text-cream active:scale-[0.98] hover:bg-white/15 md:min-h-0 md:w-auto"
+            >
               Call or Text {PHONE_DISPLAY}
             </a>
           </div>

@@ -6,12 +6,14 @@ import { SiteHeader } from "@/components/site-header";
 
 export default function SiteLayout({ children }: { children: ReactNode }) {
   return (
-    <>
+    <div className="overflow-x-hidden">
       <LocalBusinessJsonLd />
       <SiteHeader />
-      <main className="w-full px-6 pb-32 pt-6 md:pb-14 md:pt-8">{children}</main>
+      <main className="w-full max-w-[100vw] px-4 pb-[calc(5.75rem+env(safe-area-inset-bottom,0px))] pt-5 md:max-w-none md:px-6 md:pb-14 md:pt-8">
+        {children}
+      </main>
       <SiteFooter />
       <MobileCtaBar />
-    </>
+    </div>
   );
 }

@@ -4,6 +4,9 @@ import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 import { BeforeAfterSlider } from "@/components/cms/before-after-slider";
+import { EditableButton } from "@/components/builder/editable/editable-button";
+import { EditableImage } from "@/components/builder/editable/editable-image";
+import { EditableText } from "@/components/builder/editable/editable-text";
 import { FaqAccordion } from "@/components/faq-accordion";
 import {
   parseSectionContent,
@@ -14,19 +17,75 @@ import { PHONE_DISPLAY, PHONE_TEL } from "@/lib/site";
 
 type ThemeTokens = Record<string, unknown>;
 
+export type SectionEditorBridge = {
+  enabled: boolean;
+  sectionId: string;
+  activeField: string | null;
+  setActiveField: (field: string | null) => void;
+  patchField: (path: string, value: unknown) => void;
+};
+
+function fieldId(sectionId: string, path: string) {
+  return `${sectionId}:${path}`;
+}
+
+function EditableField({
+  editor,
+  path,
+  value,
+  className,
+  placeholder,
+  multiline,
+  style,
+}: {
+  editor?: SectionEditorBridge;
+  path: string;
+  value: string;
+  className?: string;
+  placeholder?: string;
+  multiline?: boolean;
+  style?: { fontSize?: "xs" | "sm" | "base" | "lg" | "xl" | "2xl" | "3xl" | "4xl"; fontWeight?: "normal" | "medium" | "semibold" | "bold"; color?: "navy" | "ocean" | "cream" | "charcoal" | "aqua" };
+}) {
+  if (!editor?.enabled) {
+    return value ? <span className={className}>{value}</span> : null;
+  }
+  const id = fieldId(editor.sectionId, path);
+  return (
+    <EditableText
+      value={value}
+      onChange={(v) => editor.patchField(path, v)}
+      fieldId={id}
+      activeField={editor.activeField}
+      onActivate={editor.setActiveField}
+      onDeactivate={() => editor.setActiveField(null)}
+      className={className}
+      placeholder={placeholder}
+      multiline={multiline}
+      style={style}
+    />
+  );
+}
+
 export function SectionRenderer({
   section,
   theme,
   preview = false,
+  editor,
 }: {
   section: WebsiteSectionRow;
   theme?: ThemeTokens;
   preview?: boolean;
+  editor?: SectionEditorBridge;
 }) {
   const content = parseSectionContent(section.section_type, section.content);
   const style = themeToCss(theme);
 
   if (!section.is_visible && !preview) return null;
+
+  const bridge: SectionEditorBridge | undefined =
+    editor?.enabled && preview
+      ? { ...editor, sectionId: section.id }
+      : undefined;
 
   return (
     <div
@@ -35,7 +94,7 @@ export function SectionRenderer({
       style={style}
       className={!section.is_visible ? "opacity-40" : undefined}
     >
-      <SectionBody type={section.section_type} content={content} />
+      <SectionBody type={section.section_type} content={content} editor={bridge} />
     </div>
   );
 }
@@ -43,49 +102,51 @@ export function SectionRenderer({
 function SectionBody({
   type,
   content,
+  editor,
 }: {
   type: WebsiteSectionType;
   content: Record<string, unknown>;
+  editor?: SectionEditorBridge;
 }) {
   switch (type) {
     case "hero":
-      return <HeroView content={content} />;
+      return <HeroView content={content} editor={editor} />;
     case "services":
-      return <ServicesView content={content} />;
+      return <ServicesView content={content} editor={editor} />;
     case "stats":
       return <StatsView content={content} />;
     case "testimonials":
-      return <TestimonialsView content={content} />;
+      return <TestimonialsView content={content} editor={editor} />;
     case "faq":
-      return <FaqView content={content} />;
+      return <FaqView content={content} editor={editor} />;
     case "cta":
-      return <CtaView content={content} />;
+      return <CtaView content={content} editor={editor} />;
     case "quote_form":
-      return <QuoteFormView content={content} />;
+      return <QuoteFormView content={content} editor={editor} />;
     case "gallery":
-      return <GalleryView content={content} />;
+      return <GalleryView content={content} editor={editor} />;
     case "before_after":
-      return <BeforeAfterView content={content} />;
+      return <BeforeAfterView content={content} editor={editor} />;
     case "service_areas":
-      return <GenericBlockView content={content} label="Service areas" />;
+      return <GenericBlockView content={content} label="Service areas" editor={editor} />;
     case "pricing":
-      return <GenericBlockView content={content} label="Pricing" />;
+      return <GenericBlockView content={content} label="Pricing" editor={editor} />;
     case "process":
-      return <ProcessView content={content} />;
+      return <ProcessView content={content} editor={editor} />;
     case "team":
-      return <GenericBlockView content={content} label="Team" />;
+      return <GenericBlockView content={content} label="Team" editor={editor} />;
     case "video":
-      return <VideoView content={content} />;
+      return <VideoView content={content} editor={editor} />;
     case "contact":
-      return <ContactView content={content} />;
+      return <ContactView content={content} editor={editor} />;
     case "rich_text":
-      return <RichTextView content={content} />;
+      return <RichTextView content={content} editor={editor} />;
     default:
       return null;
   }
 }
 
-function HeroView({ content }: { content: Record<string, unknown> }) {
+function HeroView({ content, editor }: { content: Record<string, unknown>; editor?: SectionEditorBridge }) {
   const c = content as {
     eyebrow?: string;
     headline?: string;
@@ -106,19 +167,32 @@ function HeroView({ content }: { content: Record<string, unknown> }) {
 
   return (
     <section className={`relative overflow-hidden rounded-3xl bg-charcoal ${entrance}`}>
-      {c.imageUrl ? (
+      {c.imageUrl || editor?.enabled ? (
         <div className="absolute inset-0">
-          <Image src={c.imageUrl} alt="" fill className="object-cover" sizes="100vw" style={{ opacity: 1 - overlay * 0.3 }} />
-          <div className="absolute inset-0 bg-gradient-to-t from-charcoal via-charcoal/80 to-charcoal/30" style={{ opacity: overlay }} />
+          {editor?.enabled ? (
+            <EditableImage
+              value={c.imageUrl ?? ""}
+              onChange={(v) => editor.patchField("imageUrl", v)}
+              fieldId={fieldId(editor.sectionId, "imageUrl")}
+              activeField={editor.activeField}
+              onActivate={editor.setActiveField}
+              className="absolute inset-0 h-full w-full"
+            />
+          ) : c.imageUrl ? (
+            <Image src={c.imageUrl} alt="" fill className="object-cover" sizes="100vw" style={{ opacity: 1 - overlay * 0.3 }} />
+          ) : null}
+          <div className="absolute inset-0 bg-gradient-to-t from-charcoal via-charcoal/80 to-charcoal/30 pointer-events-none" style={{ opacity: overlay }} />
         </div>
       ) : null}
       <div className={`relative flex flex-col px-6 py-20 sm:py-28 ${alignClass}`}>
         <div className={maxW}>
-          {c.eyebrow ? (
-            <p className="text-xs font-semibold uppercase tracking-[0.28em] text-aqua/90">{c.eyebrow}</p>
-          ) : null}
-          <h1 className="mt-5 text-4xl font-semibold tracking-tight text-cream sm:text-5xl">{c.headline}</h1>
-          {c.subheadline ? <p className="mt-6 text-lg text-silver/95">{c.subheadline}</p> : null}
+          <EditableField editor={editor} path="eyebrow" value={c.eyebrow ?? ""} className="text-xs font-semibold uppercase tracking-[0.28em] text-aqua/90" placeholder="Eyebrow" style={{ fontSize: "xs", color: "aqua" }} />
+          <h1 className="mt-5">
+            <EditableField editor={editor} path="headline" value={c.headline ?? ""} className="text-4xl font-semibold tracking-tight text-cream sm:text-5xl" placeholder="Headline" style={{ fontSize: "4xl", fontWeight: "semibold", color: "cream" }} />
+          </h1>
+          <p className="mt-6 text-lg text-silver/95">
+            <EditableField editor={editor} path="subheadline" value={c.subheadline ?? ""} multiline placeholder="Subheadline" style={{ fontSize: "lg", color: "charcoal" }} />
+          </p>
           {c.chips?.length ? (
             <ul className={`mt-8 flex flex-wrap gap-2 ${c.alignment === "center" ? "justify-center" : c.alignment === "right" ? "justify-end" : ""}`}>
               {c.chips.map((chip) => (
@@ -129,16 +203,44 @@ function HeroView({ content }: { content: Record<string, unknown> }) {
             </ul>
           ) : null}
           <div className={`mt-10 flex flex-col gap-3 sm:flex-row ${c.alignment === "center" ? "sm:justify-center" : c.alignment === "right" ? "sm:justify-end" : ""}`}>
-            {c.primaryCta ? (
-              <Link href={c.primaryCta.href} className="btn-primary-lg text-center">
-                {c.primaryCta.label}
-              </Link>
-            ) : null}
-            {c.secondaryCta ? (
-              <Link href={c.secondaryCta.href} className="btn-secondary-lg border-white/25 bg-white/10 text-cream hover:bg-white/15">
-                {c.secondaryCta.label}
-              </Link>
-            ) : null}
+            {editor?.enabled ? (
+              <>
+                <EditableButton
+                  label={c.primaryCta?.label ?? "Get a quote"}
+                  onLabelChange={(v) => editor.patchField("primaryCta", { ...(c.primaryCta ?? { href: "/quote" }), label: v })}
+                  fieldId={fieldId(editor.sectionId, "primaryCta.label")}
+                  activeField={editor.activeField}
+                  onActivate={editor.setActiveField}
+                  onDeactivate={() => editor.setActiveField(null)}
+                  variant="primary"
+                />
+                {c.secondaryCta ? (
+                  <EditableButton
+                    label={c.secondaryCta.label}
+                    onLabelChange={(v) => editor.patchField("secondaryCta", { ...c.secondaryCta, label: v })}
+                    fieldId={fieldId(editor.sectionId, "secondaryCta.label")}
+                    activeField={editor.activeField}
+                    onActivate={editor.setActiveField}
+                    onDeactivate={() => editor.setActiveField(null)}
+                    variant="secondary"
+                    className="border-white/25 bg-white/10 text-cream"
+                  />
+                ) : null}
+              </>
+            ) : (
+              <>
+                {c.primaryCta ? (
+                  <Link href={c.primaryCta.href} className="btn-primary-lg text-center">
+                    {c.primaryCta.label}
+                  </Link>
+                ) : null}
+                {c.secondaryCta ? (
+                  <Link href={c.secondaryCta.href} className="btn-secondary-lg border-white/25 bg-white/10 text-cream hover:bg-white/15">
+                    {c.secondaryCta.label}
+                  </Link>
+                ) : null}
+              </>
+            )}
           </div>
         </div>
       </div>
@@ -146,7 +248,7 @@ function HeroView({ content }: { content: Record<string, unknown> }) {
   );
 }
 
-function ServicesView({ content }: { content: Record<string, unknown> }) {
+function ServicesView({ content, editor }: { content: Record<string, unknown>; editor?: SectionEditorBridge }) {
   const c = content as {
     headline?: string;
     subheadline?: string;
@@ -166,8 +268,12 @@ function ServicesView({ content }: { content: Record<string, unknown> }) {
   return (
     <section className="rounded-3xl border border-navy/10 bg-gradient-to-b from-white to-cream/80 py-16 shadow-card">
       <div className="mx-auto max-w-2xl text-center px-4">
-        {c.headline ? <h2 className="text-3xl font-semibold text-navy">{c.headline}</h2> : null}
-        {c.subheadline ? <p className="mt-4 text-charcoal/80">{c.subheadline}</p> : null}
+        <h2 className="text-3xl font-semibold text-navy">
+          <EditableField editor={editor} path="headline" value={c.headline ?? ""} placeholder="Section headline" style={{ fontSize: "3xl", fontWeight: "semibold", color: "navy" }} />
+        </h2>
+        <p className="mt-4 text-charcoal/80">
+          <EditableField editor={editor} path="subheadline" value={c.subheadline ?? ""} multiline placeholder="Subheadline" />
+        </p>
       </div>
       <div className={`mt-12 grid gap-8 px-4 ${gridClass}`}>
         {(c.columns ?? []).map((col) => (
@@ -211,7 +317,7 @@ function StatsView({ content }: { content: Record<string, unknown> }) {
   );
 }
 
-function TestimonialsView({ content }: { content: Record<string, unknown> }) {
+function TestimonialsView({ content, editor }: { content: Record<string, unknown>; editor?: SectionEditorBridge }) {
   const c = content as {
     headline?: string;
     carousel?: boolean;
@@ -224,7 +330,9 @@ function TestimonialsView({ content }: { content: Record<string, unknown> }) {
     const item = items[active] ?? items[0];
     return (
       <section className="py-16 px-4">
-        {c.headline ? <h2 className="text-center text-2xl font-semibold text-navy">{c.headline}</h2> : null}
+        <h2 className="text-center text-2xl font-semibold text-navy">
+          <EditableField editor={editor} path="headline" value={c.headline ?? ""} placeholder="Testimonials headline" style={{ fontSize: "2xl", fontWeight: "semibold", color: "navy" }} />
+        </h2>
         <div className="mx-auto mt-10 max-w-2xl glass-panel p-8 text-center">
           {item.photoUrl ? (
             // eslint-disable-next-line @next/next/no-img-element
@@ -245,7 +353,9 @@ function TestimonialsView({ content }: { content: Record<string, unknown> }) {
 
   return (
     <section className="py-16">
-      {c.headline ? <h2 className="text-center text-2xl font-semibold text-navy">{c.headline}</h2> : null}
+      <h2 className="text-center text-2xl font-semibold text-navy">
+        <EditableField editor={editor} path="headline" value={c.headline ?? ""} placeholder="Testimonials headline" style={{ fontSize: "2xl", fontWeight: "semibold", color: "navy" }} />
+      </h2>
       <ul className="mt-10 grid gap-5 px-4 md:grid-cols-2">
         {items.map((item, i) => (
           <li key={i} className="glass-panel p-6 transition hover:shadow-lift">
@@ -267,26 +377,30 @@ function TestimonialsView({ content }: { content: Record<string, unknown> }) {
   );
 }
 
-function FaqView({ content }: { content: Record<string, unknown> }) {
+function FaqView({ content, editor }: { content: Record<string, unknown>; editor?: SectionEditorBridge }) {
   const c = content as { headline?: string; items?: Array<{ question: string; answer: string }> };
   const items = c.items ?? [];
   if (!items.length) {
     return (
       <section className="py-12 px-4">
-        <h2 className="text-2xl font-semibold text-navy">{c.headline ?? "FAQ"}</h2>
+        <h2 className="text-2xl font-semibold text-navy">
+          <EditableField editor={editor} path="headline" value={c.headline ?? "FAQ"} style={{ fontSize: "2xl", fontWeight: "semibold", color: "navy" }} />
+        </h2>
         <p className="mt-4 text-sm text-charcoal/60">Add FAQ items in the section editor.</p>
       </section>
     );
   }
   return (
     <section className="py-12 px-4">
-      {c.headline ? <h2 className="mb-8 text-2xl font-semibold text-navy">{c.headline}</h2> : null}
+      <h2 className="mb-8 text-2xl font-semibold text-navy">
+        <EditableField editor={editor} path="headline" value={c.headline ?? ""} style={{ fontSize: "2xl", fontWeight: "semibold", color: "navy" }} />
+      </h2>
       <FaqAccordion items={items.map((i) => ({ question: i.question, answer: i.answer }))} />
     </section>
   );
 }
 
-function CtaView({ content }: { content: Record<string, unknown> }) {
+function CtaView({ content, editor }: { content: Record<string, unknown>; editor?: SectionEditorBridge }) {
   const c = content as {
     headline?: string;
     body?: string;
@@ -307,10 +421,24 @@ function CtaView({ content }: { content: Record<string, unknown> }) {
 
   return (
     <section className={`rounded-3xl px-6 py-16 text-center text-cream ${bgClass}`}>
-      {c.headline ? <h2 className="text-3xl font-semibold">{c.headline}</h2> : null}
-      {c.body ? <p className="mx-auto mt-4 max-w-xl text-silver/90">{c.body}</p> : null}
+      <h2 className="text-3xl font-semibold">
+        <EditableField editor={editor} path="headline" value={c.headline ?? ""} placeholder="CTA headline" style={{ fontSize: "3xl", fontWeight: "semibold", color: "cream" }} />
+      </h2>
+      <p className="mx-auto mt-4 max-w-xl text-silver/90">
+        <EditableField editor={editor} path="body" value={c.body ?? ""} multiline placeholder="Supporting text" />
+      </p>
       <div className="mt-8 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
-        {c.primaryCta ? (
+        {editor?.enabled ? (
+          <EditableButton
+            label={c.primaryCta?.label ?? "Get started"}
+            onLabelChange={(v) => editor.patchField("primaryCta", { ...(c.primaryCta ?? { href: "/quote" }), label: v })}
+            fieldId={fieldId(editor.sectionId, "primaryCta.label")}
+            activeField={editor.activeField}
+            onActivate={editor.setActiveField}
+            onDeactivate={() => editor.setActiveField(null)}
+            variant="inverse"
+          />
+        ) : c.primaryCta ? (
           <Link href={c.primaryCta.href} className={btnClass}>
             {c.primaryCta.label}
           </Link>
@@ -329,7 +457,7 @@ function CtaView({ content }: { content: Record<string, unknown> }) {
   );
 }
 
-function QuoteFormView({ content }: { content: Record<string, unknown> }) {
+function QuoteFormView({ content, editor }: { content: Record<string, unknown>; editor?: SectionEditorBridge }) {
   const c = content as { headline?: string; body?: string; buttonLabel?: string; buttonHref?: string };
   return (
     <section className="glass-panel mx-4 p-8 text-center">
@@ -342,7 +470,7 @@ function QuoteFormView({ content }: { content: Record<string, unknown> }) {
   );
 }
 
-function GalleryView({ content }: { content: Record<string, unknown> }) {
+function GalleryView({ content, editor }: { content: Record<string, unknown>; editor?: SectionEditorBridge }) {
   const c = content as { headline?: string; layout?: "grid" | "masonry"; items?: Array<{ label: string; imageUrl?: string }> };
   const isMasonry = (c.layout ?? "masonry") === "masonry";
 
@@ -367,7 +495,7 @@ function GalleryView({ content }: { content: Record<string, unknown> }) {
   );
 }
 
-function BeforeAfterView({ content }: { content: Record<string, unknown> }) {
+function BeforeAfterView({ content, editor }: { content: Record<string, unknown>; editor?: SectionEditorBridge }) {
   const c = content as {
     headline?: string;
     pairs?: Array<{ label: string; beforeUrl?: string; afterUrl?: string }>;
@@ -386,7 +514,7 @@ function BeforeAfterView({ content }: { content: Record<string, unknown> }) {
   );
 }
 
-function ProcessView({ content }: { content: Record<string, unknown> }) {
+function ProcessView({ content, editor }: { content: Record<string, unknown>; editor?: SectionEditorBridge }) {
   const c = content as { headline?: string; steps?: Array<{ title: string; body: string }> };
   const steps = c.steps ?? [];
   return (
@@ -409,7 +537,7 @@ function ProcessView({ content }: { content: Record<string, unknown> }) {
   );
 }
 
-function VideoView({ content }: { content: Record<string, unknown> }) {
+function VideoView({ content, editor }: { content: Record<string, unknown>; editor?: SectionEditorBridge }) {
   const c = content as { headline?: string; videoUrl?: string; posterUrl?: string };
   return (
     <section className="py-12 px-4">
@@ -425,7 +553,7 @@ function VideoView({ content }: { content: Record<string, unknown> }) {
   );
 }
 
-function ContactView({ content }: { content: Record<string, unknown> }) {
+function ContactView({ content, editor }: { content: Record<string, unknown>; editor?: SectionEditorBridge }) {
   const c = content as { headline?: string; body?: string; email?: string };
   return (
     <section className="py-12 px-4 text-center">
@@ -445,24 +573,30 @@ function ContactView({ content }: { content: Record<string, unknown> }) {
   );
 }
 
-function RichTextView({ content }: { content: Record<string, unknown> }) {
+function RichTextView({ content, editor }: { content: Record<string, unknown>; editor?: SectionEditorBridge }) {
   const c = content as { headline?: string; body?: string };
   return (
     <section className="prose prose-navy max-w-none px-4 py-12">
-      {c.headline ? <h2 className="text-2xl font-semibold text-navy">{c.headline}</h2> : null}
-      {c.body ? (
-        <div className="mt-4 whitespace-pre-wrap text-charcoal/85 leading-relaxed">{c.body}</div>
-      ) : null}
+      <h2 className="text-2xl font-semibold text-navy">
+        <EditableField editor={editor} path="headline" value={c.headline ?? ""} style={{ fontSize: "2xl", fontWeight: "semibold", color: "navy" }} />
+      </h2>
+      <div className="mt-4 whitespace-pre-wrap text-charcoal/85 leading-relaxed">
+        <EditableField editor={editor} path="body" value={c.body ?? ""} multiline placeholder="Rich text body" />
+      </div>
     </section>
   );
 }
 
-function GenericBlockView({ content, label }: { content: Record<string, unknown>; label: string }) {
+function GenericBlockView({ content, label, editor }: { content: Record<string, unknown>; label: string; editor?: SectionEditorBridge }) {
   const c = content as { headline?: string; body?: string };
   return (
     <section className="py-12 px-4">
-      <h2 className="text-2xl font-semibold text-navy">{c.headline ?? label}</h2>
-      {c.body ? <p className="mt-4 text-charcoal/80">{c.body}</p> : null}
+      <h2 className="text-2xl font-semibold text-navy">
+        <EditableField editor={editor} path="headline" value={c.headline ?? label} placeholder={label} style={{ fontSize: "2xl", fontWeight: "semibold", color: "navy" }} />
+      </h2>
+      <p className="mt-4 text-charcoal/80">
+        <EditableField editor={editor} path="body" value={c.body ?? ""} multiline placeholder="Body copy" />
+      </p>
     </section>
   );
 }

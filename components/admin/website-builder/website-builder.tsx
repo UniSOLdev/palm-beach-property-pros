@@ -12,7 +12,10 @@ import {
 import { SortableContext, arrayMove, useSortable, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { motion, AnimatePresence } from "framer-motion";
-import { PagePreview } from "@/components/cms/sections/section-renderer";
+import { AddSectionModal } from "@/components/builder/add-section-modal";
+import { BuilderAIPalette } from "@/components/builder/builder-ai-palette";
+import { LivePreviewPanel } from "@/components/builder/visual/live-preview-panel";
+import { patchSectionContent } from "@/lib/builder/content-path";
 import { BuilderToolbar } from "@/components/admin/website-builder/builder-toolbar";
 import { SeoPanel } from "@/components/admin/website-builder/seo-panel";
 import { SectionEditorPanel } from "@/components/admin/website-builder/section-editor-panel";
@@ -23,9 +26,9 @@ import {
   SECTION_TYPE_LABELS,
   VIEWPORT_WIDTHS,
   WEBSITE_SECTION_TYPES,
-  type ViewportMode,
   type WebsiteSectionRow,
   type WebsiteSectionType,
+  type ViewportMode,
 } from "@/lib/cms/section-registry";
 import type { BuilderPageBundle } from "@/lib/admin/actions/website-builder";
 import {
@@ -122,6 +125,13 @@ export function WebsiteBuilder({ bundle }: { bundle: BuilderPageBundle }) {
   const [addType, setAddType] = useState<WebsiteSectionType>("hero");
   const [rollbackId, setRollbackId] = useState(bundle.publishVersions[0]?.id ?? "");
   const [leftTab, setLeftTab] = useState<"sections" | "seo" | "theme">("sections");
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [zoom, setZoom] = useState(100);
+  const [focusMode, setFocusMode] = useState(false);
+  const [addModalOpen, setAddModalOpen] = useState(false);
+  const [aiOpen, setAiOpen] = useState(false);
+  const [activeField, setActiveField] = useState<string | null>(null);
+  const [lockedIds, setLockedIds] = useState<Set<string>>(new Set());
 
   const selected = state.sections.find((s) => s.id === selectedId) ?? null;
   const previewUrl = `/preview/${bundle.page.preview_token}`;
@@ -218,6 +228,57 @@ export function WebsiteBuilder({ bundle }: { bundle: BuilderPageBundle }) {
     );
   }
 
+  function patchSectionField(sectionId: string, path: string, value: unknown) {
+    push({
+      ...state,
+      sections: state.sections.map((s) =>
+        s.id === sectionId ? { ...s, content: patchSectionContent(s.content, path, value) } : s,
+      ),
+    });
+    if (selectedId !== sectionId) setSelectedId(sectionId);
+  }
+
+  function handleCanvasReorder(sections: WebsiteSectionRow[]) {
+    push({ ...state, sections });
+  }
+
+  function handleDuplicateSection(id: string) {
+    startTransition(async () => {
+      try {
+        const copy = await duplicateWebsiteSection(id, bundle.page.id);
+        reset({ ...state, sections: [...state.sections, copy] });
+        setSelectedId(copy.id);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Duplicate failed");
+      }
+    });
+  }
+
+  function handleDeleteSection(id: string) {
+    startTransition(async () => {
+      try {
+        await deleteWebsiteSection(id, bundle.page.id);
+        const next = state.sections.filter((s) => s.id !== id);
+        push({ ...state, sections: next });
+        setSelectedId(next[0]?.id ?? null);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Delete failed");
+      }
+    });
+  }
+
+  function handleInsertSection(type: WebsiteSectionType) {
+    startTransition(async () => {
+      try {
+        const row = await addWebsiteSection(bundle.page.id, type);
+        push({ ...state, sections: [...state.sections, row] });
+        setSelectedId(row.id);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Add failed");
+      }
+    });
+  }
+
   return (
     <div className="flex min-h-[calc(100vh-6rem)] flex-col">
       <BuilderToolbar
@@ -235,6 +296,14 @@ export function WebsiteBuilder({ bundle }: { bundle: BuilderPageBundle }) {
         onSave={() => performSave(true)}
         onPublish={performPublish}
         onViewportChange={setViewport}
+        zoom={zoom}
+        onZoomChange={setZoom}
+        focusMode={focusMode}
+        onToggleFocus={() => setFocusMode((v) => !v)}
+        sidebarCollapsed={sidebarCollapsed}
+        onToggleSidebar={() => setSidebarCollapsed((v) => !v)}
+        onAddSection={() => setAddModalOpen(true)}
+        onOpenAI={() => setAiOpen(true)}
       />
 
       {error ? (
@@ -244,7 +313,14 @@ export function WebsiteBuilder({ bundle }: { bundle: BuilderPageBundle }) {
       ) : null}
 
       <div className="flex flex-1 flex-col gap-4 lg:flex-row">
-        <aside className="flex w-full shrink-0 flex-col gap-3 lg:w-[400px] xl:w-[440px]">
+        <AnimatePresence initial={false}>
+          {!sidebarCollapsed ? (
+            <motion.aside
+              initial={{ width: 0, opacity: 0 }}
+              animate={{ width: "auto", opacity: 1 }}
+              exit={{ width: 0, opacity: 0 }}
+              className="flex w-full shrink-0 flex-col gap-3 overflow-hidden lg:w-[400px] xl:w-[440px]"
+            >
           <div className="flex gap-1 rounded-xl bg-sky/30 p-1">
             {(["sections", "seo", "theme"] as const).map((tab) => (
               <button
@@ -322,28 +398,13 @@ export function WebsiteBuilder({ bundle }: { bundle: BuilderPageBundle }) {
                   </SortableContext>
                 </DndContext>
                 <div className="mt-3 flex gap-2">
-                  <select className="admin-input flex-1 text-sm" value={addType} onChange={(e) => setAddType(e.target.value as WebsiteSectionType)}>
-                    {WEBSITE_SECTION_TYPES.map((t) => (
-                      <option key={t} value={t}>{SECTION_TYPE_LABELS[t]}</option>
-                    ))}
-                  </select>
                   <button
                     type="button"
                     disabled={pending}
-                    className="admin-btn shrink-0 text-xs"
-                    onClick={() =>
-                      startTransition(async () => {
-                        try {
-                          const row = await addWebsiteSection(bundle.page.id, addType);
-                          push({ ...state, sections: [...state.sections, row] });
-                          setSelectedId(row.id);
-                        } catch (err) {
-                          setError(err instanceof Error ? err.message : "Add failed");
-                        }
-                      })
-                    }
+                    className="admin-btn w-full shrink-0 text-xs"
+                    onClick={() => setAddModalOpen(true)}
                   >
-                    + Add
+                    + Insert section
                   </button>
                 </div>
               </div>
@@ -393,30 +454,51 @@ export function WebsiteBuilder({ bundle }: { bundle: BuilderPageBundle }) {
               </AnimatePresence>
             </>
           ) : null}
-        </aside>
+            </motion.aside>
+          ) : null}
+        </AnimatePresence>
 
-        <div className="min-w-0 flex-1">
-          <div className="studio-glass mb-3 flex items-center justify-between px-4 py-3">
-            <p className="text-sm font-semibold text-navy">Live preview</p>
-            <p className="text-[11px] text-charcoal/50">{VIEWPORT_WIDTHS[viewport] === "100%" ? "Full width" : VIEWPORT_WIDTHS[viewport]}</p>
-          </div>
-          <div className="flex justify-center overflow-hidden rounded-2xl border border-navy/10 bg-neutral-100/60 shadow-studio">
-            <motion.div
-              animate={{ width: VIEWPORT_WIDTHS[viewport] }}
-              transition={{ type: "spring", stiffness: 300, damping: 30 }}
-              className="min-h-[500px] overflow-y-auto bg-cream sm:min-h-[640px]"
-              style={{ maxWidth: "100%" }}
-            >
-              <PagePreview
-                sections={state.sections}
-                theme={bundle.theme}
-                selectedId={selectedId}
-                onSelectSection={setSelectedId}
-              />
-            </motion.div>
-          </div>
-        </div>
+        <LivePreviewPanel
+          sections={state.sections}
+          theme={bundle.theme}
+          selectedId={selectedId}
+          lockedIds={lockedIds}
+          viewport={viewport}
+          zoom={zoom}
+          focusMode={focusMode}
+          activeField={activeField}
+          setActiveField={setActiveField}
+          onPatchField={patchSectionField}
+          onSelectSection={setSelectedId}
+          onReorder={handleCanvasReorder}
+          onDuplicate={handleDuplicateSection}
+          onDelete={handleDeleteSection}
+          onToggleVisibility={(id) =>
+            updateSections((sections) =>
+              sections.map((s) => (s.id === id ? { ...s, is_visible: !s.is_visible } : s)),
+            )
+          }
+          onToggleLock={(id) =>
+            setLockedIds((prev) => {
+              const next = new Set(prev);
+              if (next.has(id)) next.delete(id);
+              else next.add(id);
+              return next;
+            })
+          }
+        />
       </div>
+
+      <AddSectionModal open={addModalOpen} onClose={() => setAddModalOpen(false)} onInsert={handleInsertSection} />
+      <BuilderAIPalette
+        open={aiOpen}
+        onClose={() => setAiOpen(false)}
+        sectionType={selected?.section_type}
+        pageTitle={bundle.page.title}
+        onApplyText={(text) => {
+          if (selectedId) patchSectionField(selectedId, "headline", text);
+        }}
+      />
     </div>
   );
 }

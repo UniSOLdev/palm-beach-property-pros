@@ -21,6 +21,14 @@ export function BuilderToolbar({
   onSave,
   onPublish,
   onViewportChange,
+  zoom = 100,
+  onZoomChange,
+  focusMode = false,
+  onToggleFocus,
+  sidebarCollapsed = false,
+  onToggleSidebar,
+  onAddSection,
+  onOpenAI,
 }: {
   pageTitle: string;
   pageStatus: string;
@@ -36,6 +44,14 @@ export function BuilderToolbar({
   onSave: () => void;
   onPublish: () => void;
   onViewportChange: (mode: ViewportMode) => void;
+  zoom?: number;
+  onZoomChange?: (z: number) => void;
+  focusMode?: boolean;
+  onToggleFocus?: () => void;
+  sidebarCollapsed?: boolean;
+  onToggleSidebar?: () => void;
+  onAddSection?: () => void;
+  onOpenAI?: () => void;
 }) {
   return (
     <motion.div
@@ -66,6 +82,38 @@ export function BuilderToolbar({
             </button>
           ))}
         </div>
+
+        {onToggleSidebar ? (
+          <button type="button" onClick={onToggleSidebar} className="admin-btn-secondary px-3 text-xs" title="Toggle sidebar">
+            {sidebarCollapsed ? "Panel →" : "← Panel"}
+          </button>
+        ) : null}
+
+        {onZoomChange ? (
+          <div className="hidden items-center gap-1 sm:flex">
+            <button type="button" className="admin-btn-secondary px-2 text-xs" onClick={() => onZoomChange(Math.max(50, zoom - 10))}>−</button>
+            <span className="min-w-[3rem] text-center text-[10px] font-semibold text-navy">{zoom}%</span>
+            <button type="button" className="admin-btn-secondary px-2 text-xs" onClick={() => onZoomChange(Math.min(120, zoom + 10))}>+</button>
+          </div>
+        ) : null}
+
+        {onToggleFocus ? (
+          <button type="button" onClick={onToggleFocus} className={`admin-btn-secondary px-3 text-xs ${focusMode ? "ring-2 ring-ocean" : ""}`}>
+            Focus
+          </button>
+        ) : null}
+
+        {onAddSection ? (
+          <button type="button" onClick={onAddSection} className="admin-btn-secondary px-3 text-xs">
+            + Section
+          </button>
+        ) : null}
+
+        {onOpenAI ? (
+          <button type="button" onClick={onOpenAI} className="admin-btn-secondary px-3 text-xs">
+            ✨ AI
+          </button>
+        ) : null}
 
         <button type="button" disabled={!canUndo} onClick={onUndo} className="admin-btn-secondary px-3 text-xs" title="Undo">
           ↩

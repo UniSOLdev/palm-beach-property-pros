@@ -16,7 +16,7 @@ export function SiteHeader() {
   const [open, setOpen] = useState(false);
 
   return (
-    <header className="sticky top-0 z-40 overflow-x-hidden border-b border-white/[0.06] bg-graphite/75 shadow-[0_8px_32px_rgba(0,0,0,0.28)] backdrop-blur-xl backdrop-saturate-150">
+    <header className="sticky top-0 z-40 overflow-x-hidden border-b border-white/[0.08] bg-navy-deep/80 shadow-[0_8px_40px_rgba(8,26,46,0.35)] backdrop-blur-xl backdrop-saturate-150">
       <nav
         className="mx-auto flex w-full min-w-0 max-w-6xl items-center justify-between gap-2 px-4 py-3 sm:gap-3 sm:px-5 sm:py-4 md:gap-4 md:px-6 md:py-4"
         aria-label="Primary"
@@ -41,7 +41,7 @@ export function SiteHeader() {
             <Link
               key={item.href}
               href={item.href}
-              className="text-cream/90 no-underline transition-colors hover:text-aqua"
+              className="text-cream/85 no-underline transition-colors duration-300 hover:text-aqua"
             >
               {item.label}
             </Link>
@@ -78,7 +78,7 @@ export function SiteHeader() {
       {open ? (
         <div
           id="mobile-nav"
-          className="border-t border-white/10 bg-graphite px-4 pb-4 pt-2 transition-[opacity,transform] duration-200 ease-out sm:px-5 md:hidden"
+          className="border-t border-white/10 bg-navy-deep/95 px-4 pb-4 pt-2 transition-[opacity,transform] duration-200 ease-out sm:px-5 md:hidden"
         >
           <div className="mx-auto flex max-w-6xl flex-col gap-1">
             {nav.map((item) => (

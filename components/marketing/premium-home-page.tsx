@@ -95,168 +95,176 @@ const HOW_IT_WORKS = [
 export function PremiumHomePage() {
   return (
     <>
-      <section className="animate-fade-up relative -mx-4 overflow-hidden rounded-none bg-charcoal sm:-mx-6 md:mx-0 md:rounded-3xl">
-        <div className="absolute inset-0">
+      <section className="hero-cinematic animate-fade-up relative -mx-4 sm:-mx-6 md:mx-0 md:rounded-3xl">
+        <div className="absolute inset-0 md:rounded-3xl">
           <Image
             src={HERO_IMAGE}
             alt="Coastal luxury home exterior at dusk"
             fill
             priority
-            className="object-cover object-center opacity-[0.5] md:opacity-55"
+            className="object-cover object-[center_35%] opacity-[0.48] saturate-[0.92] md:opacity-[0.52]"
             sizes="100vw"
           />
-          <div className="absolute inset-0 bg-black/45 md:hidden" aria-hidden />
+          <div className="absolute inset-0 bg-black/50 md:hidden" aria-hidden />
           <div
-            className="absolute inset-0 bg-gradient-to-t from-charcoal via-charcoal/85 to-charcoal/35 md:from-charcoal md:via-charcoal/80 md:to-charcoal/30"
+            className="absolute inset-0 bg-gradient-to-t from-navy-deep via-charcoal/90 to-charcoal/40 md:rounded-3xl md:from-navy-deep md:via-navy/85 md:to-navy/25"
             aria-hidden
           />
+          <div
+            className="absolute inset-0 bg-luxury-radial opacity-80 md:rounded-3xl"
+            aria-hidden
+          />
+          <div
+            className="absolute inset-0 bg-luxury-vignette md:rounded-3xl"
+            aria-hidden
+          />
+          <div className="hero-grain absolute inset-0 md:rounded-3xl" aria-hidden />
         </div>
-        <div className="relative px-4 py-20 sm:px-6 sm:py-24 md:px-6 md:py-28">
+
+        <div className="relative px-4 py-20 sm:px-6 sm:py-24 md:px-10 md:py-32 lg:py-36">
           <div className="max-w-xl md:max-w-3xl">
-            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-aqua/90 md:tracking-[0.28em]">
+            <p className="section-eyebrow text-aqua/90 md:tracking-[0.32em]">
               Premium Property Operations
             </p>
-            <h1 className="mt-5 text-4xl font-semibold leading-[1.1] tracking-tight text-cream sm:text-5xl sm:leading-[1.08] md:text-5xl">
+            <h1 className="mt-6 text-4xl font-semibold leading-[1.08] tracking-tight text-cream sm:text-5xl md:mt-7 md:text-[3.25rem] md:leading-[1.06]">
               Property Care for Palm Beach Living
             </h1>
-            <p className="mt-6 max-w-xl text-base leading-relaxed text-silver/95 sm:text-lg md:mt-8 md:max-w-none md:text-xl">
+            <p className="mt-7 max-w-xl text-base leading-[1.75] text-silver/95 sm:text-lg md:mt-9 md:max-w-2xl md:text-xl md:leading-[1.7]">
               Residential, commercial, and coastal property services delivered with professional crews,
               modern systems, and detail-focused execution.
             </p>
           </div>
-          <ul className="mt-8 flex flex-wrap justify-center gap-3 md:justify-start">
+
+          <ul className="mt-10 flex flex-wrap justify-center gap-2.5 md:mt-12 md:justify-start md:gap-3">
             {HERO_CHIPS.map((chip) => (
-              <li
-                key={chip}
-                className="rounded-full border border-white/15 bg-white/5 px-4 py-1.5 text-sm font-medium text-cream/95 backdrop-blur-md md:text-xs"
-              >
+              <li key={chip} className="luxury-pill">
                 {chip}
               </li>
             ))}
           </ul>
-          <div className="mt-10 flex w-full max-w-xl flex-col gap-3 sm:max-w-none md:mt-10 md:max-w-3xl md:flex-row md:flex-wrap md:items-center">
-            <Link
-              href="/quote"
-              className="btn-primary-lg min-h-[56px] w-full rounded-2xl text-center transition duration-200 active:scale-[0.98] sm:w-auto md:min-h-0 md:w-auto md:rounded-xl"
-            >
+
+          <div className="mt-12 flex w-full max-w-xl flex-col gap-3 sm:max-w-none md:mt-14 md:max-w-3xl md:flex-row md:flex-wrap md:items-center md:gap-4">
+            <Link href="/quote" className="btn-hero-primary min-h-[56px] w-full sm:w-auto">
               Get Free Quote
             </Link>
-            <a
-              href={PHONE_TEL}
-              className="btn-secondary-lg min-h-[56px] w-full rounded-2xl border-white/25 bg-white/10 text-center text-cream transition duration-200 active:scale-[0.98] hover:bg-white/15 sm:w-auto md:min-h-0 md:w-auto md:rounded-2xl"
-            >
+            <a href={PHONE_TEL} className="btn-hero-secondary min-h-[56px] w-full sm:w-auto">
               Call or Text {PHONE_DISPLAY}
             </a>
           </div>
         </div>
       </section>
 
+      <div className="section-divider my-2 md:my-4" aria-hidden />
+
       <ScrollReveal>
-      <section className="border-y border-navy/10 bg-white/60 py-10 backdrop-blur-sm md:py-10">
-        <div className="mx-auto flex max-w-4xl flex-col gap-4 text-center">
-          <h2 className="text-lg font-semibold tracking-tight text-navy">One secure client platform</h2>
-          <p className="text-sm leading-relaxed text-charcoal/85 sm:text-base">
-            Quotes, scheduling, invoices, payment, and approvals stay on Palm Beach Property Pros—so
-            nothing gets lost between crews and your property stakeholders.
-          </p>
-          <Link href="/quote" className="btn-primary mx-auto mt-2">
-            Request a quote
-          </Link>
-        </div>
-      </section>
+        <section className="section-band-light">
+          <div className="mx-auto max-w-2xl text-center">
+            <h2 className="section-title">One secure client platform</h2>
+            <p className="section-lead">
+              Quotes, scheduling, invoices, payment, and approvals stay on Palm Beach Property Pros—so
+              nothing gets lost between crews and your property stakeholders.
+            </p>
+            <Link href="/quote" className="btn-primary mx-auto mt-8 inline-flex">
+              Request a quote
+            </Link>
+          </div>
+        </section>
       </ScrollReveal>
 
       <ScrollReveal delay={60}>
-      <section className="py-12 md:py-20">
-        <div className="mx-auto max-w-2xl text-center">
-          <p className="text-xs font-semibold uppercase tracking-[0.22em] text-ocean">Property care plans</p>
-          <h2 className="mt-3 text-2xl font-semibold tracking-tight text-navy sm:text-3xl md:text-4xl">
-            Recurring programs, luxury cadence
-          </h2>
-          <p className="mt-4 text-charcoal/80">
-            Predictable visits, documented scope, and crews aligned to how your property actually
-            runs—not generic &quot;recurring cleanings.&quot;
-          </p>
-        </div>
-        <div className="mt-8 grid gap-4 md:mt-12 md:grid-cols-2 md:gap-5 lg:grid-cols-3">
-          {CARE_PLANS.map((plan) => (
-            <article
-              key={plan.title}
-              className="glass-panel group flex flex-col p-6 transition duration-500 hover:border-aqua/30 hover:shadow-glow"
-            >
-              <p className="text-[10px] font-semibold uppercase tracking-wider text-aqua/90">{plan.eyebrow}</p>
-              <h3 className="mt-2 text-lg font-semibold text-navy">{plan.title}</h3>
-              <p className="mt-3 flex-1 text-sm leading-relaxed text-charcoal/85">{plan.body}</p>
-              <Link href="/quote" className="mt-5 text-sm font-semibold text-ocean no-underline hover:underline">
-                Discuss a plan →
-              </Link>
-            </article>
-          ))}
-        </div>
-      </section>
+        <section className="py-16 md:py-24">
+          <div className="mx-auto max-w-2xl text-center">
+            <p className="section-eyebrow text-ocean">Property care plans</p>
+            <h2 className="section-title mt-4">Recurring programs, luxury cadence</h2>
+            <p className="section-lead">
+              Predictable visits, documented scope, and crews aligned to how your property actually
+              runs—not generic &quot;recurring cleanings.&quot;
+            </p>
+          </div>
+          <div className="mt-12 grid gap-5 md:mt-16 md:grid-cols-2 md:gap-6 lg:grid-cols-3">
+            {CARE_PLANS.map((plan) => (
+              <article key={plan.title} className="luxury-card group flex flex-col">
+                <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-aqua-muted">
+                  {plan.eyebrow}
+                </p>
+                <h3 className="mt-3 text-lg font-semibold tracking-tight text-navy">{plan.title}</h3>
+                <p className="mt-4 flex-1 text-sm leading-relaxed text-charcoal/75">{plan.body}</p>
+                <Link href="/quote" className="link-luxury mt-6 inline-block">
+                  Discuss a plan
+                </Link>
+              </article>
+            ))}
+          </div>
+        </section>
       </ScrollReveal>
 
       <ScrollReveal delay={120}>
-      <section className="rounded-2xl border border-navy/10 bg-gradient-to-b from-white to-cream/80 py-12 shadow-card md:rounded-3xl md:py-20">
-        <div className="mx-auto max-w-2xl text-center">
-          <p className="text-xs font-semibold uppercase tracking-[0.22em] text-ocean">Divisions</p>
-          <h2 className="mt-3 text-2xl font-semibold tracking-tight text-navy sm:text-3xl md:text-4xl">
-            Organized service lines
-          </h2>
-          <p className="mt-4 text-charcoal/80">
-            Exterior, interior, and property support—structured the way high-trust operators run field
-            programs.
+        <section className="section-band-warm">
+          <div className="mx-auto max-w-2xl text-center">
+            <p className="section-eyebrow text-ocean">Divisions</p>
+            <h2 className="section-title mt-4">Organized service lines</h2>
+            <p className="section-lead">
+              Exterior, interior, and property support—structured the way high-trust operators run field
+              programs.
+            </p>
+          </div>
+          <div className="mt-14 grid gap-12 md:gap-14 lg:grid-cols-3">
+            {SERVICE_LINES.map((line) => (
+              <div key={line.title} className="flex flex-col border-t border-navy/[0.08] pt-8 lg:border-t-0 lg:pt-0">
+                <h3 className="text-xs font-bold uppercase tracking-[0.22em] text-charcoal/70">
+                  {line.title}
+                </h3>
+                <p className="mt-4 max-w-sm text-sm leading-relaxed text-charcoal/70">{line.body}</p>
+                <ul className="mt-8 space-y-3">
+                  {line.links.map((link) => (
+                    <li key={link.label}>
+                      <Link
+                        href={link.href}
+                        className="group flex items-center justify-between rounded-xl border border-navy/[0.08] bg-white/70 px-4 py-3.5 text-sm font-medium text-navy shadow-sm no-underline backdrop-blur-sm transition duration-300 hover:border-aqua/25 hover:bg-white hover:shadow-card"
+                      >
+                        <span>{link.label}</span>
+                        <span className="text-aqua-muted transition duration-300 group-hover:translate-x-0.5">
+                          →
+                        </span>
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
+          <p className="mx-auto mt-14 max-w-xl text-center text-sm leading-relaxed text-charcoal/65">
+            Crews, equipment, and checklists aligned to coastal substrates and access realities.
           </p>
-        </div>
-        <div className="mt-8 grid gap-8 md:mt-14 md:gap-10 lg:grid-cols-3">
-          {SERVICE_LINES.map((line) => (
-            <div key={line.title} className="flex flex-col">
-              <h3 className="text-sm font-bold uppercase tracking-[0.2em] text-charcoal/80">{line.title}</h3>
-              <p className="mt-2 text-sm leading-relaxed text-charcoal/75">{line.body}</p>
-              <ul className="mt-6 space-y-3">
-                {line.links.map((link) => (
-                  <li key={link.label}>
-                    <Link
-                      href={link.href}
-                      className="group flex items-center justify-between rounded-xl border border-navy/10 bg-white/80 px-4 py-3 text-sm font-medium text-navy shadow-sm no-underline transition hover:border-aqua/40 hover:shadow-md"
-                    >
-                      <span>{link.label}</span>
-                      <span className="text-ocean transition group-hover:translate-x-0.5">→</span>
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))}
-        </div>
-        <p className="mx-auto mt-10 max-w-2xl text-center text-sm text-charcoal/70">
-          Crews, equipment, and checklists aligned to coastal substrates and access realities.
-        </p>
-      </section>
+        </section>
       </ScrollReveal>
 
-      <section className="animate-fade-up py-12 md:py-20">
-        <div className="grid min-w-0 gap-8 md:gap-10 lg:grid-cols-2 lg:items-center">
-          <div className="relative min-h-[220px] overflow-hidden rounded-2xl border border-navy/10 shadow-lift sm:min-h-[280px] md:min-h-[360px] md:rounded-3xl">
+      <section className="animate-fade-up py-16 md:py-24">
+        <div className="grid min-w-0 gap-10 md:gap-14 lg:grid-cols-2 lg:items-center">
+          <div className="relative min-h-[240px] overflow-hidden rounded-2xl border border-navy/[0.08] shadow-lift sm:min-h-[300px] md:min-h-[380px] md:rounded-3xl">
             <Image
               src={MAINTENANCE_IMAGE}
               alt="Professional property maintenance"
               fill
-              className="object-cover"
+              className="object-cover saturate-[0.95]"
               sizes="(max-width: 1024px) 100vw, 50vw"
             />
+            <div
+              className="absolute inset-0 bg-gradient-to-t from-navy-deep/40 via-transparent to-transparent"
+              aria-hidden
+            />
           </div>
-          <div>
-            <h2 className="text-2xl font-semibold tracking-tight text-navy sm:text-3xl md:text-4xl">Who we work with</h2>
-            <p className="mt-4 text-charcoal/80">
+          <div className="lg:pl-4">
+            <h2 className="section-title">Who we work with</h2>
+            <p className="mt-5 max-w-md text-base leading-relaxed text-charcoal/75">
               From estate driveways to dealership glass lines—one operations mindset: quiet execution,
               written scope, and repeatability.
             </p>
-            <ul className="mt-6 grid grid-cols-2 gap-2 sm:mt-8 sm:gap-3 md:grid-cols-3">
+            <ul className="mt-8 grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3">
               {WHO_WE_SERVE.map((label) => (
                 <li
                   key={label}
-                  className="min-w-0 rounded-xl border border-navy/10 bg-white/90 px-3 py-3 text-center text-sm font-medium text-navy shadow-sm sm:px-4"
+                  className="min-w-0 rounded-xl border border-navy/[0.08] bg-white/80 px-3 py-3.5 text-center text-sm font-medium text-navy shadow-sm backdrop-blur-sm transition duration-300 hover:border-aqua/20 hover:shadow-card sm:px-4"
                 >
                   {label}
                 </li>
@@ -266,40 +274,47 @@ export function PremiumHomePage() {
         </div>
       </section>
 
-      <section className="animate-fade-up rounded-2xl border border-navy/10 bg-navy py-12 text-cream md:rounded-3xl md:py-16">
-        <div className="mx-auto max-w-3xl text-center">
-          <h2 className="text-2xl font-semibold tracking-tight sm:text-3xl">Local operations, county-wide</h2>
-          <p className="mt-4 text-cream/85">
+      <section className="animate-fade-up relative overflow-hidden rounded-2xl border border-white/[0.06] bg-gradient-to-br from-navy via-navy to-navy-deep py-16 text-cream shadow-luxury md:rounded-3xl md:py-20">
+        <div className="absolute inset-0 bg-luxury-radial opacity-60" aria-hidden />
+        <div className="hero-grain absolute inset-0 opacity-20" aria-hidden />
+        <div className="relative mx-auto max-w-3xl px-2 text-center">
+          <h2 className="section-title text-cream">Local operations, county-wide</h2>
+          <p className="mx-auto mt-6 max-w-2xl text-base leading-relaxed text-cream/85 md:text-lg">
             {SITE_NAME} runs programs throughout West Palm Beach, Palm Beach Gardens, Jupiter, Riviera
             Beach, Lake Worth, Boynton Beach, Delray Beach, North Palm Beach, Juno Beach, and nearby Palm
             Beach County areas. Coastal humidity, salt exposure, and seasonal occupancy patterns inform
             how we schedule exterior refreshes, interior care, and turnovers.
           </p>
-          <Link href="/service-area" className="mt-6 inline-block text-sm font-semibold text-aqua no-underline hover:underline">
+          <Link
+            href="/service-area"
+            className="mt-8 inline-block text-sm font-semibold tracking-wide text-aqua no-underline transition hover:text-cream"
+          >
             View service area →
           </Link>
         </div>
       </section>
 
-      <section className="animate-fade-up py-12 md:py-20">
-        <h2 className="text-2xl font-semibold tracking-tight text-navy sm:text-3xl md:text-3xl">How it works</h2>
-        <ol className="mt-8 grid gap-4 sm:grid-cols-2 sm:gap-5 md:mt-10 lg:grid-cols-4">
+      <section className="animate-fade-up py-16 md:py-24">
+        <h2 className="section-title">How it works</h2>
+        <p className="mt-4 max-w-lg text-sm leading-relaxed text-charcoal/70 md:text-base">
+          A clear path from first contact to completed scope—no ambiguity for owners or managers.
+        </p>
+        <ol className="mt-10 grid gap-4 sm:grid-cols-2 sm:gap-5 md:mt-12 lg:grid-cols-4">
           {HOW_IT_WORKS.map((step, i) => (
-            <li
-              key={step}
-              className="rounded-2xl border border-navy/10 bg-white/90 p-6 shadow-card transition duration-300 hover:-translate-y-1 hover:border-aqua/35 hover:shadow-lift"
-            >
-              <span className="text-xs font-bold uppercase tracking-wider text-aqua">Step {i + 1}</span>
-              <p className="mt-3 font-semibold text-navy">{step}</p>
+            <li key={step} className="luxury-card hover:-translate-y-0.5">
+              <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-aqua-muted">
+                Step {i + 1}
+              </span>
+              <p className="mt-4 font-semibold leading-snug text-navy">{step}</p>
             </li>
           ))}
         </ol>
       </section>
 
-      <section className="animate-fade-up border-y border-navy/10 bg-white/70 py-12 backdrop-blur-sm md:py-16">
+      <section className="section-band-muted">
         <div className="mx-auto max-w-3xl">
-          <h2 className="text-2xl font-semibold tracking-tight text-navy sm:text-3xl">Documentation &amp; trust</h2>
-          <p className="mt-4 text-charcoal/85">
+          <h2 className="section-title">Documentation &amp; trust</h2>
+          <p className="mt-5 max-w-2xl text-base leading-relaxed text-charcoal/75">
             Larger exterior and commercial scopes can include photo checklists and walkthrough notes so
             owners and property managers retain a clear record—ask how documentation is handled for your
             asset class.
@@ -307,34 +322,33 @@ export function PremiumHomePage() {
         </div>
       </section>
 
-      <section className="animate-fade-up py-12 md:py-16">
+      <section className="animate-fade-up py-16 md:py-20">
         <div className="mx-auto w-full max-w-3xl">
-          <h2 className="text-2xl font-semibold tracking-tight text-navy sm:text-3xl">FAQ</h2>
-          <div className="mt-8">
+          <h2 className="section-title">FAQ</h2>
+          <p className="mt-4 text-sm text-charcoal/65">Common questions from property owners and managers.</p>
+          <div className="mt-10">
             <FaqAccordion items={FAQ_ITEMS} />
           </div>
         </div>
       </section>
 
-      <section className="animate-fade-up rounded-2xl border border-white/10 bg-charcoal px-4 py-12 text-center text-cream sm:px-6 md:rounded-3xl md:px-6 md:py-14">
-        <h2 className="text-2xl font-semibold tracking-tight sm:text-3xl">Ready when you are</h2>
-        <p className="mx-auto mt-3 max-w-xl text-cream/80">
-          Same team for quotes, service delivery, invoices, and reviews—organized like modern property
-          operations should be.
-        </p>
-        <div className="mt-8 flex w-full max-w-xl flex-col items-stretch gap-3 sm:mx-auto sm:max-w-none sm:flex-row sm:items-center sm:justify-center">
-          <Link
-            href="/quote"
-            className="btn-primary-lg min-h-[56px] w-full rounded-2xl transition duration-200 active:scale-[0.98] sm:w-auto md:rounded-xl"
-          >
-            Get Free Quote
-          </Link>
-          <a
-            href={PHONE_TEL}
-            className="btn-secondary-lg min-h-[56px] w-full rounded-2xl border-white/25 bg-white/10 text-cream transition duration-200 active:scale-[0.98] hover:bg-white/15 sm:w-auto md:rounded-2xl"
-          >
-            Call or Text {PHONE_DISPLAY}
-          </a>
+      <section className="animate-fade-up relative overflow-hidden rounded-2xl border border-white/[0.08] bg-gradient-to-b from-charcoal to-navy-deep px-4 py-16 text-center text-cream shadow-luxury sm:px-8 md:rounded-3xl md:py-20">
+        <div className="absolute inset-0 bg-luxury-vignette opacity-70" aria-hidden />
+        <div className="hero-grain absolute inset-0 opacity-15" aria-hidden />
+        <div className="relative">
+          <h2 className="section-title text-cream">Ready when you are</h2>
+          <p className="mx-auto mt-5 max-w-lg text-base leading-relaxed text-silver/90">
+            Same team for quotes, service delivery, invoices, and reviews—organized like modern property
+            operations should be.
+          </p>
+          <div className="mx-auto mt-10 flex w-full max-w-xl flex-col items-stretch gap-3 sm:flex-row sm:items-center sm:justify-center md:gap-4">
+            <Link href="/quote" className="btn-hero-primary min-h-[52px] w-full sm:w-auto">
+              Get Free Quote
+            </Link>
+            <a href={PHONE_TEL} className="btn-hero-secondary min-h-[52px] w-full sm:w-auto">
+              Call or Text {PHONE_DISPLAY}
+            </a>
+          </div>
         </div>
       </section>
     </>

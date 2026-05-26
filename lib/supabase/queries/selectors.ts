@@ -20,6 +20,6 @@ export const LEAD_LIST = "id, name, phone, email, service_requested, address, ci
 
 export const EXPENSE_LIST = "id, expense_date, category, vendor, description, amount, payment_method, job_id, crew_member_id, receipt_url, notes, expense_type, reimbursable, reimbursed, is_recurring, archived, created_at" as const;
 
-export const MEDIA_ASSET_LIST = "id, title, alt_text, caption, file_url, webp_url, file_type, folder_id, collection_id, tags, service_category, city, job_reference, before_after_group, before_after_role, is_featured, sort_order, file_size_bytes, created_at" as const;
+export const MEDIA_ASSET_LIST = "id, title, alt_text, caption, file_url, webp_url, file_type, folder_id, collection_id, tags, service_category, city, job_reference, before_after_group, before_after_role, is_featured, sort_order, file_size_bytes, optimization_status, optimization_error, storage_path, created_at" as const;
 
 export const WEBSITE_PAGE_LIST = "id, slug, title, page_type, status, seo_title, meta_description, og_image_url, preview_token, published_at, updated_at" as const;

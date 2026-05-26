@@ -830,6 +830,8 @@ export type Database = {
           is_featured: boolean
           job_reference: string | null
           service_category: string | null
+          optimization_error: string | null
+          optimization_status: string
           sort_order: number
           storage_path: string | null
           tags: string[]
@@ -854,6 +856,8 @@ export type Database = {
           is_featured?: boolean
           job_reference?: string | null
           service_category?: string | null
+          optimization_error?: string | null
+          optimization_status?: string
           sort_order?: number
           storage_path?: string | null
           tags?: string[]
@@ -878,6 +882,8 @@ export type Database = {
           is_featured?: boolean
           job_reference?: string | null
           service_category?: string | null
+          optimization_error?: string | null
+          optimization_status?: string
           sort_order?: number
           storage_path?: string | null
           tags?: string[]

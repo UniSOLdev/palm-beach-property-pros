@@ -7,6 +7,7 @@ import {
   curatedToTransformationProjects,
   loadCuratedManifest,
 } from "@/lib/media/curated";
+import { assertMediaReady, fileExistsForPublicSrc } from "@/lib/media/health";
 import { TRANSFORMATION_PROJECTS, PROJECT_RECAPS, MEDIA_REGISTRY } from "@/lib/media/registry";
 import { buildMediaUrl } from "@/lib/media/resolve";
 
@@ -24,19 +25,42 @@ export type HomepageMediaBundle = {
   storyArc: StoryArc | null;
 };
 
+function resolveHeroSrc(manifest: CuratedManifest): string {
+  const heroAsset = curatedHeroAsset(manifest);
+  const candidate = heroAsset?.src ?? manifest.homepage.heroImage?.src ?? "";
+  if (candidate && fileExistsForPublicSrc(candidate)) return candidate;
+  if (candidate) {
+    console.warn("[PBPP Media Render]", JSON.stringify({ level: "warn", src: candidate, message: "hero missing on disk" }));
+  }
+  return buildMediaUrl(MEDIA_REGISTRY.hero.primary.src, 2000);
+}
+
 export async function getHomepageMediaBundle(): Promise<HomepageMediaBundle> {
   const manifest = await loadCuratedManifest();
 
   if (manifest?.hasAuthenticMedia && manifest.projects.length > 0) {
+    const health = await assertMediaReady();
+    if (!health.ok) {
+      console.warn(
+        "[PBPP Media Render]",
+        JSON.stringify({
+          level: "warn",
+          message: "curated manifest has missing files — falling back where needed",
+          missing: health.missingFiles.length,
+        }),
+      );
+    }
+
     const heroAsset = curatedHeroAsset(manifest);
     const heroClip = curatedHeroVideo(manifest);
     const allClips = manifest.projects.flatMap((p) => p.clips);
+    const heroImageSrc = resolveHeroSrc(manifest);
 
     return {
-      hasAuthenticMedia: true,
+      hasAuthenticMedia: health.ok,
       transformations: curatedToTransformationProjects(manifest.projects),
       recaps: curatedToProjectRecaps(manifest.projects),
-      heroImageSrc: heroAsset?.src ?? manifest.homepage.heroImage?.src ?? "",
+      heroImageSrc,
       heroImageAlt: heroAsset?.alt ?? "Palm Beach Property Pros field documentation",
       heroClip,
       curatedHeroImage: manifest.homepage.heroImage,

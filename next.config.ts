@@ -4,6 +4,11 @@ const nextConfig: NextConfig = {
   reactStrictMode: true,
   serverExternalPackages: ["sharp", "heic-convert", "pdfjs-dist", "@napi-rs/canvas"],
   images: {
+    localPatterns: [
+      { pathname: "/media/**" },
+      { pathname: "/brand/**" },
+      { pathname: "/logo.png" },
+    ],
     remotePatterns: [
       {
         protocol: "https",
@@ -11,6 +16,15 @@ const nextConfig: NextConfig = {
         pathname: "/**",
       },
     ],
+    formats: ["image/webp", "image/avif"],
+  },
+  async rewrites() {
+    return [
+      {
+        source: "/media/.curated/:path*",
+        destination: "/media/curated/:path*",
+      },
+    ];
   },
 };
 

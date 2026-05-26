@@ -2,13 +2,22 @@ import type { MediaAspect, MediaAsset } from "./types";
 
 const UNSPLASH_HOST = "images.unsplash.com";
 
+/** Fallback when a local asset is missing or fails to load. */
+export const MEDIA_UNAVAILABLE_PLACEHOLDER = "/brand/pbpp-wordmark-light.svg";
+
 /** Build optimized remote image URLs with consistent editorial treatment. */
 export function buildMediaUrl(src: string, width: number, quality = 78): string {
-  if (src.startsWith("/")) return src;
+  if (!src?.trim()) return MEDIA_UNAVAILABLE_PLACEHOLDER;
+  const normalized = src.replace("/media/.curated/", "/media/curated/");
+  if (normalized.startsWith("/")) return normalized;
   if (!src.includes(UNSPLASH_HOST)) return src;
 
   const base = src.includes("?") ? src.split("?")[0]! : src;
   return `${base}?auto=format&fit=crop&w=${width}&q=${quality}&fm=webp`;
+}
+
+export function isLocalPublicSrc(src: string): boolean {
+  return src.startsWith("/") && !src.startsWith("//");
 }
 
 export function resolveMedia(asset: MediaAsset, width: number): MediaAsset & { resolvedSrc: string } {

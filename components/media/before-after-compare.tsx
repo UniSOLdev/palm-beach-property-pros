@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { MediaAssetImage } from "@/components/media/media-asset-image";
 import { MediaFrame } from "@/components/media/media-frame";
 import { ScaffoldNotice } from "@/components/media/scaffold-notice";
+import { buildMediaUrl } from "@/lib/media/resolve";
 import type { TransformationProject } from "@/lib/media/types";
 
 export function BeforeAfterCompare({
@@ -12,6 +13,16 @@ export function BeforeAfterCompare({
   project: Pick<TransformationProject, "before" | "after" | "isScaffold" | "title">;
 }) {
   const [position, setPosition] = useState(50);
+  const beforeSrc = buildMediaUrl(project.before.src, 1400);
+  const afterSrc = buildMediaUrl(project.after.src, 1400);
+
+  useEffect(() => {
+    [beforeSrc, afterSrc].forEach((src) => {
+      if (!src.startsWith("/")) return;
+      const img = new window.Image();
+      img.src = src;
+    });
+  }, [beforeSrc, afterSrc]);
 
   return (
     <div className="before-after-compare overflow-hidden rounded-2xl border border-navy/[0.08] shadow-card md:rounded-3xl">

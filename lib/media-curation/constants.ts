@@ -1,7 +1,7 @@
 import path from "path";
 
 export const PROJECTS_ROOT = path.join(process.cwd(), "public/media/projects");
-export const CURATED_ROOT = path.join(process.cwd(), "public/media/.curated");
+export const CURATED_ROOT = path.join(process.cwd(), "public/media/curated");
 export const MANIFEST_PATH = path.join(CURATED_ROOT, "manifest.json");
 
 export const IMAGE_EXTENSIONS = new Set([".jpg", ".jpeg", ".png", ".webp", ".heic", ".heif"]);

@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { useEffect, useState } from "react";
+import { MEDIA_UNAVAILABLE_PLACEHOLDER } from "@/lib/media/resolve";
 
 const BLUR =
   "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAAIAAoDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAb/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwCdABmX/9k=";
@@ -9,6 +10,9 @@ const BLUR =
 export function HeroBackground({ src, alt }: { src: string; alt: string }) {
   const [offset, setOffset] = useState(0);
   const [loaded, setLoaded] = useState(false);
+  const [failed, setFailed] = useState(false);
+  const displaySrc = failed || !src?.trim() ? MEDIA_UNAVAILABLE_PLACEHOLDER : src;
+  const isLocal = displaySrc.startsWith("/");
 
   useEffect(() => {
     const prefersReduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -37,15 +41,23 @@ export function HeroBackground({ src, alt }: { src: string; alt: string }) {
         style={{ transform: `translate3d(0, ${offset}px, 0) scale(1.06)` }}
       >
         <Image
-          src={src}
-          alt={alt}
+          src={displaySrc}
+          alt={failed ? "Media unavailable" : alt}
           fill
           priority
-          placeholder="blur"
+          unoptimized={isLocal}
+          placeholder={failed ? "empty" : "blur"}
           blurDataURL={BLUR}
-          className="object-cover object-[center_42%]"
+          className={`object-cover object-[center_42%] ${failed ? "opacity-40" : ""}`}
           sizes="100vw"
           onLoad={() => setLoaded(true)}
+          onError={() => {
+            if (!failed) {
+              console.warn("[PBPP Media Render]", JSON.stringify({ level: "warn", src, message: "hero load failed" }));
+              setFailed(true);
+              setLoaded(true);
+            }
+          }}
         />
       </div>
       <div className="absolute inset-0 bg-black/45 md:hidden" aria-hidden />

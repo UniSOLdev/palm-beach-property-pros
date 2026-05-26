@@ -33,8 +33,8 @@ export async function curateProject(projectId: string): Promise<CuratedProject |
 
   const outputDir = path.join(CURATED_ROOT, projectId, "images");
   const clipsDir = path.join(CURATED_ROOT, projectId, "clips");
-  const publicBase = `/media/.curated/${projectId}/images`;
-  const publicClipBase = `/media/.curated/${projectId}/clips`;
+  const publicBase = `/media/curated/${projectId}/images`;
+  const publicClipBase = `/media/curated/${projectId}/clips`;
   await mkdir(outputDir, { recursive: true });
   await mkdir(clipsDir, { recursive: true });
 

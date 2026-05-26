@@ -38,7 +38,7 @@ npm run media:curate
 Outputs:
 
 ```
-public/media/.curated/
+public/media/curated/
   manifest.json
   estate-cleanup-001/
     images/     ← optimized WebP + blur placeholders
@@ -164,5 +164,5 @@ Without FFmpeg, photos still curate; video clips are skipped with a warning.
 ## Production notes
 
 - Raw drops in `before/`, `after/`, `videos/` are gitignored (large files stay local)
-- Commit `public/media/.curated/manifest.json` and optimized outputs for deploy
+- Commit `public/media/curated/manifest.json` and optimized outputs for deploy
 - Re-run `npm run media:curate` after adding new project media

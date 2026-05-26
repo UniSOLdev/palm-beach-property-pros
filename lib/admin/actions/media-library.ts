@@ -6,13 +6,12 @@ import { createClient } from "@/lib/supabase/server";
 import { listMediaAssets as queryMediaAssets } from "@/lib/supabase/queries/media";
 import type { MediaAssetRow } from "@/lib/supabase/queries/media";
 import { toUserMediaMessage } from "@/lib/admin/media-errors";
+import { buildOptimizedStoragePath, MEDIA_LIBRARY_BUCKET } from "@/lib/admin/media-upload";
 import {
   convertImageToWebp,
-  buildOptimizedStoragePath,
   logMediaUpload,
   logMediaUploadError,
-  MEDIA_LIBRARY_BUCKET,
-} from "@/lib/admin/media-pipeline";
+} from "@/lib/admin/media-pipeline.server";
 
 export type { MediaAssetRow };
 

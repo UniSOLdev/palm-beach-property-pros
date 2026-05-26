@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { uploadAdminFile } from "@/lib/admin/upload";
+import { uploadAdminFile } from "@/lib/admin/upload-client";
 import { createClient } from "@/lib/supabase/client";
 
 type Folder = { id: string; slug: string; name: string };

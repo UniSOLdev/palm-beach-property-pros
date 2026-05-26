@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useTransition } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { uploadAdminFile } from "@/lib/admin/upload";
+import { uploadAdminFile } from "@/lib/admin/upload-client";
 import {
   deleteMediaAsset,
   listMediaAssets,

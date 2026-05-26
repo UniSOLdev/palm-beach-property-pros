@@ -13,7 +13,7 @@ import {
 import { EXPENSE_CATEGORIES, PAYMENT_METHODS } from "@/lib/admin/constants";
 import { formatCurrency, formatDate, formatPercent } from "@/lib/admin/format";
 import { calculateJobProfitDetail } from "@/lib/admin/job-profit";
-import { uploadAdminFile } from "@/lib/admin/upload";
+import { uploadAdminFile } from "@/lib/admin/upload-client";
 import { ChangeOrderJobPanel } from "@/components/admin/change-order-job-panel";
 import { ReceiptScannerFlow } from "@/components/admin/receipt-scanner-flow";
 import { TaskJobPanel } from "@/components/admin/task-job-panel";

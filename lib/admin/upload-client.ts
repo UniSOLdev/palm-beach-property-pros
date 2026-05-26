@@ -2,7 +2,7 @@
 
 import { createClient } from "@/lib/supabase/client";
 import { MediaUploadError } from "@/lib/admin/media-errors";
-import { buildMediaStoragePath, validateMediaUpload } from "@/lib/admin/media-pipeline";
+import { buildMediaStoragePath, validateMediaUpload } from "@/lib/admin/media-upload";
 
 export type AdminUploadBucket =
   | "receipts"

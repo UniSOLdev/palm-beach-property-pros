@@ -207,6 +207,59 @@
     @apply rounded-2xl border border-white/[0.08] bg-white/[0.04] p-6 text-left backdrop-blur-md transition duration-500 hover:border-aqua/15 hover:bg-white/[0.06];
   }
 
+  .credibility-pillar {
+    @apply rounded-2xl border border-white/[0.08] bg-white/[0.04] p-6 text-left backdrop-blur-md transition duration-500 hover:border-aqua/15 hover:bg-white/[0.06];
+  }
+
+  .media-scaffold-badge {
+    @apply inline-flex rounded-full border border-white/20 bg-navy-deep/70 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-cream/80 backdrop-blur-md;
+  }
+
+  .media-scaffold-badge-compact {
+    @apply px-2 py-0.5 text-[9px];
+  }
+
+  .media-frame {
+    @apply relative overflow-hidden;
+  }
+
+  .project-recap-card {
+    @apply transition duration-500 ease-out hover:-translate-y-0.5;
+  }
+
+  .operational-proof-card {
+    @apply rounded-2xl border border-navy/[0.08] bg-gradient-to-b from-white/95 to-cream/40 p-6 shadow-card transition duration-500 hover:border-aqua/20 hover:shadow-lift md:rounded-3xl;
+  }
+
+  .operational-proof-icon {
+    @apply inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-aqua/15 bg-gradient-to-br from-sky/80 to-white/90 shadow-sm;
+  }
+
+  .field-timeline {
+    @apply space-y-0;
+  }
+
+  .field-timeline-step {
+    @apply relative flex gap-5 pb-10 last:pb-0;
+  }
+
+  .field-timeline-step:not(:last-child)::before {
+    content: "";
+    @apply absolute left-[1.125rem] top-10 h-[calc(100%-2rem)] w-px bg-gradient-to-b from-aqua/30 to-navy/10;
+  }
+
+  .field-timeline-marker {
+    @apply relative z-[1] flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-aqua/25 bg-white text-xs font-bold text-navy shadow-sm;
+  }
+
+  .field-timeline-content {
+    @apply min-w-0 flex-1 pt-1;
+  }
+
+  .before-after-compare {
+    @apply transition duration-500 hover:shadow-lift;
+  }
+
   .luxury-pill {
     @apply rounded-full border border-white/20 bg-white/[0.08] px-4 py-1.5 text-sm font-medium text-cream/95 shadow-sm backdrop-blur-lg md:text-xs;
   }

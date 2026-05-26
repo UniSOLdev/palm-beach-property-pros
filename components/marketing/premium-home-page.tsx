@@ -1,69 +1,78 @@
 import Link from "next/link";
 import { FaqAccordion } from "@/components/faq-accordion";
+import { DocumentationSuite } from "@/components/media/documentation-suite";
+import { FeaturedProjectsSection } from "@/components/media/featured-projects-section";
+import { FieldExecutionTimeline } from "@/components/media/field-execution-timeline";
+import { MediaAssetImage } from "@/components/media/media-asset-image";
+import { MediaFrame } from "@/components/media/media-frame";
+import { TransformationShowcase } from "@/components/media/transformation-showcase";
 import { HeroBackground } from "@/components/marketing/hero-background";
-import { LuxuryImage } from "@/components/marketing/luxury-image";
 import { ScrollReveal } from "@/components/marketing/scroll-reveal";
 import { FAQ_ITEMS } from "@/lib/faq";
-import { HOME_IMAGES } from "@/lib/marketing-images";
+import {
+  buildMediaUrl,
+  FIELD_EXECUTION_STEPS,
+  LOCAL_MARKETS,
+  MEDIA_REGISTRY,
+  OPERATIONAL_PROOF,
+  PROJECT_RECAPS,
+  TRANSFORMATION_PROJECTS,
+} from "@/lib/media";
 import { PHONE_DISPLAY, PHONE_TEL, SITE_NAME } from "@/lib/site";
 
-const IMAGES = HOME_IMAGES;
+const HERO = MEDIA_REGISTRY.hero.primary;
 
 const HERO_CHIPS = [
   "Licensed & insured",
-  "Residential & commercial",
-  "Airbnb & turnover specialists",
-  "Palm Beach County based",
+  "Palm Beach County operations",
+  "Documented field execution",
+  "Estate & turnover programs",
 ] as const;
 
-const TRUST_SIGNALS = [
-  { value: "4.9", label: "Client satisfaction focus" },
-  { value: "County-wide", label: "Palm Beach operations" },
-  { value: "Photo scope", label: "Documented field visits" },
-] as const;
-
-const TRUST_REVIEWS = [
+const CREDIBILITY_PILLARS = [
   {
-    quote:
-      "Consistent crews, clear scope, and the kind of quiet execution you want for a second home.",
-    attribution: "Seasonal homeowner · Palm Beach Gardens",
+    title: "Written scope first",
+    body: "Access notes, substrates, and checkpoints confirmed before crews dispatch.",
   },
   {
-    quote:
-      "Turnovers run on our checklist—not generic cleaning. Glass and exterior detail actually hold up.",
-    attribution: "Short-term rental manager · Jupiter",
+    title: "County-native scheduling",
+    body: "Salt exposure, humidity, and seasonal occupancy inform how programs run.",
+  },
+  {
+    title: "Operational records",
+    body: "Photo checklists, walkthrough notes, and visit logs when your asset requires them.",
   },
 ] as const;
 
 const CARE_PLANS = [
   {
     eyebrow: "Weekly rhythm",
-    title: "Weekly care",
-    body: "High-touch homes and active storefronts that need a steady baseline year-round.",
+    title: "Weekly estate care",
+    body: "High-touch residences and active storefronts on a steady operational baseline year-round.",
     icon: "calendar",
   },
   {
     eyebrow: "Seasonal playbook",
-    title: "Seasonal property plans",
-    body: "Open, close, and peak-season refreshes for coastal estates and second homes.",
+    title: "Seasonal property programs",
+    body: "Open, close, and peak-season sequences for coastal estates and second homes.",
     icon: "palm",
   },
   {
     eyebrow: "Owner-offsite coverage",
-    title: "Vacation home care",
-    body: "Coordinated visits while you are away—glass, exterior, and interior touchpoints.",
+    title: "Vacation home coordination",
+    body: "Coordinated visits while you are away—glass, exterior, interior, and arrival readiness.",
     icon: "estate",
   },
   {
     eyebrow: "Per turnover",
-    title: "Airbnb turnover programs",
+    title: "Short-term rental turnovers",
     body: "Check-in aligned crews, linen resets, and staging details under your SOPs.",
     icon: "key",
   },
   {
     eyebrow: "Commercial cadence",
-    title: "Storefront maintenance plans",
-    body: "Glass, floors, and high-traffic zones matched to operating hours and traffic.",
+    title: "Storefront maintenance",
+    body: "Glass, floors, and high-traffic zones matched to operating hours and foot traffic.",
     icon: "storefront",
   },
 ] as const;
@@ -71,10 +80,9 @@ const CARE_PLANS = [
 const SERVICE_LINES = [
   {
     title: "Exterior care",
-    body: "Curb presence, glass clarity, and exterior surfaces maintained to coastal standards.",
-    image: IMAGES.exterior,
-    imageAlt: "Luxury coastal home exterior with pristine curb presence",
-    focal: "object-[center_40%]",
+    body: "Curb presence, glass clarity, hardscape, and exterior surfaces maintained to coastal estate standards.",
+    asset: MEDIA_REGISTRY.divisions.exterior,
+    examples: ["Pressure washing", "Window lines", "Driveway refresh", "Pool deck care"],
     links: [
       { href: "/services/window-cleaning", label: "Window cleaning" },
       { href: "/services/pressure-washing", label: "Pressure washing" },
@@ -83,10 +91,9 @@ const SERVICE_LINES = [
   },
   {
     title: "Interior care",
-    body: "Residences and interiors kept inspection-ready with repeatable crew standards.",
-    image: IMAGES.interior,
-    imageAlt: "Luxury modern interior with refined finishes",
-    focal: "object-center",
+    body: "Estate resets, turnover prep, and interiors kept inspection-ready with repeatable crew standards.",
+    asset: MEDIA_REGISTRY.divisions.interior,
+    examples: ["Estate resets", "Move-out prep", "Kitchen detail", "Carpet care"],
     links: [
       { href: "/services/residential-cleaning", label: "Residential cleaning" },
       { href: "/services/carpet-steam-cleaning", label: "Carpet cleaning" },
@@ -95,10 +102,9 @@ const SERVICE_LINES = [
   },
   {
     title: "Property support",
-    body: "Turnovers, light maintenance, and onsite support aligned with operations calendars.",
-    image: IMAGES.propertySupport,
-    imageAlt: "Professional equipment and operational field readiness",
-    focal: "object-[center_45%]",
+    body: "Turnovers, maintenance coordination, and onsite support aligned to operations calendars.",
+    asset: MEDIA_REGISTRY.divisions.propertySupport,
+    examples: ["Airbnb turnovers", "Vendor oversight", "Seasonal checks", "Trash services"],
     links: [
       { href: "/services/airbnb-services", label: "Airbnb turnovers" },
       { href: "/services/property-maintenance", label: "Property maintenance" },
@@ -108,20 +114,13 @@ const SERVICE_LINES = [
 ] as const;
 
 const WHO_WE_SERVE = [
-  "Homeowners",
-  "Airbnb hosts",
-  "Property managers",
-  "Dealerships",
-  "Storefronts",
-  "HOAs",
+  "Estate homeowners",
   "Seasonal residents",
-] as const;
-
-const HOW_IT_WORKS = [
-  "Request a quote",
-  "Share photos & access notes",
-  "Receive written scope & schedule",
-  "Crew executes to checklist",
+  "Property managers",
+  "Airbnb operators",
+  "Realtor partners",
+  "Storefront operators",
+  "HOA communities",
 ] as const;
 
 function PlanIcon({ type }: { type: (typeof CARE_PLANS)[number]["icon"] }) {
@@ -162,22 +161,24 @@ function PlanIcon({ type }: { type: (typeof CARE_PLANS)[number]["icon"] }) {
 }
 
 export function PremiumHomePage() {
+  const heroSrc = buildMediaUrl(HERO.src, 2000);
+
   return (
     <>
       <section className="hero-cinematic animate-fade-up relative -mx-4 sm:-mx-6 md:mx-0 md:rounded-3xl">
-        <HeroBackground src={IMAGES.hero} alt="Luxury Palm Beach estate exterior at dusk" />
+        <HeroBackground src={heroSrc} alt={HERO.alt} />
 
         <div className="relative z-10 px-4 py-20 sm:px-6 sm:py-24 md:px-10 md:py-32 lg:py-36">
           <div className="max-w-xl md:max-w-3xl">
             <p className="section-eyebrow text-aqua/90 md:tracking-[0.32em]">
-              Premium Property Operations
+              Palm Beach Property Operations
             </p>
             <h1 className="mt-6 text-4xl font-semibold leading-[1.08] tracking-tight text-cream drop-shadow-[0_2px_24px_rgba(8,26,46,0.45)] sm:text-5xl md:mt-7 md:text-[3.25rem] md:leading-[1.06]">
-              Property Care for Palm Beach Living
+              Property operations for Palm Beach County estates
             </h1>
             <p className="mt-7 max-w-xl text-base leading-[1.75] text-silver/95 sm:text-lg md:mt-9 md:max-w-2xl md:text-xl md:leading-[1.7]">
-              Residential, commercial, and coastal property services delivered with professional crews,
-              modern systems, and detail-focused execution.
+              Recurring estate support, turnovers, and field programs—coordinated with professional crews,
+              documented execution, and modern client systems.
             </p>
           </div>
 
@@ -191,7 +192,7 @@ export function PremiumHomePage() {
 
           <div className="mt-12 flex w-full max-w-xl flex-col gap-3 sm:max-w-none md:mt-14 md:max-w-3xl md:flex-row md:flex-wrap md:items-center md:gap-4">
             <Link href="/quote" className="btn-hero-primary min-h-[56px] w-full sm:w-auto">
-              Get Free Quote
+              Request a scope review
             </Link>
             <a href={PHONE_TEL} className="btn-hero-secondary min-h-[56px] w-full sm:w-auto">
               Call or Text {PHONE_DISPLAY}
@@ -206,36 +207,35 @@ export function PremiumHomePage() {
         <section className="section-band-light relative overflow-hidden">
           <div className="absolute inset-0 bg-luxury-mesh opacity-60" aria-hidden />
           <div className="relative mx-auto max-w-2xl text-center">
-            <h2 className="section-title">One secure client platform</h2>
+            <p className="section-eyebrow text-ocean">Client platform</p>
+            <h2 className="section-title">One secure operations portal</h2>
             <p className="section-lead">
-              Quotes, scheduling, invoices, payment, and approvals stay on Palm Beach Property Pros—so
-              nothing gets lost between crews and your property stakeholders.
+              Quotes, scheduling, invoices, payment, and approvals stay on {SITE_NAME}—so nothing gets
+              lost between field crews, owners, and property stakeholders.
             </p>
             <Link href="/quote" className="btn-primary mx-auto mt-8 inline-flex">
-              Request a quote
+              Request a scope review
             </Link>
           </div>
         </section>
       </ScrollReveal>
 
+      <TransformationShowcase projects={TRANSFORMATION_PROJECTS} />
+
       <ScrollReveal delay={60}>
         <section className="relative py-16 md:py-24">
           <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-aqua/15 to-transparent" aria-hidden />
           <div className="mx-auto max-w-2xl text-center">
-            <p className="section-eyebrow text-ocean">Property care plans</p>
-            <h2 className="section-title mt-4">Recurring programs, luxury cadence</h2>
+            <p className="section-eyebrow text-ocean">Recurring programs</p>
+            <h2 className="section-title mt-4">Estate maintenance cadence</h2>
             <p className="section-lead">
               Predictable visits, documented scope, and crews aligned to how your property actually
-              runs—not generic &quot;recurring cleanings.&quot;
+              runs—concierge-level coordination, not generic recurring visits.
             </p>
           </div>
           <div className="mt-12 grid gap-5 md:mt-16 md:grid-cols-2 md:gap-6 lg:grid-cols-3">
-            {CARE_PLANS.map((plan, i) => (
-              <article
-                key={plan.title}
-                className="care-plan-card group flex flex-col"
-                style={{ animationDelay: `${i * 60}ms` }}
-              >
+            {CARE_PLANS.map((plan) => (
+              <article key={plan.title} className="care-plan-card group flex flex-col">
                 <div className="care-plan-icon-wrap">
                   <PlanIcon type={plan.icon} />
                 </div>
@@ -245,7 +245,7 @@ export function PremiumHomePage() {
                 <h3 className="mt-3 text-lg font-semibold tracking-tight text-navy">{plan.title}</h3>
                 <p className="mt-4 flex-1 text-sm leading-relaxed text-charcoal/75">{plan.body}</p>
                 <Link href="/quote" className="link-luxury mt-6 inline-block">
-                  Discuss a plan
+                  Discuss a program
                 </Link>
               </article>
             ))}
@@ -257,34 +257,35 @@ export function PremiumHomePage() {
         <section className="section-band-warm relative overflow-hidden">
           <div className="absolute -right-24 top-0 h-64 w-64 rounded-full bg-aqua/[0.04] blur-3xl" aria-hidden />
           <div className="relative mx-auto max-w-2xl text-center">
-            <p className="section-eyebrow text-ocean">Divisions</p>
-            <h2 className="section-title mt-4">Organized service lines</h2>
+            <p className="section-eyebrow text-ocean">Service divisions</p>
+            <h2 className="section-title mt-4">Operational service lines</h2>
             <p className="section-lead">
-              Exterior, interior, and property support—structured the way high-trust operators run field
-              programs.
+              Exterior, interior, and property support—structured the way mature field operators run
+              county-wide programs.
             </p>
           </div>
           <div className="relative mt-14 grid gap-10 md:gap-12 lg:grid-cols-3">
             {SERVICE_LINES.map((line) => (
               <div key={line.title} className="service-division group flex flex-col">
-                <div className="service-division-image relative mb-8 aspect-[4/3] overflow-hidden rounded-2xl border border-navy/[0.08] shadow-card md:rounded-3xl">
-                  <LuxuryImage
-                    src={line.image}
-                    alt={line.imageAlt}
-                    fill
-                    loading="lazy"
-                    overlay="card"
-                    hoverScale
-                    className={`object-cover ${line.focal}`}
-                    sizes="(max-width: 1024px) 100vw, 33vw"
-                  />
+                <MediaFrame aspect="landscape" className="service-division-image image-frame mb-8 rounded-2xl md:rounded-3xl">
+                  <MediaAssetImage asset={line.asset} width={900} hoverScale />
                   <div className="absolute bottom-0 left-0 right-0 z-[3] p-5">
                     <span className="inline-flex rounded-full border border-white/20 bg-navy-deep/50 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.22em] text-cream/90 backdrop-blur-md">
                       {line.title}
                     </span>
                   </div>
-                </div>
+                </MediaFrame>
                 <p className="max-w-sm text-sm leading-relaxed text-charcoal/70">{line.body}</p>
+                <ul className="mt-4 flex flex-wrap gap-2">
+                  {line.examples.map((example) => (
+                    <li
+                      key={example}
+                      className="rounded-full border border-navy/[0.06] bg-white/70 px-2.5 py-1 text-[11px] font-medium text-charcoal/60"
+                    >
+                      {example}
+                    </li>
+                  ))}
+                </ul>
                 <ul className="mt-6 space-y-3">
                   {line.links.map((link) => (
                     <li key={link.label}>
@@ -300,32 +301,23 @@ export function PremiumHomePage() {
               </div>
             ))}
           </div>
-          <p className="relative mx-auto mt-14 max-w-xl text-center text-sm leading-relaxed text-charcoal/65">
-            Crews, equipment, and checklists aligned to coastal substrates and access realities.
-          </p>
         </section>
       </ScrollReveal>
+
+      <FeaturedProjectsSection projects={PROJECT_RECAPS} />
 
       <ScrollReveal>
         <section className="py-16 md:py-24">
           <div className="grid min-w-0 gap-10 md:gap-14 lg:grid-cols-2 lg:items-center">
-            <div className="image-frame relative min-h-[220px] overflow-hidden sm:min-h-[280px] md:min-h-[380px]">
-              <LuxuryImage
-                src={IMAGES.operations}
-                alt="Estate driveway and luxury property exterior"
-                fill
-                loading="lazy"
-                overlay="subtle"
-                hoverScale
-                className="object-cover object-[center_35%]"
-                sizes="(max-width: 1024px) 100vw, 50vw"
-              />
-            </div>
+            <MediaFrame aspect="landscape" className="image-frame min-h-[220px] sm:min-h-[280px] md:min-h-0">
+              <MediaAssetImage asset={MEDIA_REGISTRY.audience} width={1200} hoverScale />
+            </MediaFrame>
             <div className="lg:pl-4">
-              <h2 className="section-title">Who we work with</h2>
+              <p className="section-eyebrow text-ocean">Who we serve</p>
+              <h2 className="section-title mt-3">Built for Palm Beach stakeholders</h2>
               <p className="mt-5 max-w-md text-base leading-relaxed text-charcoal/75">
                 From estate driveways to dealership glass lines—one operations mindset: quiet execution,
-                written scope, and repeatability.
+                written scope, and repeatable field standards.
               </p>
               <ul className="mt-8 grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3">
                 {WHO_WE_SERVE.map((label) => (
@@ -345,27 +337,21 @@ export function PremiumHomePage() {
           <div className="hero-grain absolute inset-0 opacity-20" aria-hidden />
           <div className="relative">
             <div className="mx-auto max-w-2xl px-2 text-center">
-              <p className="section-eyebrow text-aqua/80">Trusted locally</p>
-              <h2 className="section-title mt-3 text-cream">Operational confidence, understated</h2>
+              <p className="section-eyebrow text-aqua/80">Operational credibility</p>
+              <h2 className="section-title mt-3 text-cream">How mature field programs run</h2>
+              <p className="mx-auto mt-5 max-w-xl text-sm leading-relaxed text-cream/80 md:text-base">
+                No inflated claims—just the execution standards owners and managers expect from a
+                county-embedded property operations partner.
+              </p>
             </div>
-            <ul className="mx-auto mt-10 grid max-w-3xl gap-4 px-2 sm:grid-cols-3">
-              {TRUST_SIGNALS.map((signal) => (
-                <li key={signal.label} className="trust-metric">
-                  <span className="trust-metric-value">{signal.value}</span>
-                  <span className="trust-metric-label">{signal.label}</span>
+            <ul className="mx-auto mt-10 grid max-w-4xl gap-5 px-2 md:grid-cols-3">
+              {CREDIBILITY_PILLARS.map((pillar) => (
+                <li key={pillar.title} className="credibility-pillar">
+                  <h3 className="text-sm font-semibold text-cream">{pillar.title}</h3>
+                  <p className="mt-3 text-sm leading-relaxed text-silver/80">{pillar.body}</p>
                 </li>
               ))}
             </ul>
-            <div className="mx-auto mt-10 grid max-w-4xl gap-5 px-2 md:grid-cols-2">
-              {TRUST_REVIEWS.map((review) => (
-                <blockquote key={review.attribution} className="trust-quote">
-                  <p className="text-sm leading-relaxed text-cream/90">&ldquo;{review.quote}&rdquo;</p>
-                  <footer className="mt-4 text-[11px] font-medium uppercase tracking-[0.16em] text-silver/70">
-                    {review.attribution}
-                  </footer>
-                </blockquote>
-              ))}
-            </div>
           </div>
         </section>
       </ScrollReveal>
@@ -375,18 +361,28 @@ export function PremiumHomePage() {
           <div className="absolute inset-0 bg-luxury-radial opacity-60" aria-hidden />
           <div className="hero-grain absolute inset-0 opacity-20" aria-hidden />
           <div className="relative mx-auto max-w-3xl px-2 text-center">
-            <h2 className="section-title text-cream">Local operations, county-wide</h2>
+            <p className="section-eyebrow text-aqua/80">Local presence</p>
+            <h2 className="section-title text-cream">Embedded in Palm Beach County</h2>
             <p className="mx-auto mt-6 max-w-2xl text-base leading-relaxed text-cream/85 md:text-lg">
-              {SITE_NAME} runs programs throughout West Palm Beach, Palm Beach Gardens, Jupiter, Riviera
-              Beach, Lake Worth, Boynton Beach, Delray Beach, North Palm Beach, Juno Beach, and nearby Palm
-              Beach County areas. Coastal humidity, salt exposure, and seasonal occupancy patterns inform
-              how we schedule exterior refreshes, interior care, and turnovers.
+              {SITE_NAME} coordinates programs throughout the county—where coastal humidity, salt exposure,
+              and seasonal occupancy patterns inform how we schedule exterior refreshes, interior care, and
+              turnovers.
             </p>
+            <ul className="mx-auto mt-8 flex max-w-2xl flex-wrap justify-center gap-2">
+              {LOCAL_MARKETS.map((market) => (
+                <li
+                  key={market}
+                  className="rounded-full border border-white/15 bg-white/[0.05] px-3 py-1.5 text-xs font-medium text-cream/85 backdrop-blur-sm"
+                >
+                  {market}
+                </li>
+              ))}
+            </ul>
             <Link
               href="/service-area"
               className="mt-8 inline-block text-sm font-semibold tracking-wide text-aqua no-underline transition duration-500 hover:text-cream"
             >
-              View service area →
+              View full service area →
             </Link>
           </div>
         </section>
@@ -394,49 +390,38 @@ export function PremiumHomePage() {
 
       <ScrollReveal delay={60}>
         <section className="py-16 md:py-24">
-          <div className="grid gap-10 lg:grid-cols-[1fr_minmax(0,280px)] lg:items-start lg:gap-14">
+          <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,300px)] lg:items-start lg:gap-14">
             <div>
-              <h2 className="section-title">How it works</h2>
+              <p className="section-eyebrow text-ocean">Field workflow</p>
+              <h2 className="section-title mt-3">From scope to documented completion</h2>
               <p className="mt-4 max-w-lg text-sm leading-relaxed text-charcoal/70 md:text-base">
-                A clear path from first contact to completed scope—no ambiguity for owners or managers.
+                A clear operational path from first contact to completed scope—no ambiguity for owners,
+                managers, or seasonal stakeholders.
               </p>
-              <ol className="mt-10 grid gap-4 sm:grid-cols-2 sm:gap-5 lg:grid-cols-2">
-                {HOW_IT_WORKS.map((step, i) => (
-                  <li key={step} className="luxury-card hover:-translate-y-0.5">
-                    <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-aqua-muted">
-                      Step {i + 1}
-                    </span>
-                    <p className="mt-4 font-semibold leading-snug text-navy">{step}</p>
-                  </li>
-                ))}
-              </ol>
+              <div className="mt-10">
+                <FieldExecutionTimeline steps={FIELD_EXECUTION_STEPS} />
+              </div>
             </div>
-            <div className="image-frame relative hidden aspect-[3/4] min-h-[280px] overflow-hidden lg:block">
-              <LuxuryImage
-                src={IMAGES.pressureWash}
-                alt="Professional exterior surface care in progress"
-                fill
-                loading="lazy"
-                overlay="card"
-                hoverScale
-                className="object-cover object-center"
-                sizes="280px"
-              />
-            </div>
+            <MediaFrame aspect="portrait" className="image-frame hidden min-h-[320px] lg:block">
+              <MediaAssetImage asset={MEDIA_REGISTRY.operations.poolDeck} width={600} hoverScale />
+            </MediaFrame>
           </div>
         </section>
       </ScrollReveal>
 
       <ScrollReveal>
-        <section className="section-band-muted relative overflow-hidden">
+        <section className="section-band-muted relative overflow-hidden py-16 md:py-24">
           <div className="absolute inset-0 bg-luxury-mesh opacity-40" aria-hidden />
           <div className="relative mx-auto max-w-3xl">
-            <h2 className="section-title">Documentation &amp; trust</h2>
+            <p className="section-eyebrow text-ocean">Documentation systems</p>
+            <h2 className="section-title mt-3">Owner visibility &amp; operational records</h2>
             <p className="mt-5 max-w-2xl text-base leading-relaxed text-charcoal/75">
-              Larger exterior and commercial scopes can include photo checklists and walkthrough notes so
-              owners and property managers retain a clear record—ask how documentation is handled for your
-              asset class.
+              Walkthrough notes, photo checklists, property logs, and written scopes—structured for owners
+              and managers who expect vendor accountability.
             </p>
+            <div className="mt-10">
+              <DocumentationSuite items={OPERATIONAL_PROOF} />
+            </div>
           </div>
         </section>
       </ScrollReveal>
@@ -445,7 +430,9 @@ export function PremiumHomePage() {
         <section className="py-16 md:py-20">
           <div className="mx-auto w-full max-w-3xl">
             <h2 className="section-title">FAQ</h2>
-            <p className="mt-4 text-sm text-charcoal/65">Common questions from property owners and managers.</p>
+            <p className="mt-4 text-sm text-charcoal/65">
+              Common questions from property owners, managers, and seasonal residents.
+            </p>
             <div className="mt-10">
               <FaqAccordion items={FAQ_ITEMS} />
             </div>
@@ -460,12 +447,12 @@ export function PremiumHomePage() {
         <div className="relative">
           <h2 className="section-title text-cream">Ready when you are</h2>
           <p className="mx-auto mt-5 max-w-lg text-base leading-relaxed text-silver/90">
-            Same team for quotes, service delivery, invoices, and reviews—organized like modern property
-            operations should be.
+            Same team for scope review, field execution, invoicing, and ongoing programs—organized the way
+            modern property operations should be.
           </p>
           <div className="mx-auto mt-10 flex w-full max-w-xl flex-col items-stretch gap-3 sm:flex-row sm:items-center sm:justify-center md:gap-4">
             <Link href="/quote" className="btn-hero-primary min-h-[52px] w-full sm:w-auto">
-              Get Free Quote
+              Request a scope review
             </Link>
             <a href={PHONE_TEL} className="btn-hero-secondary min-h-[52px] w-full sm:w-auto">
               Call or Text {PHONE_DISPLAY}

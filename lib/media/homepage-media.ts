@@ -57,7 +57,7 @@ export async function getHomepageMediaBundle(): Promise<HomepageMediaBundle> {
     const heroImageSrc = resolveHeroSrc(manifest);
 
     return {
-      hasAuthenticMedia: health.ok,
+      hasAuthenticMedia: manifest.hasAuthenticMedia && health.missingFiles.length === 0,
       transformations: curatedToTransformationProjects(manifest.projects),
       recaps: curatedToProjectRecaps(manifest.projects),
       heroImageSrc,

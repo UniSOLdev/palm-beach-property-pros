@@ -209,7 +209,10 @@ export async function buildManifest(projects: CuratedProject[]): Promise<Curated
   const top = ranked[0];
 
   const heroImage =
-    top?.storyArc.restored[0] ?? top?.heroCandidates[0] ?? top?.beforeAfter[0]?.after ?? null;
+    top?.heroCandidates[0] ??
+    top?.storyArc.restored[0] ??
+    top?.beforeAfter[0]?.after ??
+    null;
   const heroClip = top?.clips.find((c) => c.role === "hero-loop") ?? null;
   const featuredTransformation = top?.beforeAfter.sort((a, b) => b.contrastScore - a.contrastScore)[0] ?? null;
 

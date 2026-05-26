@@ -105,12 +105,12 @@ export function CinematicVideoHero({
       ) : poster ? (
         <MediaAssetImage asset={curatedToAsset(poster, "hero", "none")} width={2000} priority />
       ) : null}
-      <div className="absolute inset-0 bg-black/40" aria-hidden />
+      <div className="absolute inset-0 bg-black/20" aria-hidden />
       <div
-        className="absolute inset-0 bg-gradient-to-t from-navy-deep/95 via-navy/80 to-navy/25 md:rounded-3xl"
+        className="absolute inset-0 bg-gradient-to-t from-navy-deep/85 via-navy/55 to-navy/15 md:rounded-3xl"
         aria-hidden
       />
-      <div className="absolute inset-0 bg-luxury-vignette opacity-80 md:rounded-3xl" aria-hidden />
+      <div className="absolute inset-0 bg-luxury-vignette opacity-50 md:rounded-3xl" aria-hidden />
     </div>
   );
 }

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { FaqAccordion } from "@/components/faq-accordion";
-import { TransformationCarousel } from "@/components/media/cinematic-project-media";
+import { TransformationCarousel, ProjectReelGrid } from "@/components/media/cinematic-project-media";
 import { DocumentationSuite } from "@/components/media/documentation-suite";
 import { FeaturedProjectsSection } from "@/components/media/featured-projects-section";
 import { FieldExecutionTimeline } from "@/components/media/field-execution-timeline";
@@ -282,6 +282,29 @@ export function PremiumHomePage({ media }: { media: HomepageMediaBundle }) {
       <TransformationShowcase projects={media.transformations} isAuthentic={media.hasAuthenticMedia} />
 
       {media.storyArc ? <StoryArcShowcase storyArc={media.storyArc} /> : null}
+
+      {media.hasAuthenticMedia && (media.heroClip || media.reelClips.length > 0) ? (
+        <ScrollReveal delay={20}>
+          <section className="py-16 md:py-24">
+            <div className="mx-auto max-w-2xl text-center">
+              <p className="section-eyebrow text-ocean">Field documentation</p>
+              <h2 className="section-title mt-4">On-site video from your project</h2>
+              <p className="section-lead">
+                Authentic clips from the Palm Beach Gardens estate cleanup—crews clearing vegetation,
+                restoring pathways, and finishing exterior lines.
+              </p>
+            </div>
+            <div className="mt-12">
+              <ProjectReelGrid
+                clips={[
+                  ...(media.heroClip ? [media.heroClip] : []),
+                  ...media.reelClips,
+                ].slice(0, 4)}
+              />
+            </div>
+          </section>
+        </ScrollReveal>
+      ) : null}
 
       {media.hasAuthenticMedia && media.featuredPairs.length > 1 ? (
         <ScrollReveal delay={40}>

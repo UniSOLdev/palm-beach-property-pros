@@ -75,7 +75,7 @@ export function LuxuryImage({
           alt={failed ? "Media unavailable" : alt}
           loading={props.priority ? "eager" : "lazy"}
           decoding="async"
-          className={`${fill ? "absolute inset-0 h-full w-full" : ""} ${failed ? "object-contain p-8 opacity-30" : ""} ${hoverScale ? "transition duration-[1.4s] ease-out group-hover/image:scale-[1.012]" : ""} ${className}`}
+          className={`${fill ? "absolute inset-0 h-full w-full object-cover" : ""} ${failed ? "object-contain p-8 opacity-30" : ""} ${hoverScale ? "transition duration-[1.4s] ease-out group-hover/image:scale-[1.012]" : ""} ${className}`}
           onLoad={handleLoad}
           onError={handleError}
         />

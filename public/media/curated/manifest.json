@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-05-26T01:40:18.796Z",
+  "generatedAt": "2026-05-26T15:17:30.402Z",
   "hasAuthenticMedia": true,
   "projects": [
     {
@@ -17,7 +17,7 @@
         "estate exterior",
         "detailed finish"
       ],
-      "rankedScore": 105,
+      "rankedScore": 121,
       "timeframe": "48-hour estate turnaround",
       "scope": [
         "Vegetation trimming",
@@ -364,7 +364,32 @@
           "originalName": "IMG_7912.jpeg"
         }
       ],
-      "clips": [],
+      "clips": [
+        {
+          "id": "clip-estate-cleanup-001-hero",
+          "src": "/media/curated/estate-cleanup-001/clips/hero-loop.mp4",
+          "poster": "/media/curated/estate-cleanup-001/clips/hero-loop-poster.jpg",
+          "width": 1280,
+          "height": 720,
+          "durationSec": 10,
+          "alt": "Field work in progress — Estate vegetation cleanup & exterior restoration",
+          "score": 10,
+          "role": "hero-loop",
+          "originalName": "IMG_7322.MOV"
+        },
+        {
+          "id": "clip-estate-cleanup-001-1",
+          "src": "/media/curated/estate-cleanup-001/clips/clip-1.mp4",
+          "poster": "/media/curated/estate-cleanup-001/clips/clip-1-poster.jpg",
+          "width": 1280,
+          "height": 720,
+          "durationSec": 12,
+          "alt": "Estate vegetation cleanup & exterior restoration operational documentation",
+          "score": 11,
+          "role": "highlight",
+          "originalName": "video-1663_singular_display.mov"
+        }
+      ],
       "storyArc": {
         "neglected": [
           {
@@ -410,7 +435,20 @@
             "originalName": "IMG_7708.jpeg"
           }
         ],
-        "activeWork": [],
+        "activeWork": [
+          {
+            "id": "clip-estate-cleanup-001-hero",
+            "src": "/media/curated/estate-cleanup-001/clips/hero-loop.mp4",
+            "poster": "/media/curated/estate-cleanup-001/clips/hero-loop-poster.jpg",
+            "width": 1280,
+            "height": 720,
+            "durationSec": 10,
+            "alt": "Field work in progress — Estate vegetation cleanup & exterior restoration",
+            "score": 10,
+            "role": "hero-loop",
+            "originalName": "IMG_7322.MOV"
+          }
+        ],
         "restored": [
           {
             "id": "after-img-7714",
@@ -460,20 +498,31 @@
   ],
   "homepage": {
     "heroImage": {
-      "id": "after-img-7714",
-      "src": "/media/curated/estate-cleanup-001/images/after-img-7714.webp",
-      "blurDataURL": "data:image/webp;base64,UklGRlgAAABXRUJQVlA4IEwAAADwAQCdASoQAAwAA4BaJZAC7AC2hg+BiAAAyxKApYIrH04NDK/CLRX5uwuzfsYjgIqv7lqwE4pQdzwJezZ3i8wkR7M30EYIptBJAAAA",
-      "width": 1400,
-      "height": 1050,
-      "aspect": 1.3333333333333333,
-      "alt": "Restored property — Estate vegetation cleanup & exterior restoration, Palm Beach Gardens",
-      "score": 75,
-      "role": "after",
+      "id": "hero-3d32be01-d35f-4ecf-800e-6d0219e656f6",
+      "src": "/media/curated/estate-cleanup-001/images/hero-3d32be01-d35f-4ecf-800e-6d0219e656f6.webp",
+      "blurDataURL": "data:image/webp;base64,UklGRkwAAABXRUJQVlA4IEAAAACQAQCdASoQAAkAA4BaJZAC7AClNcAA+9N4jNAPOFK18SzPmm7Jlo4+cxyw2p8Cc1XCTi3Z3OimF2mHlOyvXgAA",
+      "width": 2000,
+      "height": 1125,
+      "aspect": 1.7777777777777777,
+      "alt": "Restored estate — Estate vegetation cleanup & exterior restoration, Palm Beach Gardens",
+      "score": 91,
+      "role": "hero",
       "storyPhase": "restored",
-      "focal": "object-[center_42%]",
-      "originalName": "IMG_7714.jpeg"
+      "focal": "object-[center_38%]",
+      "originalName": "3D32BE01-D35F-4ECF-800E-6D0219E656F6.jpg"
     },
-    "heroClip": null,
+    "heroClip": {
+      "id": "clip-estate-cleanup-001-hero",
+      "src": "/media/curated/estate-cleanup-001/clips/hero-loop.mp4",
+      "poster": "/media/curated/estate-cleanup-001/clips/hero-loop-poster.jpg",
+      "width": 1280,
+      "height": 720,
+      "durationSec": 10,
+      "alt": "Field work in progress — Estate vegetation cleanup & exterior restoration",
+      "score": 10,
+      "role": "hero-loop",
+      "originalName": "IMG_7322.MOV"
+    },
     "featuredTransformation": {
       "id": "before-img-7699__after-img-7714",
       "before": {
@@ -555,7 +604,20 @@
           "originalName": "IMG_7708.jpeg"
         }
       ],
-      "activeWork": [],
+      "activeWork": [
+        {
+          "id": "clip-estate-cleanup-001-hero",
+          "src": "/media/curated/estate-cleanup-001/clips/hero-loop.mp4",
+          "poster": "/media/curated/estate-cleanup-001/clips/hero-loop-poster.jpg",
+          "width": 1280,
+          "height": 720,
+          "durationSec": 10,
+          "alt": "Field work in progress — Estate vegetation cleanup & exterior restoration",
+          "score": 10,
+          "role": "hero-loop",
+          "originalName": "IMG_7322.MOV"
+        }
+      ],
       "restored": [
         {
           "id": "after-img-7714",

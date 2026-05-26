@@ -31,6 +31,7 @@ export type MediaAsset = {
   /** Editorial note for internal swaps — not rendered publicly. */
   swapNote?: string;
   location?: string;
+  blurDataURL?: string;
 };
 
 export type TransformationProject = {

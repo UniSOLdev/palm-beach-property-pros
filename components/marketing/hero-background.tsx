@@ -43,19 +43,17 @@ export function HeroBackground({ src, alt }: { src: string; alt: string }) {
           priority
           placeholder="blur"
           blurDataURL={BLUR}
-          className="animate-ken-burns object-cover object-[center_42%] saturate-[0.88] brightness-[0.72] contrast-[1.08]"
+          className="object-cover object-[center_42%]"
           sizes="100vw"
           onLoad={() => setLoaded(true)}
         />
       </div>
-      <div className="absolute inset-0 bg-black/55 md:hidden" aria-hidden />
+      <div className="absolute inset-0 bg-black/45 md:hidden" aria-hidden />
       <div
-        className="absolute inset-0 bg-gradient-to-t from-navy-deep via-charcoal/95 to-charcoal/50 md:rounded-3xl md:from-navy-deep md:via-navy/[0.92] md:to-navy/30"
+        className="absolute inset-0 bg-gradient-to-t from-navy-deep via-charcoal/92 to-charcoal/45 md:rounded-3xl md:from-navy-deep md:via-navy/[0.88] md:to-navy/35"
         aria-hidden
       />
-      <div className="absolute inset-0 bg-luxury-radial opacity-90 md:rounded-3xl" aria-hidden />
-      <div className="absolute inset-0 bg-luxury-vignette md:rounded-3xl" aria-hidden />
-      <div className="hero-glow absolute inset-0 md:rounded-3xl" aria-hidden />
+      <div className="absolute inset-0 bg-luxury-vignette opacity-75 md:rounded-3xl" aria-hidden />
       <div className="hero-grain absolute inset-0 md:rounded-3xl" aria-hidden />
     </div>
   );

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { PremiumHomePage } from "@/components/marketing/premium-home-page";
+import { getHomepageMediaBundle } from "@/lib/media/homepage-media";
 import { SITE_NAME } from "@/lib/site";
 
 export const metadata: Metadata = {
@@ -8,6 +9,7 @@ export const metadata: Metadata = {
 };
 
 /** Production homepage — locked premium layout (not CMS-overridden). */
-export default function HomePage() {
-  return <PremiumHomePage />;
+export default async function HomePage() {
+  const media = await getHomepageMediaBundle();
+  return <PremiumHomePage media={media} />;
 }

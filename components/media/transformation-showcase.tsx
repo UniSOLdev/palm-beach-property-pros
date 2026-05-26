@@ -4,8 +4,10 @@ import type { TransformationProject } from "@/lib/media/types";
 
 export function TransformationShowcase({
   projects,
+  isAuthentic = false,
 }: {
   projects: readonly TransformationProject[];
+  isAuthentic?: boolean;
 }) {
   const featured = projects[0];
   if (!featured) return null;
@@ -14,16 +16,27 @@ export function TransformationShowcase({
     <ScrollReveal>
       <section className="py-16 md:py-24">
         <div className="mx-auto max-w-2xl text-center">
-          <p className="section-eyebrow text-ocean">Documented execution</p>
-          <h2 className="section-title mt-4">Transformation storytelling</h2>
+          <p className="section-eyebrow text-ocean">Transformation proof</p>
+          <h2 className="section-title mt-4">
+            {isAuthentic ? "Documented estate restoration" : "Transformation storytelling"}
+          </h2>
           <p className="section-lead">
-            Before-and-after proof, field timelines, and project recaps—built for owners who expect
-            documented operations, not marketing promises.
+            {isAuthentic
+              ? "Real before-and-after contrast from Palm Beach County field work—calm, obvious, and trustworthy."
+              : "Before-and-after proof built for owners who expect documented operations, not marketing promises."}
           </p>
         </div>
 
         <div className="mt-12 grid gap-10 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)] lg:items-start lg:gap-14">
-          <BeforeAfterCompare project={featured} />
+          <div>
+            <BeforeAfterCompare project={featured} />
+            {isAuthentic ? (
+              <div className="mt-4 flex justify-between text-[10px] font-semibold uppercase tracking-[0.16em] text-charcoal/50">
+                <span>Neglected</span>
+                <span>Restored</span>
+              </div>
+            ) : null}
+          </div>
 
           <div className="flex flex-col justify-center">
             <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-aqua-muted">
@@ -45,7 +58,7 @@ export function TransformationShowcase({
             </ul>
             {projects.length > 1 ? (
               <div className="mt-10 space-y-6 border-t border-navy/[0.08] pt-8">
-                {projects.slice(1).map((project) => (
+                {projects.slice(1, 3).map((project) => (
                   <div key={project.id}>
                     <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-aqua-muted">
                       {project.timeframe}

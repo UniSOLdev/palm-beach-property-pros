@@ -1,26 +1,28 @@
 import Link from "next/link";
 import { FaqAccordion } from "@/components/faq-accordion";
+import { TransformationCarousel } from "@/components/media/cinematic-project-media";
 import { DocumentationSuite } from "@/components/media/documentation-suite";
 import { FeaturedProjectsSection } from "@/components/media/featured-projects-section";
 import { FieldExecutionTimeline } from "@/components/media/field-execution-timeline";
 import { MediaAssetImage } from "@/components/media/media-asset-image";
 import { MediaFrame } from "@/components/media/media-frame";
+import { StoryArcShowcase } from "@/components/media/story-arc-showcase";
 import { TransformationShowcase } from "@/components/media/transformation-showcase";
-import { HeroBackground } from "@/components/marketing/hero-background";
+import { CuratedHeroMedia, FallbackHeroMedia } from "@/components/marketing/curated-hero-media";
 import { ScrollReveal } from "@/components/marketing/scroll-reveal";
 import { FAQ_ITEMS } from "@/lib/faq";
 import {
-  buildMediaUrl,
   FIELD_EXECUTION_STEPS,
   LOCAL_MARKETS,
   MEDIA_REGISTRY,
   OPERATIONAL_PROOF,
-  PROJECT_RECAPS,
-  TRANSFORMATION_PROJECTS,
 } from "@/lib/media";
+import type { MediaAsset } from "@/lib/media/types";
+import type { HomepageMediaBundle } from "@/lib/media/homepage-media";
+import { buildMediaUrl } from "@/lib/media/resolve";
 import { PHONE_DISPLAY, PHONE_TEL, SITE_NAME } from "@/lib/site";
 
-const HERO = MEDIA_REGISTRY.hero.primary;
+const FALLBACK_HERO = MEDIA_REGISTRY.hero.primary;
 
 const HERO_CHIPS = [
   "Licensed & insured",
@@ -160,13 +162,70 @@ function PlanIcon({ type }: { type: (typeof CARE_PLANS)[number]["icon"] }) {
   }
 }
 
-export function PremiumHomePage() {
-  const heroSrc = buildMediaUrl(HERO.src, 2000);
+export function PremiumHomePage({ media }: { media: HomepageMediaBundle }) {
+  const useCuratedHero = media.hasAuthenticMedia && (media.heroClip || media.curatedHeroImage);
+  const fallbackHeroSrc = buildMediaUrl(FALLBACK_HERO.src, 2000);
+
+  const serviceLines: Array<(typeof SERVICE_LINES)[number] & { asset: MediaAsset }> = media.hasAuthenticMedia
+    ? SERVICE_LINES.map((line, index) => {
+        const project = media.galleryProjects[index] ?? media.galleryProjects[0];
+        const image = project?.gallery[0] ?? project?.heroCandidates[0] ?? project?.beforeAfter[0]?.after;
+        if (!image) return line;
+        return {
+          ...line,
+          asset: {
+            id: image.id,
+            category: line.asset.category,
+            src: image.src,
+            alt: image.alt,
+            source: "authentic",
+            focal: image.focal,
+            blurDataURL: image.blurDataURL,
+            aspect: "landscape",
+            overlay: "card",
+          },
+        };
+      })
+    : [...SERVICE_LINES];
+
+  const audienceAsset: MediaAsset =
+    media.hasAuthenticMedia && media.galleryProjects[0]?.heroCandidates[0]
+      ? {
+          id: media.galleryProjects[0].heroCandidates[0].id,
+          category: "local",
+          src: media.galleryProjects[0].heroCandidates[0].src,
+          alt: media.galleryProjects[0].heroCandidates[0].alt,
+          source: "authentic",
+          focal: media.galleryProjects[0].heroCandidates[0].focal,
+          blurDataURL: media.galleryProjects[0].heroCandidates[0].blurDataURL,
+          aspect: "landscape",
+          overlay: "subtle",
+        }
+      : MEDIA_REGISTRY.audience;
+
+  const workflowAsset: MediaAsset =
+    media.hasAuthenticMedia && media.galleryProjects[0]?.detailShots[0]
+      ? {
+          id: media.galleryProjects[0].detailShots[0].id,
+          category: "exterior",
+          src: media.galleryProjects[0].detailShots[0].src,
+          alt: media.galleryProjects[0].detailShots[0].alt,
+          source: "authentic",
+          focal: media.galleryProjects[0].detailShots[0].focal,
+          blurDataURL: media.galleryProjects[0].detailShots[0].blurDataURL,
+          aspect: "portrait",
+          overlay: "card",
+        }
+      : MEDIA_REGISTRY.operations.poolDeck;
 
   return (
     <>
       <section className="hero-cinematic animate-fade-up relative -mx-4 sm:-mx-6 md:mx-0 md:rounded-3xl">
-        <HeroBackground src={heroSrc} alt={HERO.alt} />
+        {useCuratedHero ? (
+          <CuratedHeroMedia heroImage={media.curatedHeroImage} heroClip={media.heroClip} />
+        ) : (
+          <FallbackHeroMedia src={fallbackHeroSrc} alt={FALLBACK_HERO.alt} />
+        )}
 
         <div className="relative z-10 px-4 py-20 sm:px-6 sm:py-24 md:px-10 md:py-32 lg:py-36">
           <div className="max-w-xl md:max-w-3xl">
@@ -220,7 +279,23 @@ export function PremiumHomePage() {
         </section>
       </ScrollReveal>
 
-      <TransformationShowcase projects={TRANSFORMATION_PROJECTS} />
+      <TransformationShowcase projects={media.transformations} isAuthentic={media.hasAuthenticMedia} />
+
+      {media.storyArc ? <StoryArcShowcase storyArc={media.storyArc} /> : null}
+
+      {media.hasAuthenticMedia && media.featuredPairs.length > 1 ? (
+        <ScrollReveal delay={40}>
+          <section className="pb-16 md:pb-24">
+            <div className="mx-auto max-w-2xl text-center">
+              <p className="section-eyebrow text-ocean">Additional proof</p>
+              <h2 className="section-title mt-4">More documented transformations</h2>
+            </div>
+            <div className="mt-10">
+              <TransformationCarousel pairs={media.featuredPairs.slice(1, 4)} />
+            </div>
+          </section>
+        </ScrollReveal>
+      ) : null}
 
       <ScrollReveal delay={60}>
         <section className="relative py-16 md:py-24">
@@ -265,10 +340,10 @@ export function PremiumHomePage() {
             </p>
           </div>
           <div className="relative mt-14 grid gap-10 md:gap-12 lg:grid-cols-3">
-            {SERVICE_LINES.map((line) => (
+            {serviceLines.map((line) => (
               <div key={line.title} className="service-division group flex flex-col">
                 <MediaFrame aspect="landscape" className="service-division-image image-frame mb-8 rounded-2xl md:rounded-3xl">
-                  <MediaAssetImage asset={line.asset} width={900} hoverScale />
+                  <MediaAssetImage asset={line.asset} width={900} hoverScale={!media.hasAuthenticMedia} />
                   <div className="absolute bottom-0 left-0 right-0 z-[3] p-5">
                     <span className="inline-flex rounded-full border border-white/20 bg-navy-deep/50 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.22em] text-cream/90 backdrop-blur-md">
                       {line.title}
@@ -304,13 +379,13 @@ export function PremiumHomePage() {
         </section>
       </ScrollReveal>
 
-      <FeaturedProjectsSection projects={PROJECT_RECAPS} />
+      <FeaturedProjectsSection projects={media.recaps} />
 
       <ScrollReveal>
         <section className="py-16 md:py-24">
           <div className="grid min-w-0 gap-10 md:gap-14 lg:grid-cols-2 lg:items-center">
             <MediaFrame aspect="landscape" className="image-frame min-h-[220px] sm:min-h-[280px] md:min-h-0">
-              <MediaAssetImage asset={MEDIA_REGISTRY.audience} width={1200} hoverScale />
+              <MediaAssetImage asset={audienceAsset} width={1200} hoverScale={!media.hasAuthenticMedia} />
             </MediaFrame>
             <div className="lg:pl-4">
               <p className="section-eyebrow text-ocean">Who we serve</p>
@@ -403,7 +478,7 @@ export function PremiumHomePage() {
               </div>
             </div>
             <MediaFrame aspect="portrait" className="image-frame hidden min-h-[320px] lg:block">
-              <MediaAssetImage asset={MEDIA_REGISTRY.operations.poolDeck} width={600} hoverScale />
+              <MediaAssetImage asset={workflowAsset} width={600} hoverScale={!media.hasAuthenticMedia} />
             </MediaFrame>
           </div>
         </section>

@@ -8,7 +8,7 @@ export function ProjectRecapCard({ project }: { project: ProjectRecap }) {
   return (
     <article className="project-recap-card group flex flex-col overflow-hidden">
       <MediaFrame aspect="landscape" className="image-frame rounded-b-none border-b-0">
-        <MediaAssetImage asset={project.image} width={900} hoverScale />
+        <MediaAssetImage asset={project.image} width={900} />
         <div className="absolute inset-x-0 bottom-0 z-[3] bg-gradient-to-t from-navy-deep/75 via-navy-deep/20 to-transparent p-5 pt-16">
           <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-aqua/90">
             {project.division}

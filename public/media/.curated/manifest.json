@@ -1,0 +1,605 @@
+{
+  "version": 1,
+  "generatedAt": "2026-05-26T01:40:18.796Z",
+  "hasAuthenticMedia": true,
+  "projects": [
+    {
+      "id": "estate-cleanup-001",
+      "title": "Estate vegetation cleanup & exterior restoration",
+      "summary": "Complete estate vegetation cleanup and exterior property restoration in Palm Beach Gardens featuring trimming, debris removal, pathway clearing, and landscape refinement.",
+      "location": "Palm Beach Gardens",
+      "division": "exterior",
+      "tags": [
+        "vegetation removal",
+        "pathway clearing",
+        "landscape refinement",
+        "debris removal",
+        "estate exterior",
+        "detailed finish"
+      ],
+      "rankedScore": 105,
+      "timeframe": "48-hour estate turnaround",
+      "scope": [
+        "Vegetation trimming",
+        "Debris removal",
+        "Pathway clearing",
+        "Landscape refinement",
+        "Exterior reset"
+      ],
+      "beforeAfter": [
+        {
+          "id": "before-img-7699__after-img-7714",
+          "before": {
+            "id": "before-img-7699",
+            "src": "/media/.curated/estate-cleanup-001/images/before-img-7699.webp",
+            "blurDataURL": "data:image/webp;base64,UklGRnwAAABXRUJQVlA4IHAAAADwAwCdASoQABUAPu1iqU2ppaOiMAgBMB2JYwCdABeXinRnYcZWNgWAAPMjbSuFMEsbhJQ58788qUqp1w/15NkgCl4csQgC1PNYL4hNCH1q/4qpqp3aExaeRHt4YjBdS35PwUcNJxR0YGtCVhDoAAAA",
+            "width": 1400,
+            "height": 1867,
+            "aspect": 0.7498660953401178,
+            "alt": "Before conditions — Estate vegetation cleanup & exterior restoration, Palm Beach Gardens",
+            "score": 89,
+            "role": "before",
+            "storyPhase": "neglected",
+            "focal": "object-[center_42%]",
+            "originalName": "IMG_7699.jpeg"
+          },
+          "after": {
+            "id": "after-img-7714",
+            "src": "/media/.curated/estate-cleanup-001/images/after-img-7714.webp",
+            "blurDataURL": "data:image/webp;base64,UklGRlgAAABXRUJQVlA4IEwAAADwAQCdASoQAAwAA4BaJZAC7AC2hg+BiAAAyxKApYIrH04NDK/CLRX5uwuzfsYjgIqv7lqwE4pQdzwJezZ3i8wkR7M30EYIptBJAAAA",
+            "width": 1400,
+            "height": 1050,
+            "aspect": 1.3333333333333333,
+            "alt": "Restored property — Estate vegetation cleanup & exterior restoration, Palm Beach Gardens",
+            "score": 75,
+            "role": "after",
+            "storyPhase": "restored",
+            "focal": "object-[center_42%]",
+            "originalName": "IMG_7714.jpeg"
+          },
+          "contrastScore": 98,
+          "label": "Neglected to restored · Palm Beach Gardens"
+        },
+        {
+          "id": "before-img-7746__after-img-7912",
+          "before": {
+            "id": "before-img-7746",
+            "src": "/media/.curated/estate-cleanup-001/images/before-img-7746.webp",
+            "blurDataURL": "data:image/webp;base64,UklGRnIAAABXRUJQVlA4IGYAAACQAwCdASoQABUAPu1iqU2ppaOiMAgBMB2JQBOgAZSdn4grqcKAANv1brIIiLTXWlNll8q7QbhuJpT6yV7IqXFILo6fU48jSv5c2lLgIoVRh/x6KcBpylLATWggV18BehtDIhdvAAA=",
+            "width": 1400,
+            "height": 1867,
+            "aspect": 0.7498660953401178,
+            "alt": "Before conditions — Estate vegetation cleanup & exterior restoration, Palm Beach Gardens",
+            "score": 89,
+            "role": "before",
+            "storyPhase": "neglected",
+            "focal": "object-[center_42%]",
+            "originalName": "IMG_7746.jpeg"
+          },
+          "after": {
+            "id": "after-img-7912",
+            "src": "/media/.curated/estate-cleanup-001/images/after-img-7912.webp",
+            "blurDataURL": "data:image/webp;base64,UklGRnYAAABXRUJQVlA4IGoAAAAQBACdASoQABUAPu1iqU2ppaOiMAgBMB2JYgCdAB7AZjkVO80P7Jz2AAD+ZZZajl2PL5h8ZzONnYX4O3TvaT6Dww5TN9FceFCfLyNOOcwTKgnIlgJdauRWT4S+YEui+anCOgyzL/DvQAAA",
+            "width": 1400,
+            "height": 1867,
+            "aspect": 0.7498660953401178,
+            "alt": "Restored property — Estate vegetation cleanup & exterior restoration, Palm Beach Gardens",
+            "score": 91,
+            "role": "after",
+            "storyPhase": "restored",
+            "focal": "object-[center_42%]",
+            "originalName": "IMG_7912.jpeg"
+          },
+          "contrastScore": 95,
+          "label": "Neglected to restored · Palm Beach Gardens"
+        },
+        {
+          "id": "before-img-7708__after-img-7890",
+          "before": {
+            "id": "before-img-7708",
+            "src": "/media/.curated/estate-cleanup-001/images/before-img-7708.webp",
+            "blurDataURL": "data:image/webp;base64,UklGRlAAAABXRUJQVlA4IEQAAACQAQCdASoQAAwAA4BaJZQCsABTpAAA2/3qW3fW4sm8Yat93oKxTdMDlmFQ6lkPc0ZkDh1nY9amdPIphVFEZVOCYyAAAA==",
+            "width": 1400,
+            "height": 1050,
+            "aspect": 1.3333333333333333,
+            "alt": "Before conditions — Estate vegetation cleanup & exterior restoration, Palm Beach Gardens",
+            "score": 81,
+            "role": "before",
+            "storyPhase": "neglected",
+            "focal": "object-[center_42%]",
+            "originalName": "IMG_7708.jpeg"
+          },
+          "after": {
+            "id": "after-img-7890",
+            "src": "/media/.curated/estate-cleanup-001/images/after-img-7890.webp",
+            "blurDataURL": "data:image/webp;base64,UklGRlgAAABXRUJQVlA4IEwAAAAQAgCdASoQAAwAA4BaJYwAAn+HebEIiO8gAP7AQQaAmygE2eytiPTmiu5skT4RIMV2PkKVG57xcwvt/VEAP/lxmjDRtF91e97kAAAA",
+            "width": 1400,
+            "height": 1050,
+            "aspect": 1.3333333333333333,
+            "alt": "Restored property — Estate vegetation cleanup & exterior restoration, Palm Beach Gardens",
+            "score": 91,
+            "role": "after",
+            "storyPhase": "restored",
+            "focal": "object-[center_42%]",
+            "originalName": "IMG_7890.jpeg"
+          },
+          "contrastScore": 93,
+          "label": "Neglected to restored · Palm Beach Gardens"
+        },
+        {
+          "id": "before-img-7704__after-img-7892",
+          "before": {
+            "id": "before-img-7704",
+            "src": "/media/.curated/estate-cleanup-001/images/before-img-7704.webp",
+            "blurDataURL": "data:image/webp;base64,UklGRlwAAABXRUJQVlA4IFAAAACwAQCdASoQAAwAA4BaJYwCdACdm1+gAP7AZLEowdEL6hiDPhnM82jIx+S0VLDPc4Kz3/whN5vSmGOLnrd1FbUgQePsk3+H7LXNPQrFQqMAAA==",
+            "width": 1400,
+            "height": 1050,
+            "aspect": 1.3333333333333333,
+            "alt": "Before conditions — Estate vegetation cleanup & exterior restoration, Palm Beach Gardens",
+            "score": 81,
+            "role": "before",
+            "storyPhase": "neglected",
+            "focal": "object-[center_42%]",
+            "originalName": "IMG_7704.jpeg"
+          },
+          "after": {
+            "id": "after-img-7892",
+            "src": "/media/.curated/estate-cleanup-001/images/after-img-7892.webp",
+            "blurDataURL": "data:image/webp;base64,UklGRnIAAABXRUJQVlA4IGYAAADQAwCdASoQABUAPu1iqU2ppaOiMAgBMB2JYwC/OBmbe5TxNIk1zSwA/roFjHLk2L3iKG3AZSUkjbxf7trl1eg6chtUPCDRd5Qpgt7L0jM9azwgd2VAgKgHf1wdSg3O+Gr+eUPIAAA=",
+            "width": 1400,
+            "height": 1867,
+            "aspect": 0.7498660953401178,
+            "alt": "Restored property — Estate vegetation cleanup & exterior restoration, Palm Beach Gardens",
+            "score": 91,
+            "role": "after",
+            "storyPhase": "restored",
+            "focal": "object-[center_42%]",
+            "originalName": "IMG_7892.jpeg"
+          },
+          "contrastScore": 93,
+          "label": "Neglected to restored · Palm Beach Gardens"
+        }
+      ],
+      "gallery": [
+        {
+          "id": "gallery-img-7699",
+          "src": "/media/.curated/estate-cleanup-001/images/gallery-img-7699.webp",
+          "blurDataURL": "data:image/webp;base64,UklGRnwAAABXRUJQVlA4IHAAAADwAwCdASoQABUAPu1iqU2ppaOiMAgBMB2JYwCdABeXinRnYcZWNgWAAPMjbSuFMEsbhJQ58788qUqp1w/15NkgCl4csQgC1PNYL4hNCH1q/4qpqp3aExaeRHt4YjBdS35PwUcNJxR0YGtCVhDoAAAA",
+          "width": 1400,
+          "height": 1867,
+          "aspect": 0.7498660953401178,
+          "alt": "Estate vegetation cleanup & exterior restoration — Palm Beach Gardens",
+          "score": 89,
+          "role": "gallery",
+          "storyPhase": "neglected",
+          "focal": "object-[center_42%]",
+          "originalName": "IMG_7699.jpeg"
+        },
+        {
+          "id": "gallery-img-7746",
+          "src": "/media/.curated/estate-cleanup-001/images/gallery-img-7746.webp",
+          "blurDataURL": "data:image/webp;base64,UklGRnIAAABXRUJQVlA4IGYAAACQAwCdASoQABUAPu1iqU2ppaOiMAgBMB2JQBOgAZSdn4grqcKAANv1brIIiLTXWlNll8q7QbhuJpT6yV7IqXFILo6fU48jSv5c2lLgIoVRh/x6KcBpylLATWggV18BehtDIhdvAAA=",
+          "width": 1400,
+          "height": 1867,
+          "aspect": 0.7498660953401178,
+          "alt": "Estate vegetation cleanup & exterior restoration — Palm Beach Gardens",
+          "score": 89,
+          "role": "gallery",
+          "storyPhase": "neglected",
+          "focal": "object-[center_42%]",
+          "originalName": "IMG_7746.jpeg"
+        },
+        {
+          "id": "gallery-3d32be01-d35f-4ecf-800e-6d0219e656f6",
+          "src": "/media/.curated/estate-cleanup-001/images/gallery-3d32be01-d35f-4ecf-800e-6d0219e656f6.webp",
+          "blurDataURL": "data:image/webp;base64,UklGRkwAAABXRUJQVlA4IEAAAACQAQCdASoQAAkAA4BaJZAC7AClNcAA+9N4jNAPOFK18SzPmm7Jlo4+cxyw2p8Cc1XCTi3Z3OimF2mHlOytUAAA",
+          "width": 1400,
+          "height": 788,
+          "aspect": 1.7766497461928934,
+          "alt": "Estate vegetation cleanup & exterior restoration — Palm Beach Gardens",
+          "score": 91,
+          "role": "gallery",
+          "storyPhase": "restored",
+          "focal": "object-[center_38%]",
+          "originalName": "3D32BE01-D35F-4ECF-800E-6D0219E656F6.jpg"
+        },
+        {
+          "id": "gallery-img-7890",
+          "src": "/media/.curated/estate-cleanup-001/images/gallery-img-7890.webp",
+          "blurDataURL": "data:image/webp;base64,UklGRlgAAABXRUJQVlA4IEwAAAAQAgCdASoQAAwAA4BaJYwAAn+HebEIiO8gAP7AQQaAmygE2eytiPTmiu5skT4RIMV2PkKVG57xcwvt/VEAP/lxmjDRtF91e97kAAAA",
+          "width": 1400,
+          "height": 1050,
+          "aspect": 1.3333333333333333,
+          "alt": "Estate vegetation cleanup & exterior restoration — Palm Beach Gardens",
+          "score": 91,
+          "role": "gallery",
+          "storyPhase": "restored",
+          "focal": "object-[center_42%]",
+          "originalName": "IMG_7890.jpeg"
+        },
+        {
+          "id": "gallery-img-7892",
+          "src": "/media/.curated/estate-cleanup-001/images/gallery-img-7892.webp",
+          "blurDataURL": "data:image/webp;base64,UklGRnIAAABXRUJQVlA4IGYAAADQAwCdASoQABUAPu1iqU2ppaOiMAgBMB2JYwC/OBmbe5TxNIk1zSwA/roFjHLk2L3iKG3AZSUkjbxf7trl1eg6chtUPCDRd5Qpgt7L0jM9azwgd2VAgKgHf1wdSg3O+Gr+eUPIAAA=",
+          "width": 1400,
+          "height": 1867,
+          "aspect": 0.7498660953401178,
+          "alt": "Estate vegetation cleanup & exterior restoration — Palm Beach Gardens",
+          "score": 91,
+          "role": "gallery",
+          "storyPhase": "restored",
+          "focal": "object-[center_42%]",
+          "originalName": "IMG_7892.jpeg"
+        },
+        {
+          "id": "gallery-img-7912",
+          "src": "/media/.curated/estate-cleanup-001/images/gallery-img-7912.webp",
+          "blurDataURL": "data:image/webp;base64,UklGRnYAAABXRUJQVlA4IGoAAAAQBACdASoQABUAPu1iqU2ppaOiMAgBMB2JYgCdAB7AZjkVO80P7Jz2AAD+ZZZajl2PL5h8ZzONnYX4O3TvaT6Dww5TN9FceFCfLyNOOcwTKgnIlgJdauRWT4S+YEui+anCOgyzL/DvQAAA",
+          "width": 1400,
+          "height": 1867,
+          "aspect": 0.7498660953401178,
+          "alt": "Estate vegetation cleanup & exterior restoration — Palm Beach Gardens",
+          "score": 91,
+          "role": "gallery",
+          "storyPhase": "restored",
+          "focal": "object-[center_42%]",
+          "originalName": "IMG_7912.jpeg"
+        },
+        {
+          "id": "gallery-img-7861-2",
+          "src": "/media/.curated/estate-cleanup-001/images/gallery-img-7861-2.webp",
+          "blurDataURL": "data:image/webp;base64,UklGRlAAAABXRUJQVlA4IEQAAABQAQCdASoQAAwAA4BaJQAAFbAAAP6CukW2jNUD5Tfmxjy/yGZmgUaehd2usrXZ189CkCq4/m57dGeSq8GLa/9vffgAAA==",
+          "width": 1400,
+          "height": 1050,
+          "aspect": 1.3333333333333333,
+          "alt": "Estate vegetation cleanup & exterior restoration — Palm Beach Gardens",
+          "score": 83,
+          "role": "gallery",
+          "storyPhase": "restored",
+          "focal": "object-[center_42%]",
+          "originalName": "IMG_7861 2.jpeg"
+        },
+        {
+          "id": "gallery-img-7861",
+          "src": "/media/.curated/estate-cleanup-001/images/gallery-img-7861.webp",
+          "blurDataURL": "data:image/webp;base64,UklGRlAAAABXRUJQVlA4IEQAAABQAQCdASoQAAwAA4BaJQAAFbAAAP6CukW2jNUD5Tfmxjy/yGZmgUaehd2usrXZ189CkCq4/m57dGeSq8GLa/9vffgAAA==",
+          "width": 1400,
+          "height": 1050,
+          "aspect": 1.3333333333333333,
+          "alt": "Estate vegetation cleanup & exterior restoration — Palm Beach Gardens",
+          "score": 83,
+          "role": "gallery",
+          "storyPhase": "restored",
+          "focal": "object-[center_42%]",
+          "originalName": "IMG_7861.jpeg"
+        }
+      ],
+      "heroCandidates": [
+        {
+          "id": "hero-3d32be01-d35f-4ecf-800e-6d0219e656f6",
+          "src": "/media/.curated/estate-cleanup-001/images/hero-3d32be01-d35f-4ecf-800e-6d0219e656f6.webp",
+          "blurDataURL": "data:image/webp;base64,UklGRkwAAABXRUJQVlA4IEAAAACQAQCdASoQAAkAA4BaJZAC7AClNcAA+9N4jNAPOFK18SzPmm7Jlo4+cxyw2p8Cc1XCTi3Z3OimF2mHlOyvXgAA",
+          "width": 2000,
+          "height": 1125,
+          "aspect": 1.7777777777777777,
+          "alt": "Restored estate — Estate vegetation cleanup & exterior restoration, Palm Beach Gardens",
+          "score": 91,
+          "role": "hero",
+          "storyPhase": "restored",
+          "focal": "object-[center_38%]",
+          "originalName": "3D32BE01-D35F-4ECF-800E-6D0219E656F6.jpg"
+        }
+      ],
+      "detailShots": [
+        {
+          "id": "detail-img-7892",
+          "src": "/media/.curated/estate-cleanup-001/images/detail-img-7892.webp",
+          "blurDataURL": "data:image/webp;base64,UklGRnIAAABXRUJQVlA4IGYAAADQAwCdASoQABUAPu1iqU2ppaOiMAgBMB2JYwC/OBmbe5TxNIk1zSwA/roFjHLk2L3iKG3AZSUkjbxf7trl1eg6chtUPCDRd5Qpgt7L0jM9azwgd2VAgKgHf1wdSg3O+Gr+eUPIAAA=",
+          "width": 1400,
+          "height": 1867,
+          "aspect": 0.7498660953401178,
+          "alt": "Estate vegetation cleanup & exterior restoration — Palm Beach Gardens",
+          "score": 91,
+          "role": "detail",
+          "storyPhase": "restored",
+          "focal": "object-[center_42%]",
+          "originalName": "IMG_7892.jpeg"
+        }
+      ],
+      "actionShots": [
+        {
+          "id": "action-3d32be01-d35f-4ecf-800e-6d0219e656f6",
+          "src": "/media/.curated/estate-cleanup-001/images/action-3d32be01-d35f-4ecf-800e-6d0219e656f6.webp",
+          "blurDataURL": "data:image/webp;base64,UklGRkwAAABXRUJQVlA4IEAAAACQAQCdASoQAAkAA4BaJZAC7AClNcAA+9N4jNAPOFK18SzPmm7Jlo4+cxyw2p8Cc1XCTi3Z3OimF2mHlOytUAAA",
+          "width": 1400,
+          "height": 788,
+          "aspect": 1.7766497461928934,
+          "alt": "Estate vegetation cleanup & exterior restoration — Palm Beach Gardens",
+          "score": 91,
+          "role": "action",
+          "storyPhase": "restored",
+          "focal": "object-[center_38%]",
+          "originalName": "3D32BE01-D35F-4ECF-800E-6D0219E656F6.jpg"
+        },
+        {
+          "id": "action-img-7890",
+          "src": "/media/.curated/estate-cleanup-001/images/action-img-7890.webp",
+          "blurDataURL": "data:image/webp;base64,UklGRlgAAABXRUJQVlA4IEwAAAAQAgCdASoQAAwAA4BaJYwAAn+HebEIiO8gAP7AQQaAmygE2eytiPTmiu5skT4RIMV2PkKVG57xcwvt/VEAP/lxmjDRtF91e97kAAAA",
+          "width": 1400,
+          "height": 1050,
+          "aspect": 1.3333333333333333,
+          "alt": "Estate vegetation cleanup & exterior restoration — Palm Beach Gardens",
+          "score": 91,
+          "role": "action",
+          "storyPhase": "restored",
+          "focal": "object-[center_42%]",
+          "originalName": "IMG_7890.jpeg"
+        },
+        {
+          "id": "action-img-7892",
+          "src": "/media/.curated/estate-cleanup-001/images/action-img-7892.webp",
+          "blurDataURL": "data:image/webp;base64,UklGRnIAAABXRUJQVlA4IGYAAADQAwCdASoQABUAPu1iqU2ppaOiMAgBMB2JYwC/OBmbe5TxNIk1zSwA/roFjHLk2L3iKG3AZSUkjbxf7trl1eg6chtUPCDRd5Qpgt7L0jM9azwgd2VAgKgHf1wdSg3O+Gr+eUPIAAA=",
+          "width": 1400,
+          "height": 1867,
+          "aspect": 0.7498660953401178,
+          "alt": "Estate vegetation cleanup & exterior restoration — Palm Beach Gardens",
+          "score": 91,
+          "role": "action",
+          "storyPhase": "restored",
+          "focal": "object-[center_42%]",
+          "originalName": "IMG_7892.jpeg"
+        },
+        {
+          "id": "action-img-7912",
+          "src": "/media/.curated/estate-cleanup-001/images/action-img-7912.webp",
+          "blurDataURL": "data:image/webp;base64,UklGRnYAAABXRUJQVlA4IGoAAAAQBACdASoQABUAPu1iqU2ppaOiMAgBMB2JYgCdAB7AZjkVO80P7Jz2AAD+ZZZajl2PL5h8ZzONnYX4O3TvaT6Dww5TN9FceFCfLyNOOcwTKgnIlgJdauRWT4S+YEui+anCOgyzL/DvQAAA",
+          "width": 1400,
+          "height": 1867,
+          "aspect": 0.7498660953401178,
+          "alt": "Estate vegetation cleanup & exterior restoration — Palm Beach Gardens",
+          "score": 91,
+          "role": "action",
+          "storyPhase": "restored",
+          "focal": "object-[center_42%]",
+          "originalName": "IMG_7912.jpeg"
+        }
+      ],
+      "clips": [],
+      "storyArc": {
+        "neglected": [
+          {
+            "id": "before-img-7699",
+            "src": "/media/.curated/estate-cleanup-001/images/before-img-7699.webp",
+            "blurDataURL": "data:image/webp;base64,UklGRnwAAABXRUJQVlA4IHAAAADwAwCdASoQABUAPu1iqU2ppaOiMAgBMB2JYwCdABeXinRnYcZWNgWAAPMjbSuFMEsbhJQ58788qUqp1w/15NkgCl4csQgC1PNYL4hNCH1q/4qpqp3aExaeRHt4YjBdS35PwUcNJxR0YGtCVhDoAAAA",
+            "width": 1400,
+            "height": 1867,
+            "aspect": 0.7498660953401178,
+            "alt": "Before conditions — Estate vegetation cleanup & exterior restoration, Palm Beach Gardens",
+            "score": 89,
+            "role": "before",
+            "storyPhase": "neglected",
+            "focal": "object-[center_42%]",
+            "originalName": "IMG_7699.jpeg"
+          },
+          {
+            "id": "before-img-7746",
+            "src": "/media/.curated/estate-cleanup-001/images/before-img-7746.webp",
+            "blurDataURL": "data:image/webp;base64,UklGRnIAAABXRUJQVlA4IGYAAACQAwCdASoQABUAPu1iqU2ppaOiMAgBMB2JQBOgAZSdn4grqcKAANv1brIIiLTXWlNll8q7QbhuJpT6yV7IqXFILo6fU48jSv5c2lLgIoVRh/x6KcBpylLATWggV18BehtDIhdvAAA=",
+            "width": 1400,
+            "height": 1867,
+            "aspect": 0.7498660953401178,
+            "alt": "Before conditions — Estate vegetation cleanup & exterior restoration, Palm Beach Gardens",
+            "score": 89,
+            "role": "before",
+            "storyPhase": "neglected",
+            "focal": "object-[center_42%]",
+            "originalName": "IMG_7746.jpeg"
+          },
+          {
+            "id": "before-img-7708",
+            "src": "/media/.curated/estate-cleanup-001/images/before-img-7708.webp",
+            "blurDataURL": "data:image/webp;base64,UklGRlAAAABXRUJQVlA4IEQAAACQAQCdASoQAAwAA4BaJZQCsABTpAAA2/3qW3fW4sm8Yat93oKxTdMDlmFQ6lkPc0ZkDh1nY9amdPIphVFEZVOCYyAAAA==",
+            "width": 1400,
+            "height": 1050,
+            "aspect": 1.3333333333333333,
+            "alt": "Before conditions — Estate vegetation cleanup & exterior restoration, Palm Beach Gardens",
+            "score": 81,
+            "role": "before",
+            "storyPhase": "neglected",
+            "focal": "object-[center_42%]",
+            "originalName": "IMG_7708.jpeg"
+          }
+        ],
+        "activeWork": [],
+        "restored": [
+          {
+            "id": "after-img-7714",
+            "src": "/media/.curated/estate-cleanup-001/images/after-img-7714.webp",
+            "blurDataURL": "data:image/webp;base64,UklGRlgAAABXRUJQVlA4IEwAAADwAQCdASoQAAwAA4BaJZAC7AC2hg+BiAAAyxKApYIrH04NDK/CLRX5uwuzfsYjgIqv7lqwE4pQdzwJezZ3i8wkR7M30EYIptBJAAAA",
+            "width": 1400,
+            "height": 1050,
+            "aspect": 1.3333333333333333,
+            "alt": "Restored property — Estate vegetation cleanup & exterior restoration, Palm Beach Gardens",
+            "score": 75,
+            "role": "after",
+            "storyPhase": "restored",
+            "focal": "object-[center_42%]",
+            "originalName": "IMG_7714.jpeg"
+          },
+          {
+            "id": "after-img-7912",
+            "src": "/media/.curated/estate-cleanup-001/images/after-img-7912.webp",
+            "blurDataURL": "data:image/webp;base64,UklGRnYAAABXRUJQVlA4IGoAAAAQBACdASoQABUAPu1iqU2ppaOiMAgBMB2JYgCdAB7AZjkVO80P7Jz2AAD+ZZZajl2PL5h8ZzONnYX4O3TvaT6Dww5TN9FceFCfLyNOOcwTKgnIlgJdauRWT4S+YEui+anCOgyzL/DvQAAA",
+            "width": 1400,
+            "height": 1867,
+            "aspect": 0.7498660953401178,
+            "alt": "Restored property — Estate vegetation cleanup & exterior restoration, Palm Beach Gardens",
+            "score": 91,
+            "role": "after",
+            "storyPhase": "restored",
+            "focal": "object-[center_42%]",
+            "originalName": "IMG_7912.jpeg"
+          },
+          {
+            "id": "after-img-7890",
+            "src": "/media/.curated/estate-cleanup-001/images/after-img-7890.webp",
+            "blurDataURL": "data:image/webp;base64,UklGRlgAAABXRUJQVlA4IEwAAAAQAgCdASoQAAwAA4BaJYwAAn+HebEIiO8gAP7AQQaAmygE2eytiPTmiu5skT4RIMV2PkKVG57xcwvt/VEAP/lxmjDRtF91e97kAAAA",
+            "width": 1400,
+            "height": 1050,
+            "aspect": 1.3333333333333333,
+            "alt": "Restored property — Estate vegetation cleanup & exterior restoration, Palm Beach Gardens",
+            "score": 91,
+            "role": "after",
+            "storyPhase": "restored",
+            "focal": "object-[center_42%]",
+            "originalName": "IMG_7890.jpeg"
+          }
+        ]
+      }
+    }
+  ],
+  "homepage": {
+    "heroImage": {
+      "id": "after-img-7714",
+      "src": "/media/.curated/estate-cleanup-001/images/after-img-7714.webp",
+      "blurDataURL": "data:image/webp;base64,UklGRlgAAABXRUJQVlA4IEwAAADwAQCdASoQAAwAA4BaJZAC7AC2hg+BiAAAyxKApYIrH04NDK/CLRX5uwuzfsYjgIqv7lqwE4pQdzwJezZ3i8wkR7M30EYIptBJAAAA",
+      "width": 1400,
+      "height": 1050,
+      "aspect": 1.3333333333333333,
+      "alt": "Restored property — Estate vegetation cleanup & exterior restoration, Palm Beach Gardens",
+      "score": 75,
+      "role": "after",
+      "storyPhase": "restored",
+      "focal": "object-[center_42%]",
+      "originalName": "IMG_7714.jpeg"
+    },
+    "heroClip": null,
+    "featuredTransformation": {
+      "id": "before-img-7699__after-img-7714",
+      "before": {
+        "id": "before-img-7699",
+        "src": "/media/.curated/estate-cleanup-001/images/before-img-7699.webp",
+        "blurDataURL": "data:image/webp;base64,UklGRnwAAABXRUJQVlA4IHAAAADwAwCdASoQABUAPu1iqU2ppaOiMAgBMB2JYwCdABeXinRnYcZWNgWAAPMjbSuFMEsbhJQ58788qUqp1w/15NkgCl4csQgC1PNYL4hNCH1q/4qpqp3aExaeRHt4YjBdS35PwUcNJxR0YGtCVhDoAAAA",
+        "width": 1400,
+        "height": 1867,
+        "aspect": 0.7498660953401178,
+        "alt": "Before conditions — Estate vegetation cleanup & exterior restoration, Palm Beach Gardens",
+        "score": 89,
+        "role": "before",
+        "storyPhase": "neglected",
+        "focal": "object-[center_42%]",
+        "originalName": "IMG_7699.jpeg"
+      },
+      "after": {
+        "id": "after-img-7714",
+        "src": "/media/.curated/estate-cleanup-001/images/after-img-7714.webp",
+        "blurDataURL": "data:image/webp;base64,UklGRlgAAABXRUJQVlA4IEwAAADwAQCdASoQAAwAA4BaJZAC7AC2hg+BiAAAyxKApYIrH04NDK/CLRX5uwuzfsYjgIqv7lqwE4pQdzwJezZ3i8wkR7M30EYIptBJAAAA",
+        "width": 1400,
+        "height": 1050,
+        "aspect": 1.3333333333333333,
+        "alt": "Restored property — Estate vegetation cleanup & exterior restoration, Palm Beach Gardens",
+        "score": 75,
+        "role": "after",
+        "storyPhase": "restored",
+        "focal": "object-[center_42%]",
+        "originalName": "IMG_7714.jpeg"
+      },
+      "contrastScore": 98,
+      "label": "Neglected to restored · Palm Beach Gardens"
+    },
+    "featuredProjectIds": [
+      "estate-cleanup-001"
+    ],
+    "storyArc": {
+      "neglected": [
+        {
+          "id": "before-img-7699",
+          "src": "/media/.curated/estate-cleanup-001/images/before-img-7699.webp",
+          "blurDataURL": "data:image/webp;base64,UklGRnwAAABXRUJQVlA4IHAAAADwAwCdASoQABUAPu1iqU2ppaOiMAgBMB2JYwCdABeXinRnYcZWNgWAAPMjbSuFMEsbhJQ58788qUqp1w/15NkgCl4csQgC1PNYL4hNCH1q/4qpqp3aExaeRHt4YjBdS35PwUcNJxR0YGtCVhDoAAAA",
+          "width": 1400,
+          "height": 1867,
+          "aspect": 0.7498660953401178,
+          "alt": "Before conditions — Estate vegetation cleanup & exterior restoration, Palm Beach Gardens",
+          "score": 89,
+          "role": "before",
+          "storyPhase": "neglected",
+          "focal": "object-[center_42%]",
+          "originalName": "IMG_7699.jpeg"
+        },
+        {
+          "id": "before-img-7746",
+          "src": "/media/.curated/estate-cleanup-001/images/before-img-7746.webp",
+          "blurDataURL": "data:image/webp;base64,UklGRnIAAABXRUJQVlA4IGYAAACQAwCdASoQABUAPu1iqU2ppaOiMAgBMB2JQBOgAZSdn4grqcKAANv1brIIiLTXWlNll8q7QbhuJpT6yV7IqXFILo6fU48jSv5c2lLgIoVRh/x6KcBpylLATWggV18BehtDIhdvAAA=",
+          "width": 1400,
+          "height": 1867,
+          "aspect": 0.7498660953401178,
+          "alt": "Before conditions — Estate vegetation cleanup & exterior restoration, Palm Beach Gardens",
+          "score": 89,
+          "role": "before",
+          "storyPhase": "neglected",
+          "focal": "object-[center_42%]",
+          "originalName": "IMG_7746.jpeg"
+        },
+        {
+          "id": "before-img-7708",
+          "src": "/media/.curated/estate-cleanup-001/images/before-img-7708.webp",
+          "blurDataURL": "data:image/webp;base64,UklGRlAAAABXRUJQVlA4IEQAAACQAQCdASoQAAwAA4BaJZQCsABTpAAA2/3qW3fW4sm8Yat93oKxTdMDlmFQ6lkPc0ZkDh1nY9amdPIphVFEZVOCYyAAAA==",
+          "width": 1400,
+          "height": 1050,
+          "aspect": 1.3333333333333333,
+          "alt": "Before conditions — Estate vegetation cleanup & exterior restoration, Palm Beach Gardens",
+          "score": 81,
+          "role": "before",
+          "storyPhase": "neglected",
+          "focal": "object-[center_42%]",
+          "originalName": "IMG_7708.jpeg"
+        }
+      ],
+      "activeWork": [],
+      "restored": [
+        {
+          "id": "after-img-7714",
+          "src": "/media/.curated/estate-cleanup-001/images/after-img-7714.webp",
+          "blurDataURL": "data:image/webp;base64,UklGRlgAAABXRUJQVlA4IEwAAADwAQCdASoQAAwAA4BaJZAC7AC2hg+BiAAAyxKApYIrH04NDK/CLRX5uwuzfsYjgIqv7lqwE4pQdzwJezZ3i8wkR7M30EYIptBJAAAA",
+          "width": 1400,
+          "height": 1050,
+          "aspect": 1.3333333333333333,
+          "alt": "Restored property — Estate vegetation cleanup & exterior restoration, Palm Beach Gardens",
+          "score": 75,
+          "role": "after",
+          "storyPhase": "restored",
+          "focal": "object-[center_42%]",
+          "originalName": "IMG_7714.jpeg"
+        },
+        {
+          "id": "after-img-7912",
+          "src": "/media/.curated/estate-cleanup-001/images/after-img-7912.webp",
+          "blurDataURL": "data:image/webp;base64,UklGRnYAAABXRUJQVlA4IGoAAAAQBACdASoQABUAPu1iqU2ppaOiMAgBMB2JYgCdAB7AZjkVO80P7Jz2AAD+ZZZajl2PL5h8ZzONnYX4O3TvaT6Dww5TN9FceFCfLyNOOcwTKgnIlgJdauRWT4S+YEui+anCOgyzL/DvQAAA",
+          "width": 1400,
+          "height": 1867,
+          "aspect": 0.7498660953401178,
+          "alt": "Restored property — Estate vegetation cleanup & exterior restoration, Palm Beach Gardens",
+          "score": 91,
+          "role": "after",
+          "storyPhase": "restored",
+          "focal": "object-[center_42%]",
+          "originalName": "IMG_7912.jpeg"
+        },
+        {
+          "id": "after-img-7890",
+          "src": "/media/.curated/estate-cleanup-001/images/after-img-7890.webp",
+          "blurDataURL": "data:image/webp;base64,UklGRlgAAABXRUJQVlA4IEwAAAAQAgCdASoQAAwAA4BaJYwAAn+HebEIiO8gAP7AQQaAmygE2eytiPTmiu5skT4RIMV2PkKVG57xcwvt/VEAP/lxmjDRtF91e97kAAAA",
+          "width": 1400,
+          "height": 1050,
+          "aspect": 1.3333333333333333,
+          "alt": "Restored property — Estate vegetation cleanup & exterior restoration, Palm Beach Gardens",
+          "score": 91,
+          "role": "after",
+          "storyPhase": "restored",
+          "focal": "object-[center_42%]",
+          "originalName": "IMG_7890.jpeg"
+        }
+      ]
+    }
+  }
+}

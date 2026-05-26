@@ -31,6 +31,7 @@ export function MediaAssetImage({
       loading={priority ? undefined : "lazy"}
       overlay={overlay}
       hoverScale={hoverScale}
+      blurDataURL={asset.blurDataURL}
       className={`object-cover ${asset.focal ?? "object-center"} ${className}`}
       sizes={sizesForAspect(asset.aspect)}
     />

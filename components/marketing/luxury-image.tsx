@@ -9,6 +9,7 @@ const BLUR =
 type LuxuryImageProps = Omit<ImageProps, "placeholder" | "blurDataURL"> & {
   overlay?: "cinematic" | "card" | "subtle" | "none";
   hoverScale?: boolean;
+  blurDataURL?: string;
 };
 
 export function LuxuryImage({
@@ -18,6 +19,7 @@ export function LuxuryImage({
   fill,
   alt,
   onLoad,
+  blurDataURL,
   ...props
 }: LuxuryImageProps) {
   const [loaded, setLoaded] = useState(false);
@@ -41,8 +43,8 @@ export function LuxuryImage({
         alt={alt}
         fill={fill}
         placeholder="blur"
-        blurDataURL={BLUR}
-        className={`${hoverScale ? "transition duration-[1.2s] ease-out group-hover/image:scale-[1.04]" : ""} ${className}`}
+        blurDataURL={blurDataURL ?? BLUR}
+        className={`${hoverScale ? "transition duration-[1.4s] ease-out group-hover/image:scale-[1.012]" : ""} ${className}`}
         onLoad={(e) => {
           setLoaded(true);
           onLoad?.(e);

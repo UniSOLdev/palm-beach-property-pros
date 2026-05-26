@@ -12,7 +12,8 @@
     "verify:public-homepage": "node scripts/verify-public-homepage-lock.mjs",
     "media:import": "node scripts/import-desktop-project.mjs",
     "media:curate": "tsx scripts/curate-media.ts",
-    "media:health": "node scripts/media-health-report.mjs"
+    "media:health": "node scripts/media-health-report.mjs",
+    "verify:media-deploy": "node scripts/verify-media-deploy.mjs"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",

@@ -293,7 +293,7 @@
   }
 
   .hero-cinematic {
-    @apply relative overflow-hidden bg-navy-deep;
+    @apply relative min-h-[520px] overflow-hidden bg-navy-deep sm:min-h-[560px] md:min-h-[620px];
   }
 
   .hero-grain {

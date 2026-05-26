@@ -40,25 +40,44 @@ export function HeroBackground({ src, alt }: { src: string; alt: string }) {
         className="absolute inset-0 will-change-transform"
         style={{ transform: `translate3d(0, ${offset}px, 0) scale(1.06)` }}
       >
-        <Image
-          src={displaySrc}
-          alt={failed ? "Media unavailable" : alt}
-          fill
-          priority
-          unoptimized={isLocal}
-          placeholder={failed ? "empty" : "blur"}
-          blurDataURL={BLUR}
-          className={`object-cover object-[center_42%] ${failed ? "opacity-40" : ""}`}
-          sizes="100vw"
-          onLoad={() => setLoaded(true)}
-          onError={() => {
-            if (!failed) {
-              console.warn("[PBPP Media Render]", JSON.stringify({ level: "warn", src, message: "hero load failed" }));
-              setFailed(true);
-              setLoaded(true);
-            }
-          }}
-        />
+        {displaySrc.startsWith("/media/") ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={displaySrc}
+            alt={failed ? "Media unavailable" : alt}
+            className={`absolute inset-0 h-full w-full object-cover object-[center_42%] ${failed ? "opacity-40" : ""}`}
+            loading="eager"
+            decoding="async"
+            onLoad={() => setLoaded(true)}
+            onError={() => {
+              if (!failed) {
+                console.warn("[PBPP Media Render]", JSON.stringify({ level: "warn", src, message: "hero load failed" }));
+                setFailed(true);
+                setLoaded(true);
+              }
+            }}
+          />
+        ) : (
+          <Image
+            src={displaySrc}
+            alt={failed ? "Media unavailable" : alt}
+            fill
+            priority
+            unoptimized={isLocal}
+            placeholder={failed ? "empty" : "blur"}
+            blurDataURL={BLUR}
+            className={`object-cover object-[center_42%] ${failed ? "opacity-40" : ""}`}
+            sizes="100vw"
+            onLoad={() => setLoaded(true)}
+            onError={() => {
+              if (!failed) {
+                console.warn("[PBPP Media Render]", JSON.stringify({ level: "warn", src, message: "hero load failed" }));
+                setFailed(true);
+                setLoaded(true);
+              }
+            }}
+          />
+        )}
       </div>
       <div className="absolute inset-0 bg-black/45 md:hidden" aria-hidden />
       <div

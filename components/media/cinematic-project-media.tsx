@@ -28,24 +28,18 @@ function curatedToAsset(
 }
 
 export function FeaturedTransformation({ pair, title }: { pair: BeforeAfterPair; title?: string }) {
-  const reduce = useReducedMotion();
   return (
-    <motion.div
-      initial={reduce ? false : { opacity: 0 }}
-      whileInView={reduce ? undefined : { opacity: 1 }}
-      viewport={{ once: true, margin: "-60px" }}
-      transition={{ duration: 0.8, ease: EASE }}
-    >
+    <>
       <BeforeAfterCompare
         project={{
-          before: curatedToAsset(pair.before, "transformation"),
-          after: curatedToAsset(pair.after, "transformation"),
+          before: curatedToAsset(pair.before, "transformation", "none"),
+          after: curatedToAsset(pair.after, "transformation", "none"),
           isScaffold: false,
           title: title ?? pair.label,
         }}
       />
       <p className="mt-4 text-center text-sm text-charcoal/60">{pair.label}</p>
-    </motion.div>
+    </>
   );
 }
 

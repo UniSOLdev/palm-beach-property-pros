@@ -1,20 +1,12 @@
 "use client";
 
-import { CinematicVideoHero } from "@/components/media/cinematic-project-media";
 import { HeroBackground } from "@/components/marketing/hero-background";
-import type { CuratedClip, CuratedImage } from "@/lib/media-curation/types";
+import type { CuratedImage } from "@/lib/media-curation/types";
 
-export function CuratedHeroMedia({
-  heroImage,
-  heroClip,
-}: {
-  heroImage: CuratedImage | null;
-  heroClip: CuratedClip | null;
-}) {
-  if (heroClip || heroImage) {
-    return <CinematicVideoHero clip={heroClip} poster={heroImage} />;
-  }
-  return null;
+/** Hero uses a still photo only — video appears once in the story arc section. */
+export function CuratedHeroMedia({ heroImage }: { heroImage: CuratedImage | null }) {
+  if (!heroImage?.src) return null;
+  return <HeroBackground src={heroImage.src} alt={heroImage.alt} />;
 }
 
 export function FallbackHeroMedia({ src, alt }: { src: string; alt: string }) {

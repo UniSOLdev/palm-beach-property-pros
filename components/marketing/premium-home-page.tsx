@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { FaqAccordion } from "@/components/faq-accordion";
 import { TransformationCarousel, ProjectReelGrid } from "@/components/media/cinematic-project-media";
+import { BeforeAfterGrid } from "@/components/media/before-after-grid";
 import { DocumentationSuite } from "@/components/media/documentation-suite";
 import { FeaturedProjectsSection } from "@/components/media/featured-projects-section";
 import { FieldExecutionTimeline } from "@/components/media/field-execution-timeline";
@@ -163,7 +164,7 @@ function PlanIcon({ type }: { type: (typeof CARE_PLANS)[number]["icon"] }) {
 }
 
 export function PremiumHomePage({ media }: { media: HomepageMediaBundle }) {
-  const useCuratedHero = media.hasAuthenticMedia && (media.heroClip || media.curatedHeroImage);
+  const useCuratedHero = media.hasAuthenticMedia && media.curatedHeroImage;
   const fallbackHeroSrc = buildMediaUrl(FALLBACK_HERO.src, 2000);
 
   const serviceLines: Array<(typeof SERVICE_LINES)[number] & { asset: MediaAsset }> = media.hasAuthenticMedia
@@ -222,7 +223,7 @@ export function PremiumHomePage({ media }: { media: HomepageMediaBundle }) {
     <>
       <section className="hero-cinematic animate-fade-up relative -mx-4 sm:-mx-6 md:mx-0 md:rounded-3xl">
         {useCuratedHero ? (
-          <CuratedHeroMedia heroImage={media.curatedHeroImage} heroClip={media.heroClip} />
+          <CuratedHeroMedia heroImage={media.curatedHeroImage} />
         ) : (
           <FallbackHeroMedia src={fallbackHeroSrc} alt={FALLBACK_HERO.alt} />
         )}
@@ -260,6 +261,24 @@ export function PremiumHomePage({ media }: { media: HomepageMediaBundle }) {
         </div>
       </section>
 
+      <TransformationShowcase projects={media.transformations} isAuthentic={media.hasAuthenticMedia} />
+
+      {media.hasAuthenticMedia && media.featuredPairs.length > 0 ? (
+        <section className="pb-16 md:pb-24">
+          <div className="mx-auto max-w-2xl text-center">
+            <p className="section-eyebrow text-ocean">Before &amp; after gallery</p>
+            <h2 className="section-title mt-4">Every angle documented</h2>
+            <p className="section-lead">
+              Four paired comparisons from the Palm Beach Gardens estate cleanup—overgrown conditions
+              beside restored pathways and exterior lines.
+            </p>
+          </div>
+          <div className="mt-12">
+            <BeforeAfterGrid pairs={media.featuredPairs} />
+          </div>
+        </section>
+      ) : null}
+
       <div className="section-divider my-2 md:my-4" aria-hidden />
 
       <ScrollReveal>
@@ -279,28 +298,21 @@ export function PremiumHomePage({ media }: { media: HomepageMediaBundle }) {
         </section>
       </ScrollReveal>
 
-      <TransformationShowcase projects={media.transformations} isAuthentic={media.hasAuthenticMedia} />
-
       {media.storyArc ? <StoryArcShowcase storyArc={media.storyArc} /> : null}
 
-      {media.hasAuthenticMedia && (media.heroClip || media.reelClips.length > 0) ? (
+      {media.hasAuthenticMedia && media.reelClips.length > 0 ? (
         <ScrollReveal delay={20}>
           <section className="py-16 md:py-24">
             <div className="mx-auto max-w-2xl text-center">
               <p className="section-eyebrow text-ocean">Field documentation</p>
-              <h2 className="section-title mt-4">On-site video from your project</h2>
+              <h2 className="section-title mt-4">On-site video</h2>
               <p className="section-lead">
-                Authentic clips from the Palm Beach Gardens estate cleanup—crews clearing vegetation,
-                restoring pathways, and finishing exterior lines.
+                Operational clips from the estate cleanup—crews clearing vegetation and restoring
+                exterior lines in Palm Beach Gardens.
               </p>
             </div>
             <div className="mt-12">
-              <ProjectReelGrid
-                clips={[
-                  ...(media.heroClip ? [media.heroClip] : []),
-                  ...media.reelClips,
-                ].slice(0, 4)}
-              />
+              <ProjectReelGrid clips={media.reelClips.slice(0, 3)} />
             </div>
           </section>
         </ScrollReveal>
@@ -310,11 +322,11 @@ export function PremiumHomePage({ media }: { media: HomepageMediaBundle }) {
         <ScrollReveal delay={40}>
           <section className="pb-16 md:pb-24">
             <div className="mx-auto max-w-2xl text-center">
-              <p className="section-eyebrow text-ocean">Additional proof</p>
-              <h2 className="section-title mt-4">More documented transformations</h2>
+              <p className="section-eyebrow text-ocean">Interactive proof</p>
+              <h2 className="section-title mt-4">Swipe through transformations</h2>
             </div>
             <div className="mt-10">
-              <TransformationCarousel pairs={media.featuredPairs.slice(1, 4)} />
+              <TransformationCarousel pairs={media.featuredPairs} />
             </div>
           </section>
         </ScrollReveal>

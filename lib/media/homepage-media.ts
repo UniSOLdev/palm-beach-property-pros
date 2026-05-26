@@ -66,8 +66,13 @@ export async function getHomepageMediaBundle(): Promise<HomepageMediaBundle> {
       curatedHeroImage: manifest.homepage.heroImage,
       featuredPairs: manifest.projects.flatMap((p) => p.beforeAfter),
       galleryProjects: manifest.projects,
-      reelClips: allClips.filter((c) => c.role !== "hero-loop").slice(0, 3),
-      storyArc: manifest.homepage.storyArc,
+      reelClips: allClips.filter((c) => c.role === "highlight").slice(0, 3),
+      storyArc: manifest.homepage.storyArc
+        ? {
+            ...manifest.homepage.storyArc,
+            activeWork: manifest.homepage.storyArc.activeWork.filter((c) => c.role === "highlight"),
+          }
+        : null,
     };
   }
 

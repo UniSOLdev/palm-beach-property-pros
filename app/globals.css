@@ -257,7 +257,11 @@
   }
 
   .before-after-compare {
-    @apply transition duration-500 hover:shadow-lift;
+    @apply transition duration-500 hover:shadow-luxury;
+  }
+
+  .transformation-proof-band {
+    @apply border-y border-navy/[0.06] bg-gradient-to-b from-cream/80 via-white to-cream-warm/50;
   }
 
   .luxury-pill {

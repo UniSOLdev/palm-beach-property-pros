@@ -2,7 +2,6 @@
 
 import { MediaAssetImage } from "@/components/media/media-asset-image";
 import { MediaFrame } from "@/components/media/media-frame";
-import { ScrollReveal } from "@/components/marketing/scroll-reveal";
 import type { StoryArc } from "@/lib/media-curation/types";
 import type { MediaAsset } from "@/lib/media/types";
 
@@ -37,64 +36,61 @@ function toAsset(
     focal: image.focal,
     blurDataURL: image.blurDataURL,
     aspect: "landscape",
-    overlay: "subtle",
+    overlay: "none",
   };
 }
 
 export function StoryArcShowcase({ storyArc }: { storyArc: StoryArc }) {
-  const activeClip = storyArc.activeWork[0];
+  const activeClip = storyArc.activeWork.find((c) => c.role === "highlight") ?? storyArc.activeWork[0];
 
   return (
-    <ScrollReveal>
-      <section className="py-16 md:py-24">
-        <div className="mx-auto max-w-2xl text-center">
-          <p className="section-eyebrow text-ocean">Transformation arc</p>
-          <h2 className="section-title mt-4">Neglected → active work → restored</h2>
-          <p className="section-lead">
-            The visual story owners and managers expect—obvious contrast, restored visibility, and
-            calm operational proof.
-          </p>
-        </div>
+    <section className="section-band-warm py-16 md:py-24">
+      <div className="mx-auto max-w-2xl text-center">
+        <p className="section-eyebrow text-ocean">Transformation arc</p>
+        <h2 className="section-title mt-4">Neglected → active work → restored</h2>
+        <p className="section-lead">
+          The visual story owners expect—obvious contrast, field execution, and calm operational proof.
+        </p>
+      </div>
 
-        <div className="mt-14 grid gap-8 lg:grid-cols-3 lg:gap-6">
-          <StoryPhaseColumn
-            phase="neglected"
-            image={storyArc.neglected[0]}
-            fallbackImages={storyArc.neglected}
-          />
+      <div className="mt-14 grid gap-8 lg:grid-cols-3 lg:gap-6">
+        <StoryPhaseColumn
+          phase="neglected"
+          image={storyArc.neglected[0]}
+          fallbackImages={storyArc.neglected}
+        />
 
-          <article className="flex flex-col">
-            <PhaseHeader phase="active-work" />
-            <MediaFrame aspect="landscape" className="image-frame mt-5 flex-1 min-h-[220px]">
-              {activeClip ? (
-                <video
-                  className="absolute inset-0 h-full w-full object-cover"
-                  autoPlay
-                  muted
-                  loop
-                  playsInline
-                  preload="metadata"
-                  poster={activeClip.poster}
-                >
-                  <source src={activeClip.src} type="video/mp4" />
-                </video>
-              ) : storyArc.restored[1] ? (
-                <MediaAssetImage asset={toAsset(storyArc.restored[1], "exterior")} width={900} />
-              ) : (
-                <div className="absolute inset-0 bg-cream-warm/80" />
-              )}
-              <div className="absolute inset-0 bg-gradient-to-t from-navy-deep/35 via-transparent to-transparent" aria-hidden />
-            </MediaFrame>
-          </article>
+        <article className="flex flex-col">
+          <PhaseHeader phase="active-work" />
+          <MediaFrame aspect="landscape" className="image-frame mt-5 flex-1 min-h-[240px]">
+            {activeClip ? (
+              <video
+                className="absolute inset-0 z-[1] h-full w-full object-cover"
+                autoPlay
+                muted
+                loop
+                playsInline
+                preload="metadata"
+                poster={activeClip.poster}
+              >
+                <source src={activeClip.src} type="video/mp4" />
+              </video>
+            ) : storyArc.restored[1] ? (
+              <MediaAssetImage asset={toAsset(storyArc.restored[1], "exterior")} width={900} />
+            ) : (
+              <div className="absolute inset-0 bg-cream-warm/80" />
+            )}
+            <div className="absolute inset-0 z-[2] bg-gradient-to-t from-navy-deep/30 via-transparent to-transparent" aria-hidden />
+          </MediaFrame>
+        </article>
 
-          <StoryPhaseColumn
-            phase="restored"
-            image={storyArc.restored[0]}
-            fallbackImages={storyArc.restored}
-          />
-        </div>
-      </section>
-    </ScrollReveal>
+        <StoryPhaseColumn
+          phase="restored"
+          image={storyArc.restored[0]}
+          fallbackImages={storyArc.restored}
+        />
+      </div>
+    </section>
   );
 }
 
@@ -124,7 +120,7 @@ function StoryPhaseColumn({
   return (
     <article className="flex flex-col">
       <PhaseHeader phase={phase} />
-      <MediaFrame aspect="landscape" className="image-frame mt-5 min-h-[220px]">
+      <MediaFrame aspect="landscape" className="image-frame mt-5 min-h-[240px]">
         <MediaAssetImage asset={toAsset(selected)} width={900} />
       </MediaFrame>
     </article>

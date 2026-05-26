@@ -174,7 +174,7 @@ export async function curateProject(projectId: string): Promise<CuratedProject |
   const storyArc = buildStoryArc({
     neglected: curatedNeglected,
     restored: curatedRestored.length ? curatedRestored : curatedHero,
-    activeWork: clips.filter((c) => c.role === "hero-loop" || c.role === "highlight"),
+    activeWork: clips.filter((c) => c.role === "highlight"),
   });
 
   const topImageScore = Math.max(...allAfter.map((i) => i.score), ...images.map((i) => i.score), 0);

@@ -69,7 +69,7 @@ export function SiteStudioHub({
               <StudioLink
                 href={homepage ? `/admin/website/builder/${homepage.id}` : "/admin/website/pages"}
                 title="Edit homepage"
-                description="Hero, services, gallery, testimonials, CTA"
+                description="Premium modular sections — transformation proof, programs, workflow"
                 primary
               />
               <StudioLink
@@ -78,9 +78,19 @@ export function SiteStudioHub({
                 description="Service pages, city SEO, landing pages"
               />
               <StudioLink
+                href="/admin/website/transformations"
+                title="Transformations"
+                description="Strict before/during/after pair editor"
+              />
+              <StudioLink
+                href="/admin/website/projects"
+                title="Projects"
+                description="Project recaps, scope, featured media"
+              />
+              <StudioLink
                 href="/admin/website/media"
                 title="Media library"
-                description="Upload, tag, and pick images for sections"
+                description="Upload, tag, categorize, and assign to projects"
               />
               {homepage?.preview_token ? (
                 <StudioLink

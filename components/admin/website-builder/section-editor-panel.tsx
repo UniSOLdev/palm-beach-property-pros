@@ -7,9 +7,11 @@ import { enhanceBody, enhanceHeadline, suggestSectionCopy } from "@/lib/cms/ai-c
 import { ICON_OPTIONS } from "@/lib/design/tokens";
 import {
   SECTION_TYPE_LABELS,
+  isModularSectionType,
   type WebsiteSectionRow,
   type WebsiteSectionType,
 } from "@/lib/cms/section-registry";
+import { ModularSectionEditor } from "@/components/site-builder/modular-section-editor";
 
 type Props = {
   section: WebsiteSectionRow;
@@ -57,6 +59,9 @@ function SectionFields({
   content: Record<string, unknown>;
   onChange: (content: Record<string, unknown>) => void;
 }) {
+  if (isModularSectionType(type)) {
+    return <ModularSectionEditor type={type} content={content} onChange={onChange} />;
+  }
   switch (type) {
     case "hero":
       return <HeroEditor content={content} onChange={onChange} />;

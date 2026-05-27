@@ -29,6 +29,8 @@ export type BuilderPageBundle = {
     preview_token: string;
     status: string;
     published_at: string | null;
+    draft_updated_at?: string | null;
+    has_unpublished_changes?: boolean;
   };
   sections: WebsiteSectionRow[];
   theme: Record<string, unknown>;
@@ -168,6 +170,15 @@ export async function saveDraftSections(
 ) {
   const supabase = await createClient();
 
+  const { data: pageMeta, error: pageMetaError } = await supabase
+    .from("website_pages")
+    .select("status, preview_token")
+    .eq("id", pageId)
+    .single();
+  if (pageMetaError || !pageMeta) {
+    throw new Error(formatSiteStudioError(pageMetaError?.message ?? "Page not found"));
+  }
+
   for (const section of sections) {
     const { error } = await supabase
       .from("website_sections")
@@ -184,10 +195,15 @@ export async function saveDraftSections(
     if (error) throw new Error(formatSiteStudioError(error.message));
   }
 
-  const pagePatch: Record<string, string | null> = {
-    updated_at: new Date().toISOString(),
-    status: "draft",
+  const now = new Date().toISOString();
+  const pagePatch: Record<string, string | boolean | null> = {
+    updated_at: now,
+    draft_updated_at: now,
+    has_unpublished_changes: true,
   };
+  if (pageMeta.status !== "published") {
+    pagePatch.status = "draft";
+  }
   if (seo?.seo_title !== undefined) pagePatch.seo_title = seo.seo_title;
   if (seo?.meta_description !== undefined) pagePatch.meta_description = seo.meta_description;
   if (seo?.og_image_url !== undefined) pagePatch.og_image_url = seo.og_image_url || null;
@@ -198,6 +214,9 @@ export async function saveDraftSections(
 
   revalidatePath("/admin/website");
   revalidatePath(`/admin/website/builder/${pageId}`);
+  if (pageMeta.preview_token) {
+    revalidatePath(`/preview/${pageMeta.preview_token}`);
+  }
 }
 
 export async function addWebsiteSection(pageId: string, sectionType: WebsiteSectionType) {
@@ -283,12 +302,14 @@ export async function publishWebsitePage(pageId: string, note?: string) {
     note: note ?? null,
   });
 
+  const publishedAt = new Date().toISOString();
   const { error: pageError } = await supabase
     .from("website_pages")
     .update({
       status: "published",
-      published_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
+      published_at: publishedAt,
+      updated_at: publishedAt,
+      has_unpublished_changes: false,
     })
     .eq("id", pageId);
   if (pageError) throw new Error(formatSiteStudioError(pageError.message));

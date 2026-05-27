@@ -1,6 +1,13 @@
 import { z } from "zod";
+import {
+  MODULAR_SECTION_LABELS,
+  MODULAR_SECTION_TYPES,
+  defaultModularSectionContent,
+  isModularSectionType,
+  parseModularSectionContent,
+} from "@/lib/site-builder/section-registry";
 
-export const WEBSITE_SECTION_TYPES = [
+export const LEGACY_SECTION_TYPES = [
   "hero",
   "services",
   "gallery",
@@ -19,7 +26,12 @@ export const WEBSITE_SECTION_TYPES = [
   "rich_text",
 ] as const;
 
+/** Combined legacy + modular premium section types. */
+export const WEBSITE_SECTION_TYPES = [...LEGACY_SECTION_TYPES, ...MODULAR_SECTION_TYPES] as const;
+
 export type WebsiteSectionType = (typeof WEBSITE_SECTION_TYPES)[number];
+
+export { isModularSectionType, MODULAR_SECTION_TYPES };
 
 export const SECTION_TYPE_LABELS: Record<WebsiteSectionType, string> = {
   hero: "Hero",
@@ -38,6 +50,7 @@ export const SECTION_TYPE_LABELS: Record<WebsiteSectionType, string> = {
   quote_form: "Quote Form",
   contact: "Contact",
   rich_text: "Rich Text",
+  ...MODULAR_SECTION_LABELS,
 };
 
 const linkSchema = z.object({
@@ -169,6 +182,9 @@ export const VIEWPORT_WIDTHS: Record<ViewportMode, string> = {
 };
 
 export function defaultContentForType(type: WebsiteSectionType): Record<string, unknown> {
+  if (isModularSectionType(type)) {
+    return defaultModularSectionContent(type);
+  }
   switch (type) {
     case "hero":
       return heroContentSchema.parse({});
@@ -196,6 +212,9 @@ export function defaultContentForType(type: WebsiteSectionType): Record<string, 
 }
 
 export function parseSectionContent(type: WebsiteSectionType, content: Record<string, unknown>) {
+  if (isModularSectionType(type)) {
+    return parseModularSectionContent(type, content);
+  }
   switch (type) {
     case "hero":
       return heroContentSchema.parse({ ...defaultContentForType("hero"), ...content });

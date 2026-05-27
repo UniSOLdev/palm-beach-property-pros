@@ -4,6 +4,10 @@ import {
   WEBSITE_SECTION_TYPES,
   type WebsiteSectionType,
 } from "@/lib/cms/section-registry";
+import {
+  SECTION_REGISTRY as MODULAR_SECTION_REGISTRY,
+  type SectionCategory as ModularSectionCategory,
+} from "@/lib/site-builder/section-registry";
 
 export type SectionCategory =
   | "hero"
@@ -39,7 +43,8 @@ const CATEGORY_LABELS: Record<SectionCategory, string> = {
   business: "Business Data",
 };
 
-export const SECTION_REGISTRY: SectionRegistryEntry[] = WEBSITE_SECTION_TYPES.map((type) => {
+export const SECTION_REGISTRY: SectionRegistryEntry[] = [
+  ...(WEBSITE_SECTION_TYPES.filter((t) => !MODULAR_SECTION_REGISTRY.some((m) => m.type === t)).map((type) => {
   const base = {
     type,
     label: SECTION_TYPE_LABELS[type],
@@ -54,12 +59,12 @@ export const SECTION_REGISTRY: SectionRegistryEntry[] = WEBSITE_SECTION_TYPES.ma
         category: "hero" as const,
         description: "Full-width hero with image, headline, and CTAs",
         editableFields: [
-          { path: "eyebrow", label: "Eyebrow", kind: "text" },
-          { path: "headline", label: "Headline", kind: "heading" },
-          { path: "subheadline", label: "Subheadline", kind: "body" },
-          { path: "primaryCta.label", label: "Primary button", kind: "button" },
-          { path: "secondaryCta.label", label: "Secondary button", kind: "button" },
-          { path: "imageUrl", label: "Background image", kind: "image" },
+          { path: "eyebrow", label: "Eyebrow", kind: "text" as const },
+          { path: "headline", label: "Headline", kind: "heading" as const },
+          { path: "subheadline", label: "Subheadline", kind: "body" as const },
+          { path: "primaryCta.label", label: "Primary button", kind: "button" as const },
+          { path: "secondaryCta.label", label: "Secondary button", kind: "button" as const },
+          { path: "imageUrl", label: "Background image", kind: "image" as const },
         ],
       };
     case "cta":
@@ -186,7 +191,25 @@ export const SECTION_REGISTRY: SectionRegistryEntry[] = WEBSITE_SECTION_TYPES.ma
         ],
       };
   }
-});
+  })) as SectionRegistryEntry[],
+  ...MODULAR_SECTION_REGISTRY.map((entry) => ({
+    type: entry.type as WebsiteSectionType,
+    label: entry.label,
+    icon: entry.icon,
+    category: mapModularCategory(entry.category),
+    description: entry.description,
+    defaultProps: entry.defaultData,
+    editableFields: [{ path: "headline", label: "Headline", kind: "heading" as const }],
+    supportsDynamicData: entry.supportsDynamicData,
+  })),
+];
+
+function mapModularCategory(category: ModularSectionCategory): SectionCategory {
+  if (category === "proof") return "media";
+  if (category === "operations") return "business";
+  if (category === "services") return "content";
+  return category as SectionCategory;
+}
 
 export function getSectionEntry(type: WebsiteSectionType): SectionRegistryEntry {
   return SECTION_REGISTRY.find((e) => e.type === type)!;

@@ -10,9 +10,11 @@ import { EditableText } from "@/components/builder/editable/editable-text";
 import { FaqAccordion } from "@/components/faq-accordion";
 import {
   parseSectionContent,
+  isModularSectionType,
   type WebsiteSectionRow,
   type WebsiteSectionType,
 } from "@/lib/cms/section-registry";
+import { ModularSectionRenderer } from "@/components/site-builder/modular-section-renderer";
 import { PHONE_DISPLAY, PHONE_TEL } from "@/lib/site";
 
 type ThemeTokens = Record<string, unknown>;
@@ -86,6 +88,33 @@ export function SectionRenderer({
     editor?.enabled && preview
       ? { ...editor, sectionId: section.id }
       : undefined;
+
+  if (isModularSectionType(section.section_type)) {
+    return (
+      <div
+        data-section-id={section.id}
+        data-section-type={section.section_type}
+        style={style}
+        className={!section.is_visible ? "opacity-40" : undefined}
+      >
+        <ModularSectionRenderer
+          sectionType={section.section_type}
+          content={section.content}
+          preview={preview}
+          strictContent={Boolean(bridge?.enabled)}
+          editor={
+            bridge
+              ? {
+                  enabled: true,
+                  sectionId: section.id,
+                  patchField: bridge.patchField,
+                }
+              : undefined
+          }
+        />
+      </div>
+    );
+  }
 
   return (
     <div

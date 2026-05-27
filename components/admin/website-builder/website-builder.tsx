@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import {
   DndContext,
   PointerSensor,
@@ -15,35 +15,29 @@ import { motion, AnimatePresence } from "framer-motion";
 import { AddSectionModal } from "@/components/builder/add-section-modal";
 import { BuilderAIPalette } from "@/components/builder/builder-ai-palette";
 import { LivePreviewPanel } from "@/components/builder/visual/live-preview-panel";
-import { patchSectionContent } from "@/lib/builder/content-path";
 import { BuilderToolbar } from "@/components/admin/website-builder/builder-toolbar";
 import { SeoPanel } from "@/components/admin/website-builder/seo-panel";
 import { SectionEditorPanel } from "@/components/admin/website-builder/section-editor-panel";
 import { ThemeEditorPanel } from "@/components/admin/website-builder/theme-editor-panel";
 import { WebsiteHealthPanel } from "@/components/admin/website-builder/website-health-panel";
-import { useBuilderHistory, useDebouncedCallback } from "@/components/admin/website-builder/use-builder-history";
 import {
   SECTION_TYPE_LABELS,
-  VIEWPORT_WIDTHS,
-  WEBSITE_SECTION_TYPES,
   type WebsiteSectionRow,
   type WebsiteSectionType,
-  type ViewportMode,
 } from "@/lib/cms/section-registry";
 import type { BuilderPageBundle } from "@/lib/admin/actions/website-builder";
 import {
   addWebsiteSection,
   deleteWebsiteSection,
   duplicateWebsiteSection,
-  publishWebsitePage,
   rollbackWebsitePage,
-  saveDraftSections,
 } from "@/lib/admin/actions/website-builder";
-
-type BuilderState = {
-  sections: WebsiteSectionRow[];
-  seo: { slug: string; seo_title: string; meta_description: string; og_image_url: string };
-};
+import { useBuilderAutosave } from "@/lib/stores/use-builder-autosave";
+import {
+  selectIsDirty,
+  selectSelectedSection,
+  useBuilderStore,
+} from "@/lib/stores/use-builder-store";
 
 function SortableSectionRow({
   section,
@@ -105,151 +99,90 @@ function SortableSectionRow({
 }
 
 export function WebsiteBuilder({ bundle }: { bundle: BuilderPageBundle }) {
-  const initial: BuilderState = {
-    sections: bundle.sections,
-    seo: {
-      slug: bundle.page.slug,
-      seo_title: bundle.page.seo_title ?? "",
-      meta_description: bundle.page.meta_description ?? "",
-      og_image_url: bundle.page.og_image_url ?? "",
-    },
-  };
+  const hydrate = useBuilderStore((s) => s.hydrate);
+  const resetStore = useBuilderStore((s) => s.resetStore);
+  const sections = useBuilderStore((s) => s.sections);
+  const seo = useBuilderStore((s) => s.seo);
+  const theme = useBuilderStore((s) => s.theme);
+  const pageTitle = useBuilderStore((s) => s.pageTitle);
+  const pageStatus = useBuilderStore((s) => s.pageStatus);
+  const hasUnpublishedChanges = useBuilderStore((s) => s.hasUnpublishedChanges);
+  const previewToken = useBuilderStore((s) => s.previewToken);
+  const pageId = useBuilderStore((s) => s.pageId);
+  const publishVersions = useBuilderStore((s) => s.publishVersions);
+  const selectedId = useBuilderStore((s) => s.selectedSectionId);
+  const leftTab = useBuilderStore((s) => s.leftTab);
+  const sidebarCollapsed = useBuilderStore((s) => s.sidebarCollapsed);
+  const viewport = useBuilderStore((s) => s.viewport);
+  const zoom = useBuilderStore((s) => s.zoom);
+  const focusMode = useBuilderStore((s) => s.focusMode);
+  const activeField = useBuilderStore((s) => s.activeField);
+  const lockedIds = useBuilderStore((s) => s.lockedIds);
+  const saveStatus = useBuilderStore((s) => s.saveStatus);
+  const saveError = useBuilderStore((s) => s.saveError);
+  const canUndo = useBuilderStore((s) => s.canUndo);
+  const canRedo = useBuilderStore((s) => s.canRedo);
+  const isDirty = useBuilderStore(selectIsDirty);
+  const isSaving = useBuilderStore((s) => s.isSaving);
+  const isPublishing = useBuilderStore((s) => s.isPublishing);
+  const selected = useBuilderStore(selectSelectedSection);
 
-  const { state, push, undo, redo, canUndo, canRedo, reset } = useBuilderHistory(initial);
-  const [savedBaseline, setSavedBaseline] = useState(JSON.stringify(initial));
-  const [selectedId, setSelectedId] = useState<string | null>(bundle.sections[0]?.id ?? null);
-  const [viewport, setViewport] = useState<ViewportMode>("desktop");
-  const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved" | "error">("idle");
-  const [error, setError] = useState("");
+  const reorderSections = useBuilderStore((s) => s.reorderSections);
+  const selectSection = useBuilderStore((s) => s.selectSection);
+  const setSeo = useBuilderStore((s) => s.setSeo);
+  const setLeftTab = useBuilderStore((s) => s.setLeftTab);
+  const toggleSidebar = useBuilderStore((s) => s.toggleSidebar);
+  const setViewport = useBuilderStore((s) => s.setViewport);
+  const setZoom = useBuilderStore((s) => s.setZoom);
+  const toggleFocusMode = useBuilderStore((s) => s.toggleFocusMode);
+  const setActiveField = useBuilderStore((s) => s.setActiveField);
+  const patchSectionField = useBuilderStore((s) => s.patchSectionField);
+  const updateSectionContent = useBuilderStore((s) => s.updateSectionContent);
+  const updateSectionMeta = useBuilderStore((s) => s.updateSectionMeta);
+  const addSectionRow = useBuilderStore((s) => s.addSectionRow);
+  const removeSectionRow = useBuilderStore((s) => s.removeSectionRow);
+  const resetHistory = useBuilderStore((s) => s.resetHistory);
+  const undo = useBuilderStore((s) => s.undo);
+  const redo = useBuilderStore((s) => s.redo);
+  const toggleSectionLock = useBuilderStore((s) => s.toggleSectionLock);
+  const toggleSectionVisibility = useBuilderStore((s) => s.toggleSectionVisibility);
+
+  const { saveNow, saveAndPreview, publish } = useBuilderAutosave();
   const [pending, startTransition] = useTransition();
-  const [addType, setAddType] = useState<WebsiteSectionType>("hero");
-  const [rollbackId, setRollbackId] = useState(bundle.publishVersions[0]?.id ?? "");
-  const [leftTab, setLeftTab] = useState<"sections" | "seo" | "theme">("sections");
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const [zoom, setZoom] = useState(100);
-  const [focusMode, setFocusMode] = useState(false);
   const [addModalOpen, setAddModalOpen] = useState(false);
   const [aiOpen, setAiOpen] = useState(false);
-  const [activeField, setActiveField] = useState<string | null>(null);
-  const [lockedIds, setLockedIds] = useState<Set<string>>(new Set());
+  const [rollbackId, setRollbackId] = useState(bundle.publishVersions[0]?.id ?? "");
 
-  const selected = state.sections.find((s) => s.id === selectedId) ?? null;
-  const previewUrl = `/preview/${bundle.page.preview_token}`;
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 8 } }));
-
-  const hasUnsavedChanges = useMemo(
-    () => JSON.stringify(state) !== savedBaseline,
-    [state, savedBaseline],
-  );
-
-  const debouncedSave = useDebouncedCallback(() => {
-    performSave(false);
-  }, 2500);
+  const previewUrl = `/preview/${previewToken}`;
+  const busy = pending || isSaving || isPublishing;
 
   useEffect(() => {
-    if (JSON.stringify(state) === savedBaseline) return;
-    debouncedSave();
-  }, [state, debouncedSave, savedBaseline]);
-
-  function performSave(manual: boolean) {
-    startTransition(async () => {
-      setSaveStatus("saving");
-      try {
-        await saveDraftSections(
-          bundle.page.id,
-          state.sections.map((s, i) => ({
-            id: s.id,
-            section_type: s.section_type,
-            label: s.label,
-            sort_order: i,
-            is_visible: s.is_visible,
-            content: s.content,
-          })),
-          state.seo,
-        );
-        setSavedBaseline(JSON.stringify(state));
-        setSaveStatus("saved");
-        if (manual) setError("");
-      } catch (err) {
-        setSaveStatus("error");
-        setError(err instanceof Error ? err.message : "Autosave failed");
-      }
-    });
-  }
-
-  function performPublish() {
-    startTransition(async () => {
-      setError("");
-      try {
-        await saveDraftSections(
-          bundle.page.id,
-          state.sections.map((s, i) => ({
-            id: s.id,
-            section_type: s.section_type,
-            label: s.label,
-            sort_order: i,
-            is_visible: s.is_visible,
-            content: s.content,
-          })),
-          state.seo,
-        );
-        await publishWebsitePage(bundle.page.id);
-        setSavedBaseline(JSON.stringify(state));
-        setSaveStatus("saved");
-      } catch (err) {
-        setError(err instanceof Error ? err.message : "Publish failed");
-      }
-    });
-  }
-
-  function updateSections(updater: (sections: WebsiteSectionRow[]) => WebsiteSectionRow[]) {
-    push({ ...state, sections: updater(state.sections) });
-  }
+    hydrate(bundle);
+    setRollbackId(bundle.publishVersions[0]?.id ?? "");
+    return () => resetStore();
+  }, [bundle, hydrate, resetStore]);
 
   function onDragEnd(event: DragEndEvent) {
     const { active, over } = event;
     if (!over || active.id === over.id) return;
-    const oldIndex = state.sections.findIndex((s) => s.id === active.id);
-    const newIndex = state.sections.findIndex((s) => s.id === over.id);
-    push({ ...state, sections: arrayMove(state.sections, oldIndex, newIndex) });
-  }
-
-  function updateSelectedContent(content: Record<string, unknown>) {
-    if (!selectedId) return;
-    updateSections((sections) =>
-      sections.map((s) => (s.id === selectedId ? { ...s, content } : s)),
-    );
-  }
-
-  function updateSelectedMeta(patch: Partial<Pick<WebsiteSectionRow, "label" | "is_visible">>) {
-    if (!selectedId) return;
-    updateSections((sections) =>
-      sections.map((s) => (s.id === selectedId ? { ...s, ...patch } : s)),
-    );
-  }
-
-  function patchSectionField(sectionId: string, path: string, value: unknown) {
-    push({
-      ...state,
-      sections: state.sections.map((s) =>
-        s.id === sectionId ? { ...s, content: patchSectionContent(s.content, path, value) } : s,
-      ),
-    });
-    if (selectedId !== sectionId) setSelectedId(sectionId);
-  }
-
-  function handleCanvasReorder(sections: WebsiteSectionRow[]) {
-    push({ ...state, sections });
+    const oldIndex = sections.findIndex((s) => s.id === active.id);
+    const newIndex = sections.findIndex((s) => s.id === over.id);
+    reorderSections(arrayMove(sections, oldIndex, newIndex));
   }
 
   function handleDuplicateSection(id: string) {
     startTransition(async () => {
       try {
-        const copy = await duplicateWebsiteSection(id, bundle.page.id);
-        reset({ ...state, sections: [...state.sections, copy] });
-        setSelectedId(copy.id);
+        const copy = await duplicateWebsiteSection(id, pageId);
+        resetHistory({
+          sections: [...sections, copy],
+          seo,
+          theme,
+        });
+        selectSection(copy.id);
       } catch (err) {
-        setError(err instanceof Error ? err.message : "Duplicate failed");
+        useBuilderStore.getState().setSaveStatus("error", err instanceof Error ? err.message : "Duplicate failed");
       }
     });
   }
@@ -257,12 +190,10 @@ export function WebsiteBuilder({ bundle }: { bundle: BuilderPageBundle }) {
   function handleDeleteSection(id: string) {
     startTransition(async () => {
       try {
-        await deleteWebsiteSection(id, bundle.page.id);
-        const next = state.sections.filter((s) => s.id !== id);
-        push({ ...state, sections: next });
-        setSelectedId(next[0]?.id ?? null);
+        await deleteWebsiteSection(id, pageId);
+        removeSectionRow(id);
       } catch (err) {
-        setError(err instanceof Error ? err.message : "Delete failed");
+        useBuilderStore.getState().setSaveStatus("error", err instanceof Error ? err.message : "Delete failed");
       }
     });
   }
@@ -270,45 +201,51 @@ export function WebsiteBuilder({ bundle }: { bundle: BuilderPageBundle }) {
   function handleInsertSection(type: WebsiteSectionType) {
     startTransition(async () => {
       try {
-        const row = await addWebsiteSection(bundle.page.id, type);
-        push({ ...state, sections: [...state.sections, row] });
-        setSelectedId(row.id);
+        const row = await addWebsiteSection(pageId, type);
+        addSectionRow(row);
       } catch (err) {
-        setError(err instanceof Error ? err.message : "Add failed");
+        useBuilderStore.getState().setSaveStatus("error", err instanceof Error ? err.message : "Add failed");
       }
     });
+  }
+
+  async function handlePreview() {
+    const url = await saveAndPreview();
+    if (url) window.open(url, "_blank", "noopener,noreferrer");
   }
 
   return (
     <div className="flex min-h-[calc(100vh-6rem)] flex-col">
       <BuilderToolbar
-        pageTitle={bundle.page.title}
-        pageStatus={bundle.page.status}
+        pageTitle={pageTitle}
+        pageStatus={pageStatus}
+        hasUnpublishedChanges={hasUnpublishedChanges}
         previewUrl={previewUrl}
         saveStatus={saveStatus}
-        hasUnsavedChanges={hasUnsavedChanges}
+        hasUnsavedChanges={isDirty}
         canUndo={canUndo}
         canRedo={canRedo}
         viewport={viewport}
-        pending={pending}
+        pending={busy}
         onUndo={undo}
         onRedo={redo}
-        onSave={() => performSave(true)}
-        onPublish={performPublish}
+        onSave={() => void saveNow()}
+        onPublish={() => startTransition(async () => { await publish(); })}
+        onPreview={() => void handlePreview()}
         onViewportChange={setViewport}
         zoom={zoom}
         onZoomChange={setZoom}
         focusMode={focusMode}
-        onToggleFocus={() => setFocusMode((v) => !v)}
+        onToggleFocus={toggleFocusMode}
         sidebarCollapsed={sidebarCollapsed}
-        onToggleSidebar={() => setSidebarCollapsed((v) => !v)}
+        onToggleSidebar={toggleSidebar}
         onAddSection={() => setAddModalOpen(true)}
         onOpenAI={() => setAiOpen(true)}
       />
 
-      {error ? (
+      {saveError ? (
         <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mb-3 rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">
-          {error}
+          {saveError}
         </motion.p>
       ) : null}
 
@@ -321,146 +258,122 @@ export function WebsiteBuilder({ bundle }: { bundle: BuilderPageBundle }) {
               exit={{ width: 0, opacity: 0 }}
               className="flex w-full shrink-0 flex-col gap-3 overflow-hidden lg:w-[400px] xl:w-[440px]"
             >
-          <div className="flex gap-1 rounded-xl bg-sky/30 p-1">
-            {(["sections", "seo", "theme"] as const).map((tab) => (
-              <button
-                key={tab}
-                type="button"
-                onClick={() => setLeftTab(tab)}
-                className={`flex-1 rounded-lg py-2 text-xs font-semibold capitalize transition ${
-                  leftTab === tab ? "bg-white text-navy shadow-sm" : "text-charcoal/60 hover:text-navy"
-                }`}
-              >
-                {tab}
-              </button>
-            ))}
-          </div>
-
-          {leftTab === "theme" ? (
-            <ThemeEditorPanel
-              initialTokens={bundle.theme as Record<string, string>}
-              initialDarkMode={Boolean(bundle.theme.darkMode)}
-            />
-          ) : null}
-
-          {leftTab === "seo" ? (
-            <>
-              <SeoPanel
-                seo={state.seo}
-                sectionCount={state.sections.length}
-                onChange={(patch) => push({ ...state, seo: { ...state.seo, ...patch } })}
-              />
-              <WebsiteHealthPanel seo={state.seo} sections={state.sections} pageStatus={bundle.page.status} />
-            </>
-          ) : null}
-
-          {leftTab === "sections" ? (
-            <>
-              <div className="studio-panel flex-1 overflow-hidden">
-                <h3 className="font-bold text-navy">Sections</h3>
-                <p className="mt-1 text-[11px] text-charcoal/55">Drag to reorder · click to edit</p>
-                <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onDragEnd}>
-                  <SortableContext items={state.sections.map((s) => s.id)} strategy={verticalListSortingStrategy}>
-                    <ul className="mt-3 max-h-[240px] space-y-2 overflow-y-auto sm:max-h-[320px]">
-                      {state.sections.map((section) => (
-                        <SortableSectionRow
-                          key={section.id}
-                          section={section}
-                          selected={selectedId === section.id}
-                          pending={pending}
-                          onSelect={() => setSelectedId(section.id)}
-                          onDuplicate={() =>
-                            startTransition(async () => {
-                              try {
-                                const copy = await duplicateWebsiteSection(section.id, bundle.page.id);
-                                reset({ ...state, sections: [...state.sections, copy] });
-                                setSelectedId(copy.id);
-                              } catch (err) {
-                                setError(err instanceof Error ? err.message : "Duplicate failed");
-                              }
-                            })
-                          }
-                          onDelete={() =>
-                            startTransition(async () => {
-                              try {
-                                await deleteWebsiteSection(section.id, bundle.page.id);
-                                const next = state.sections.filter((s) => s.id !== section.id);
-                                push({ ...state, sections: next });
-                                setSelectedId(next[0]?.id ?? null);
-                              } catch (err) {
-                                setError(err instanceof Error ? err.message : "Delete failed");
-                              }
-                            })
-                          }
-                        />
-                      ))}
-                    </ul>
-                  </SortableContext>
-                </DndContext>
-                <div className="mt-3 flex gap-2">
+              <div className="flex gap-1 rounded-xl bg-sky/30 p-1">
+                {(["sections", "seo", "theme"] as const).map((tab) => (
                   <button
+                    key={tab}
                     type="button"
-                    disabled={pending}
-                    className="admin-btn w-full shrink-0 text-xs"
-                    onClick={() => setAddModalOpen(true)}
+                    onClick={() => setLeftTab(tab)}
+                    className={`flex-1 rounded-lg py-2 text-xs font-semibold capitalize transition ${
+                      leftTab === tab ? "bg-white text-navy shadow-sm" : "text-charcoal/60 hover:text-navy"
+                    }`}
                   >
-                    + Insert section
+                    {tab}
                   </button>
-                </div>
+                ))}
               </div>
 
-              {bundle.publishVersions.length > 0 ? (
-                <div className="studio-panel flex gap-2">
-                  <select className="admin-input flex-1 text-xs" value={rollbackId} onChange={(e) => setRollbackId(e.target.value)}>
-                    {bundle.publishVersions.map((v) => (
-                      <option key={v.id} value={v.id}>
-                        v{v.version_number} — {new Date(v.created_at).toLocaleDateString()}
-                      </option>
-                    ))}
-                  </select>
-                  <button
-                    type="button"
-                    disabled={pending || !rollbackId}
-                    className="admin-btn-secondary shrink-0 text-xs"
-                    onClick={() =>
-                      startTransition(async () => {
-                        setError("");
-                        try {
-                          await rollbackWebsitePage(bundle.page.id, rollbackId);
-                          window.location.reload();
-                        } catch (err) {
-                          setError(err instanceof Error ? err.message : "Rollback failed");
-                        }
-                      })
-                    }
-                  >
-                    Restore
-                  </button>
-                </div>
+              {leftTab === "theme" ? <ThemeEditorPanel /> : null}
+
+              {leftTab === "seo" ? (
+                <>
+                  <SeoPanel seo={seo} sectionCount={sections.length} onChange={setSeo} />
+                  <WebsiteHealthPanel seo={seo} sections={sections} pageStatus={pageStatus} />
+                </>
               ) : null}
 
-              <AnimatePresence mode="wait">
-                {selected ? (
-                  <motion.div
-                    key={selected.id}
-                    initial={{ opacity: 0, y: 8 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -8 }}
-                    className="studio-panel max-h-[50vh] overflow-y-auto"
-                  >
-                    <SectionEditorPanel section={selected} onChange={updateSelectedContent} onMetaChange={updateSelectedMeta} />
-                  </motion.div>
-                ) : null}
-              </AnimatePresence>
-            </>
-          ) : null}
+              {leftTab === "sections" ? (
+                <>
+                  <div className="studio-panel flex-1 overflow-hidden">
+                    <h3 className="font-bold text-navy">Sections</h3>
+                    <p className="mt-1 text-[11px] text-charcoal/55">Drag to reorder · click to edit</p>
+                    <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onDragEnd}>
+                      <SortableContext items={sections.map((s) => s.id)} strategy={verticalListSortingStrategy}>
+                        <ul className="mt-3 max-h-[240px] space-y-2 overflow-y-auto sm:max-h-[320px]">
+                          {sections.map((section) => (
+                            <SortableSectionRow
+                              key={section.id}
+                              section={section}
+                              selected={selectedId === section.id}
+                              pending={busy}
+                              onSelect={() => selectSection(section.id)}
+                              onDuplicate={() => handleDuplicateSection(section.id)}
+                              onDelete={() => handleDeleteSection(section.id)}
+                            />
+                          ))}
+                        </ul>
+                      </SortableContext>
+                    </DndContext>
+                    <div className="mt-3 flex gap-2">
+                      <button
+                        type="button"
+                        disabled={busy}
+                        className="admin-btn w-full shrink-0 text-xs"
+                        onClick={() => setAddModalOpen(true)}
+                      >
+                        + Insert section
+                      </button>
+                    </div>
+                  </div>
+
+                  {publishVersions.length > 0 ? (
+                    <div className="studio-panel flex gap-2">
+                      <select className="admin-input flex-1 text-xs" value={rollbackId} onChange={(e) => setRollbackId(e.target.value)}>
+                        {publishVersions.map((v) => (
+                          <option key={v.id} value={v.id}>
+                            v{v.version_number} — {new Date(v.created_at).toLocaleDateString()}
+                          </option>
+                        ))}
+                      </select>
+                      <button
+                        type="button"
+                        disabled={busy || !rollbackId}
+                        className="admin-btn-secondary shrink-0 text-xs"
+                        onClick={() =>
+                          startTransition(async () => {
+                            try {
+                              await rollbackWebsitePage(pageId, rollbackId);
+                              window.location.reload();
+                            } catch (err) {
+                              useBuilderStore.getState().setSaveStatus(
+                                "error",
+                                err instanceof Error ? err.message : "Rollback failed",
+                              );
+                            }
+                          })
+                        }
+                      >
+                        Restore
+                      </button>
+                    </div>
+                  ) : null}
+
+                  <AnimatePresence mode="wait">
+                    {selected ? (
+                      <motion.div
+                        key={selected.id}
+                        initial={{ opacity: 0, y: 8 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -8 }}
+                        className="studio-panel max-h-[50vh] overflow-y-auto"
+                      >
+                        <SectionEditorPanel
+                          section={selected}
+                          onChange={updateSectionContent}
+                          onMetaChange={(patch) => updateSectionMeta(selected.id, patch)}
+                        />
+                      </motion.div>
+                    ) : null}
+                  </AnimatePresence>
+                </>
+              ) : null}
             </motion.aside>
           ) : null}
         </AnimatePresence>
 
         <LivePreviewPanel
-          sections={state.sections}
-          theme={bundle.theme}
+          sections={sections}
+          theme={theme}
           selectedId={selectedId}
           lockedIds={lockedIds}
           viewport={viewport}
@@ -469,23 +382,12 @@ export function WebsiteBuilder({ bundle }: { bundle: BuilderPageBundle }) {
           activeField={activeField}
           setActiveField={setActiveField}
           onPatchField={patchSectionField}
-          onSelectSection={setSelectedId}
-          onReorder={handleCanvasReorder}
+          onSelectSection={selectSection}
+          onReorder={reorderSections}
           onDuplicate={handleDuplicateSection}
           onDelete={handleDeleteSection}
-          onToggleVisibility={(id) =>
-            updateSections((sections) =>
-              sections.map((s) => (s.id === id ? { ...s, is_visible: !s.is_visible } : s)),
-            )
-          }
-          onToggleLock={(id) =>
-            setLockedIds((prev) => {
-              const next = new Set(prev);
-              if (next.has(id)) next.delete(id);
-              else next.add(id);
-              return next;
-            })
-          }
+          onToggleVisibility={toggleSectionVisibility}
+          onToggleLock={toggleSectionLock}
         />
       </div>
 
@@ -494,7 +396,7 @@ export function WebsiteBuilder({ bundle }: { bundle: BuilderPageBundle }) {
         open={aiOpen}
         onClose={() => setAiOpen(false)}
         sectionType={selected?.section_type}
-        pageTitle={bundle.page.title}
+        pageTitle={pageTitle}
         onApplyText={(text) => {
           if (selectedId) patchSectionField(selectedId, "headline", text);
         }}

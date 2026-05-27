@@ -9,6 +9,7 @@ type SaveStatus = "idle" | "saving" | "saved" | "error";
 export function BuilderToolbar({
   pageTitle,
   pageStatus,
+  hasUnpublishedChanges = false,
   previewUrl,
   saveStatus,
   hasUnsavedChanges,
@@ -20,6 +21,7 @@ export function BuilderToolbar({
   onRedo,
   onSave,
   onPublish,
+  onPreview,
   onViewportChange,
   zoom = 100,
   onZoomChange,
@@ -43,6 +45,8 @@ export function BuilderToolbar({
   onRedo: () => void;
   onSave: () => void;
   onPublish: () => void;
+  hasUnpublishedChanges?: boolean;
+  onPreview?: () => void;
   onViewportChange: (mode: ViewportMode) => void;
   zoom?: number;
   onZoomChange?: (z: number) => void;
@@ -122,9 +126,14 @@ export function BuilderToolbar({
           ↪
         </button>
 
-        <a href={previewUrl} target="_blank" rel="noreferrer" className="admin-btn-secondary px-3 text-xs no-underline">
+        <button
+          type="button"
+          disabled={pending}
+          onClick={onPreview ?? (() => window.open(previewUrl, "_blank", "noopener,noreferrer"))}
+          className="admin-btn-secondary px-3 text-xs"
+        >
           Preview
-        </a>
+        </button>
 
         <button type="button" disabled={pending} onClick={onSave} className="admin-btn-secondary px-4 text-xs">
           Save
@@ -138,8 +147,14 @@ export function BuilderToolbar({
           {pending ? "Publishing…" : "Publish"}
         </button>
 
-        <span className={`admin-chip ${pageStatus === "published" ? "bg-green-100 text-green-800" : "bg-amber-100 text-amber-900"}`}>
-          {pageStatus}
+        <span className={`admin-chip ${
+          pageStatus === "published" && !hasUnpublishedChanges
+            ? "bg-green-100 text-green-800"
+            : pageStatus === "published" && hasUnpublishedChanges
+              ? "bg-amber-100 text-amber-900"
+              : "bg-amber-100 text-amber-900"
+        }`}>
+          {pageStatus === "published" && hasUnpublishedChanges ? "published · draft changes" : pageStatus}
         </span>
       </div>
     </motion.div>

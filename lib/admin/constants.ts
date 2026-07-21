@@ -10,17 +10,18 @@ export const TASK_PRIORITIES = ["low", "normal", "high", "urgent"] as const;
 
 export const ADMIN_NAV = [
   { href: "/admin", label: "Home", icon: "⌂" },
-  { href: "/admin/tasks", label: "Tasks", icon: "✓" },
+  { href: "/admin/leads", label: "Leads", icon: "📥" },
+  { href: "/admin/schedule", label: "Schedule", icon: "📅" },
   { href: "/admin/jobs", label: "Jobs", icon: "📋" },
-  { href: "/admin/expenses", label: "Expenses", icon: "💳" },
-  { href: "/admin/invoices", label: "Invoices", icon: "📄" },
+  { href: "/admin/clients", label: "Clients", icon: "👤" },
 ] as const;
 
 export const ADMIN_MORE_NAV = [
   { href: "/admin/site", label: "Website CMS" },
-  { href: "/admin/leads", label: "Leads" },
-  { href: "/admin/quotes", label: "Quotes" },
-  { href: "/admin/change-orders", label: "Change Orders" },
+  { href: "/admin/quotes", label: "Estimates" },
+  { href: "/admin/invoices", label: "Invoices" },
+  { href: "/admin/expenses", label: "Expenses" },
+  { href: "/admin/tasks", label: "Tasks" },
   { href: "/admin/supplies", label: "Supplies" },
   { href: "/admin/crew", label: "Crew" },
   { href: "/admin/clients", label: "Clients" },

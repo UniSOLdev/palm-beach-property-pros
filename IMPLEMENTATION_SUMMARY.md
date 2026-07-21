@@ -1,6 +1,6 @@
-# PBPP CMS Upgrade — Implementation Summary
+# PBPP Platform Upgrade — Implementation Summary
 
-## Implemented Features
+## Phase 1 — CMS-backed public site
 
 ### Public website
 - **Homepage hero** — CMS-editable headline, subheadline, CTAs, trust microcopy, and trust chips; defaults match spec
@@ -17,6 +17,46 @@
 - **Homepage Editor** — Controlled editor for hero, trust, section visibility (not a free-form page builder)
 - **Dashboard widget** — New leads, follow-up count, published/draft projects, active services, recent submissions, quick actions
 - **Leads pipeline** — Expanded statuses, multi-service display, water spigot answer, alternate-water flag with notes
+
+## Phase 2 — Owner-first field service platform
+
+### Mobile owner workflows
+- **Bottom nav** — Home, Leads, Schedule, Jobs, Clients (48px touch targets)
+- **Field mode** — `/admin/jobs/[id]/field` — 9-step seamless workflow: start job → before photos → notes → after photos → cover image → AI-assisted description → publish draft project → invoice → review request
+- **Job detail** — Field mode entry, Google Maps directions link
+
+### Estimate builder (`/admin/quotes/[id]/edit`)
+- Line items, discounts (percent/fixed), tax rate, notes, internal notes, expiration date, deposit fields
+- PDF generation, email/SMS share links, convert approved estimate to scheduled job
+- Lead → estimate auto-fill via existing `convertLeadToQuote`
+
+### Job scheduler (`/admin/schedule`)
+- Day / week / month views, drag-and-drop reschedule, status chips (Scheduled → Invoiced)
+- Google Maps navigation from job cards
+
+### Customer CRM (`/admin/clients/[id]`)
+- Contact info, property address, jobs, quotes, activity timeline, internal notes, service reminders
+
+### Before/after gallery
+- Reusable `BeforeAfterSlider` + `BeforeAfterGallery` components
+- Project detail pages show interactive before/after pairs when both phases exist
+
+### Review automation
+- On job completion in field mode: send Google review SMS, thank-you message, mark review completed
+- Requires `business_settings.google_review_url`
+
+### Service area manager (`/admin/site/service-areas`)
+- CRUD for cities, counties, ZIP codes, SEO copy
+- Dynamic public pages at `/service-area/[slug]` + sitemap entries
+
+### Dashboard analytics
+- New leads, scheduled jobs, completed jobs, draft/published projects, quote conversion rate
+
+### Optional AI assistant
+- `/api/admin/ai-assist` + `AiAssistPanel` for project descriptions, emails, SMS, SEO suggestions (never required)
+
+### Modular platform layer (`lib/platform/*`)
+- Shared constants, estimate math, gallery pairing, AI helpers — structured for future LINKR extraction
 
 ### Security & performance
 - Server-side auth on all admin mutations via `requireOwnerRole()`
@@ -36,6 +76,10 @@ Apply in order:
 
 2. `supabase/migrations/20260721130000_site_cms_seed.sql`
    - Seeds services (window detailing + pressure washing featured), FAQs, homepage defaults, draft placeholder project
+
+3. `supabase/migrations/20260721140000_platform_upgrade.sql`
+   - Quote discount/tax fields; job review tracking; client CRM (`client_activity`, reminders, lifetime value)
+   - `service_areas` table + seed cities; RLS policies
 
 ```bash
 npm run db:push
@@ -58,7 +102,13 @@ No new required variables. Existing Supabase vars remain:
 4. **Manage services** — `/admin/site/services` → edit Complete Window Detailing and Pressure Washing first
 5. **Add real projects** — `/admin/site/projects/new` → upload photos in Media Library → attach (media linking UI next iteration)
 6. **Review leads** — `/admin/leads` → status pipeline, water spigot answers, alternate-water flags
-7. **Media** — `/admin/website/media` for uploads, alt text, optimization
+7. **Build estimates** — Lead → Estimate → `/admin/quotes/[id]/edit` → send → schedule job
+8. **Run jobs on site** — `/admin/jobs/[id]/field` for the full mobile workflow
+9. **Schedule** — `/admin/schedule` for calendar drag-and-drop
+10. **CRM** — `/admin/clients/[id]` for customer history
+11. **Service areas** — `/admin/site/service-areas` for local SEO pages
+12. **Media** — `/admin/website/media` for uploads, alt text, optimization
+13. **Set Google review URL** — Update `business_settings.google_review_url` in Supabase for review automation
 
 ## Deployment Steps
 
@@ -74,10 +124,12 @@ No new required variables. Existing Supabase vars remain:
 - Upload window/pressure-washing project photos; do not mislabel estate cleanup photos
 - Assign `user_roles` row for each admin user
 - Review and customize seeded service copy in admin
+- Set `business_settings.google_review_url` for review request automation
 
 ## Known Limitations
 
-- **Project media linking in admin** — Project form saves copy/state; attach before/after photos via Media Library association in a follow-up UI pass
+- **Project media linking in admin** — Field mode auto-attaches job photos to draft projects; manual project editor media picker still minimal
+- **Google review URL** — No dedicated admin UI yet; set in `business_settings` table
 - **Homepage hero image** — Still uses curated filesystem media; `hero_media_id` field ready but hero picker UI not yet in homepage editor
 - **Site Studio** — Legacy builder remains separate; published Site Studio pages still not wired to App Router
 - **Rate limiting** — In-memory per instance; use Redis/Upstash for multi-region production hardening
@@ -91,7 +143,7 @@ No new required variables. Existing Supabase vars remain:
 | `npm run type-check` | Pass |
 | `npm run lint` | Pass |
 | `npm run build` | Pass |
-| Static routes generated | 29 pages including `/projects`, CMS admin routes |
+| Static routes generated | 30+ pages including field mode, schedule, CRM, service areas |
 | Media health (build) | OK — 26 referenced curated assets |
 
 ## Architecture Audit

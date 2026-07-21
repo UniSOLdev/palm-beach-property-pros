@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import {
@@ -180,6 +181,12 @@ export function LeadDetailActions({
           ) : null}
           {quoteId ? (
             <div className="flex flex-wrap gap-2 pt-1">
+              <Link
+                href={`/admin/quotes/${quoteId}/edit`}
+                className="admin-btn min-h-[44px] px-3 text-xs no-underline"
+              >
+                Edit estimate
+              </Link>
               <button
                 type="button"
                 disabled={pending}

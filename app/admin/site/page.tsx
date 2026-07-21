@@ -23,6 +23,11 @@ const LINKS = [
     body: "Upload, tag, and optimize photos for services and projects.",
   },
   {
+    href: "/admin/site/service-areas",
+    title: "Service Area Manager",
+    body: "Edit cities, counties, ZIP codes, and SEO copy for local landing pages.",
+  },
+  {
     href: "/admin/leads",
     title: "Leads Pipeline",
     body: "Review quote requests, photos, water access notes, and follow-up status.",

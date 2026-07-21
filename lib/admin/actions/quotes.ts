@@ -33,7 +33,14 @@ export type AdminQuoteRow = {
   client_signature_url: string | null;
   signed_pdf_url: string | null;
   notes: string | null;
+  internal_notes: string | null;
   terms: string | null;
+  expiration_date: string | null;
+  deposit_required: boolean;
+  deposit_amount: number;
+  discount_type: "percent" | "fixed" | null;
+  discount_value: number;
+  tax_rate: number;
   created_at: string;
   clients?: { name: string; email: string | null; phone: string | null } | null;
 };
@@ -63,7 +70,7 @@ async function signedStorageUrl(path: string | null): Promise<string | null> {
 
 export async function getQuoteById(id: string): Promise<{
   quote: AdminQuoteRow;
-  items: Array<{ id: string; description: string; quantity: number; unit_price: number }>;
+  items: Array<{ id: string; description: string; quantity: number; unit_price: number; sort_order: number }>;
   events: QuoteEventRow[];
   signaturePreviewUrl: string | null;
   pdfDownloadUrl: string | null;

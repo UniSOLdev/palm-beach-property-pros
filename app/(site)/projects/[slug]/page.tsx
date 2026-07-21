@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { BeforeAfterGallery } from "@/components/platform/before-after-slider";
 import { getSiteProjectBySlug, getSiteProjects } from "@/lib/site-content/queries";
+import { buildBeforeAfterPairsFromProjectMedia } from "@/lib/platform/modules/gallery";
 import { PROJECT_CATEGORY_LABELS, resolveMediaUrl, type ProjectCategory } from "@/lib/site-content/types";
 import { QUOTE_PATH, SITE_NAME } from "@/lib/site";
 
@@ -27,6 +29,7 @@ export default async function ProjectDetailPage({ params }: Props) {
   const project = await getSiteProjectBySlug(slug);
   if (!project) notFound();
 
+  const beforeAfterPairs = buildBeforeAfterPairsFromProjectMedia(project.media ?? [], project.title);
   const phases = ["before", "during", "after", "general"] as const;
 
   return (
@@ -55,6 +58,15 @@ export default async function ProjectDetailPage({ params }: Props) {
         {project.long_description ? (
           <section className="prose prose-navy mt-10 max-w-3xl">
             <div className="whitespace-pre-wrap text-charcoal/90">{project.long_description}</div>
+          </section>
+        ) : null}
+
+        {beforeAfterPairs.length ? (
+          <section className="mt-12">
+            <h2 className="text-lg font-bold text-navy">Before &amp; after</h2>
+            <div className="mt-4">
+              <BeforeAfterGallery pairs={beforeAfterPairs} />
+            </div>
           </section>
         ) : null}
 

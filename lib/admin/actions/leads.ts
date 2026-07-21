@@ -403,7 +403,7 @@ export async function convertLeadToQuote(id: string): Promise<ConvertLeadToQuote
     .update({
       quote_id: quote.id,
       client_id: clientId,
-      status: "quoted",
+      status: "estimate_sent",
       updated_at: new Date().toISOString(),
     })
     .eq("id", id);

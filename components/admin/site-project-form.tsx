@@ -2,7 +2,12 @@
 
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
-import { saveProject, type ProjectInput } from "@/lib/admin/actions/site-projects";
+import {
+  deleteProject,
+  saveProject,
+  unpublishProject,
+  type ProjectInput,
+} from "@/lib/admin/actions/site-projects";
 import { ProjectMediaEditor, type ProjectMediaInput } from "@/components/admin/project-media-editor";
 import { PROJECT_CATEGORIES, PROJECT_CATEGORY_LABELS } from "@/lib/site-content/types";
 
@@ -12,6 +17,7 @@ const EMPTY: ProjectInput = {
   city: "",
   completion_date: null,
   service_categories: [],
+  service_ids: [],
   short_summary: "",
   long_description: "",
   cover_image_url: null,
@@ -24,18 +30,25 @@ const EMPTY: ProjectInput = {
   media: [],
 };
 
+type ServiceOption = { id: string; title: string; slug: string };
+
 type Props = {
+  services?: ServiceOption[];
   project?: ProjectInput & {
     id?: string;
     media?: ProjectMediaInput[];
   };
 };
 
-export function SiteProjectForm({ project = EMPTY }: Props) {
+export function SiteProjectForm({ project = EMPTY, services = [] }: Props) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
-  const [form, setForm] = useState<ProjectInput>(project);
+  const [form, setForm] = useState<ProjectInput>({
+    ...EMPTY,
+    ...project,
+    service_ids: project.service_ids ?? [],
+  });
   const [mediaItems, setMediaItems] = useState<ProjectMediaInput[]>(project.media ?? []);
 
   function updateField<K extends keyof ProjectInput>(key: K, value: ProjectInput[K]) {
@@ -51,9 +64,17 @@ export function SiteProjectForm({ project = EMPTY }: Props) {
     }));
   }
 
-  function onSubmit(publish?: boolean) {
-    setError(null);
-    const payload = {
+  function toggleService(serviceId: string) {
+    setForm((prev) => ({
+      ...prev,
+      service_ids: prev.service_ids?.includes(serviceId)
+        ? (prev.service_ids ?? []).filter((id) => id !== serviceId)
+        : [...(prev.service_ids ?? []), serviceId],
+    }));
+  }
+
+  function buildPayload(publish?: boolean): ProjectInput {
+    return {
       ...(publish !== undefined ? { ...form, is_published: publish } : form),
       media: mediaItems.map(({ media_asset_id, gallery_phase, caption, sort_order }) => ({
         media_asset_id,
@@ -62,6 +83,26 @@ export function SiteProjectForm({ project = EMPTY }: Props) {
         sort_order,
       })),
     };
+  }
+
+  function validateClient(payload: ProjectInput) {
+    if (!payload.title.trim()) return "Title is required.";
+    if (!payload.slug.trim()) return "Slug is required.";
+    if (payload.is_published && !payload.short_summary.trim()) {
+      return "Add a short summary before publishing.";
+    }
+    return null;
+  }
+
+  function onSubmit(publish?: boolean) {
+    setError(null);
+    const payload = buildPayload(publish);
+    const clientError = validateClient(payload);
+    if (clientError) {
+      setError(clientError);
+      return;
+    }
+
     startTransition(async () => {
       try {
         const result = await saveProject(payload, project.id);
@@ -69,6 +110,36 @@ export function SiteProjectForm({ project = EMPTY }: Props) {
         router.refresh();
       } catch (e) {
         setError(e instanceof Error ? e.message : "Save failed");
+      }
+    });
+  }
+
+  function onUnpublish() {
+    if (!project.id) return;
+    setError(null);
+    startTransition(async () => {
+      try {
+        await unpublishProject(project.id!);
+        updateField("is_published", false);
+        router.refresh();
+      } catch (e) {
+        setError(e instanceof Error ? e.message : "Unpublish failed");
+      }
+    });
+  }
+
+  function onDelete() {
+    if (!project.id) return;
+    if (!window.confirm("Delete this project permanently? This cannot be undone.")) return;
+
+    setError(null);
+    startTransition(async () => {
+      try {
+        await deleteProject(project.id!);
+        router.push("/admin/site/projects");
+        router.refresh();
+      } catch (e) {
+        setError(e instanceof Error ? e.message : "Delete failed");
       }
     });
   }
@@ -81,6 +152,7 @@ export function SiteProjectForm({ project = EMPTY }: Props) {
         <span className="font-medium text-navy">Title</span>
         <input
           value={form.title}
+          required
           onChange={(e) => {
             updateField("title", e.target.value);
             if (!project.id && !form.slug) {
@@ -101,9 +173,12 @@ export function SiteProjectForm({ project = EMPTY }: Props) {
         <span className="font-medium text-navy">Slug</span>
         <input
           value={form.slug}
-          onChange={(e) => updateField("slug", e.target.value)}
+          required
+          pattern="[a-z0-9]+(-[a-z0-9]+)*"
+          onChange={(e) => updateField("slug", e.target.value.toLowerCase())}
           className="mt-1 w-full rounded-xl border border-navy/15 px-3 py-2.5"
         />
+        <span className="mt-1 block text-xs text-charcoal/55">Public URL: /projects/{form.slug || "your-slug"}</span>
       </label>
 
       <div className="grid gap-3 sm:grid-cols-2">
@@ -149,6 +224,34 @@ export function SiteProjectForm({ project = EMPTY }: Props) {
         </div>
       </fieldset>
 
+      {services.length ? (
+        <fieldset>
+          <legend className="text-sm font-medium text-navy">Linked services</legend>
+          <p className="mt-1 text-xs text-charcoal/60">
+            Connect this project to CMS service pages for cross-linking and future automation.
+          </p>
+          <div className="mt-2 flex flex-wrap gap-2">
+            {services.map((service) => (
+              <label
+                key={service.id}
+                className={`inline-flex min-h-[44px] cursor-pointer items-center gap-2 rounded-xl border px-3 text-sm ${
+                  form.service_ids?.includes(service.id)
+                    ? "border-ocean bg-sky/40"
+                    : "border-navy/15 bg-white"
+                }`}
+              >
+                <input
+                  type="checkbox"
+                  checked={form.service_ids?.includes(service.id) ?? false}
+                  onChange={() => toggleService(service.id)}
+                />
+                {service.title}
+              </label>
+            ))}
+          </div>
+        </fieldset>
+      ) : null}
+
       <label className="block text-sm">
         <span className="font-medium text-navy">Short summary</span>
         <textarea
@@ -156,6 +259,7 @@ export function SiteProjectForm({ project = EMPTY }: Props) {
           onChange={(e) => updateField("short_summary", e.target.value)}
           rows={3}
           className="mt-1 w-full rounded-xl border border-navy/15 px-3 py-2.5"
+          placeholder="One paragraph for cards and SEO"
         />
       </label>
 
@@ -217,6 +321,32 @@ export function SiteProjectForm({ project = EMPTY }: Props) {
           updateField("cover_image_url", previewUrl ?? null);
         }}
       />
+
+      {project.id ? (
+        <section className="admin-card space-y-3 border-red-200/60">
+          <h2 className="text-sm font-semibold text-navy">Danger zone</h2>
+          <div className="flex flex-wrap gap-2">
+            {form.is_published ? (
+              <button
+                type="button"
+                disabled={pending}
+                onClick={onUnpublish}
+                className="admin-btn-secondary min-h-[44px] px-4 text-sm"
+              >
+                Unpublish
+              </button>
+            ) : null}
+            <button
+              type="button"
+              disabled={pending}
+              onClick={onDelete}
+              className="min-h-[44px] rounded-xl border border-red-300 bg-white px-4 text-sm font-semibold text-red-700"
+            >
+              Delete project
+            </button>
+          </div>
+        </section>
+      ) : null}
 
       <div className="fixed bottom-20 left-0 right-0 z-30 border-t border-navy/10 bg-cream/95 px-4 py-3 backdrop-blur md:static md:border-0 md:bg-transparent md:p-0">
         <div className="mx-auto flex max-w-3xl flex-wrap gap-2">

@@ -299,6 +299,79 @@ export async function getSiteProjectsWithMedia(
   return getSiteProjects({ ...options, withMedia: true });
 }
 
+/** Fetch specific published projects by id (homepage pins, featured overrides). */
+export async function getSiteProjectsByIds(ids: string[]): Promise<SiteProject[]> {
+  const uniqueIds = [...new Set(ids.filter(Boolean))];
+  if (!uniqueIds.length) return [];
+
+  try {
+    const supabase = await getSupabase();
+    const { data, error } = await supabase
+      .from("site_projects")
+      .select("*")
+      .in("id", uniqueIds)
+      .eq("is_published", true);
+
+    if (error || !data?.length) return [];
+
+    const projectIds = data.map((row) => String(row.id));
+    const coverIds = data
+      .map((row) => row.cover_media_id as string | null)
+      .filter((id): id is string => Boolean(id));
+
+    const [{ data: mediaRows }, { data: coverRows }] = await Promise.all([
+      supabase
+        .from("site_project_media")
+        .select("*, media_assets(*)")
+        .in("project_id", projectIds)
+        .order("sort_order", { ascending: true }),
+      coverIds.length
+        ? supabase.from("media_assets").select("*").in("id", coverIds)
+        : Promise.resolve({ data: [] as Record<string, unknown>[] }),
+    ]);
+
+    const coverById = new Map(
+      (coverRows ?? []).map((row) => [String(row.id), mapMedia(row as Record<string, unknown>)]),
+    );
+    const mediaByProject = new Map<string, ReturnType<typeof mapProjectMediaRows>>();
+    for (const row of mediaRows ?? []) {
+      const projectId = String(row.project_id);
+      const list = mediaByProject.get(projectId) ?? [];
+      list.push(mapProjectMediaRows([row as Record<string, unknown>])[0]);
+      mediaByProject.set(projectId, list);
+    }
+
+    const byId = new Map<string, SiteProject>();
+    for (const row of data) {
+      const record = row as Record<string, unknown>;
+      const coverMediaId = record.cover_media_id as string | null;
+      byId.set(String(record.id), {
+        ...mapProjectRow(record, coverMediaId ? coverById.get(coverMediaId) ?? null : null),
+        media: mediaByProject.get(String(record.id)) ?? [],
+      });
+    }
+
+    return uniqueIds.map((id) => byId.get(id)).filter((project): project is SiteProject => project !== undefined);
+  } catch {
+    return [];
+  }
+}
+
+export async function hasPublishedSiteProjects(): Promise<boolean> {
+  try {
+    const supabase = await getSupabase();
+    const { count, error } = await supabase
+      .from("site_projects")
+      .select("id", { count: "exact", head: true })
+      .eq("is_published", true);
+
+    if (error) return false;
+    return (count ?? 0) > 0;
+  } catch {
+    return false;
+  }
+}
+
 export async function getSiteProjectBySlug(slug: string): Promise<SiteProject | null> {
   try {
     const supabase = await getSupabase();
@@ -311,18 +384,28 @@ export async function getSiteProjectBySlug(slug: string): Promise<SiteProject | 
 
     if (error || !data) return null;
 
-    const { data: mediaRows } = await supabase
-      .from("site_project_media")
-      .select("*, media_assets(*)")
-      .eq("project_id", data.id)
-      .order("sort_order", { ascending: true });
+    const coverMediaId = (data.cover_media_id as string | null) ?? null;
+
+    const [{ data: mediaRows }, { data: coverRow }] = await Promise.all([
+      supabase
+        .from("site_project_media")
+        .select("*, media_assets(*)")
+        .eq("project_id", data.id)
+        .order("sort_order", { ascending: true }),
+      coverMediaId
+        ? supabase.from("media_assets").select("*").eq("id", coverMediaId).maybeSingle()
+        : Promise.resolve({ data: null }),
+    ]);
 
     const project: SiteProject = {
-      ...mapProjectRow(data as Record<string, unknown>),
+      ...mapProjectRow(
+        data as Record<string, unknown>,
+        coverRow ? mapMedia(coverRow as Record<string, unknown>) : null,
+      ),
       media: mapProjectMediaRows((mediaRows ?? []) as Array<Record<string, unknown>>),
     };
 
-    if (project.cover_media_id) {
+    if (project.cover_media_id && !project.cover_media) {
       const cover = project.media?.find((item) => item.media_asset_id === project.cover_media_id)?.media;
       if (cover) project.cover_media = cover;
     }

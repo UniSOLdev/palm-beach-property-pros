@@ -30,6 +30,8 @@ export function ProjectMediaEditor({
   const [pickerOpen, setPickerOpen] = useState(false);
 
   function addAsset(asset: MediaAssetRow) {
+    if (media.some((item) => item.media_asset_id === asset.id)) return;
+
     onChange([
       ...media,
       {
@@ -61,7 +63,12 @@ export function ProjectMediaEditor({
       </div>
 
       {!media.length ? (
-        <p className="text-sm text-charcoal/60">No media attached yet.</p>
+        <div className="rounded-xl border border-dashed border-navy/15 bg-cream/50 p-6 text-center">
+          <p className="text-sm font-medium text-navy">No media attached yet</p>
+          <p className="mt-1 text-xs text-charcoal/60">
+            Add before/after photos from the media library. Set one image as the cover for cards and the homepage.
+          </p>
+        </div>
       ) : (
         <ul className="space-y-3">
           {media.map((item, index) => (

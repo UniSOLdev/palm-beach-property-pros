@@ -264,7 +264,7 @@ export function FieldJobWorkflow({ data }: { data: JobDetailPayload }) {
               })
             }
           >
-            Publish portfolio entry
+            Create draft portfolio entry
           </button>
         </section>
       ) : null}

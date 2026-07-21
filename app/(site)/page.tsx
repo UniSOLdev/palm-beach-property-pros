@@ -1,12 +1,17 @@
 import type { Metadata } from "next";
 import { PremiumHomePage } from "@/components/marketing/premium-home-page";
 import { getHomepageMediaBundle } from "@/lib/media/homepage-media";
-import { mergeDbProjectsIntoHomepageMedia } from "@/lib/platform/modules/projects";
+import {
+  buildHomepageMediaFromDbProjects,
+  mergeDbProjectsIntoHomepageMedia,
+} from "@/lib/platform/modules/projects";
 import {
   getHomepageSettings,
+  getSiteProjectsByIds,
   getSiteProjectsWithMedia,
   getSiteServices,
   getSiteTestimonials,
+  hasPublishedSiteProjects,
 } from "@/lib/site-content/queries";
 import { SITE_NAME } from "@/lib/site";
 
@@ -15,29 +20,45 @@ export const metadata: Metadata = {
   description: `${SITE_NAME} — Complete window detailing, pressure washing, property cleanups, lawn care, detailing, and ongoing maintenance in Palm Beach County. Licensed & insured.`,
 };
 
+async function resolveFeaturedProjects(
+  homepage: Awaited<ReturnType<typeof getHomepageSettings>>,
+  publishedProjects: Awaited<ReturnType<typeof getSiteProjectsWithMedia>>,
+) {
+  if (homepage.featured_project_ids.length > 0) {
+    const pinned = await getSiteProjectsByIds(homepage.featured_project_ids);
+    if (pinned.length) return pinned;
+  }
+
+  const featured = publishedProjects.filter((project) => project.is_featured);
+  return featured.length ? featured : publishedProjects;
+}
+
 /** Production homepage — premium layout with CMS-editable copy sections. */
 export default async function HomePage() {
-  const [manifestMedia, homepage, services, publishedProjects, testimonials] = await Promise.all([
-    getHomepageMediaBundle(),
+  const [homepage, services, testimonials, useDbProjects] = await Promise.all([
     getHomepageSettings(),
     getSiteServices({ featuredOnly: true, activeOnly: true }),
-    getSiteProjectsWithMedia({ publishedOnly: true, limit: 12 }),
     getSiteTestimonials(true),
+    hasPublishedSiteProjects(),
   ]);
+
+  const publishedProjects = useDbProjects
+    ? await getSiteProjectsWithMedia({ publishedOnly: true, limit: 24 })
+    : [];
+
+  const featuredProjects = useDbProjects
+    ? await resolveFeaturedProjects(homepage, publishedProjects)
+    : [];
+
+  const manifestMedia = useDbProjects ? null : await getHomepageMediaBundle();
+  const media = useDbProjects
+    ? buildHomepageMediaFromDbProjects(featuredProjects)
+    : mergeDbProjectsIntoHomepageMedia([], manifestMedia!);
 
   const featuredServices =
     homepage.featured_service_ids.length > 0
       ? services.filter((s) => homepage.featured_service_ids.includes(s.id))
       : services.slice(0, 2);
-
-  const featuredProjects =
-    homepage.featured_project_ids.length > 0
-      ? publishedProjects.filter((p) => homepage.featured_project_ids.includes(p.id))
-      : publishedProjects.filter((p) => p.is_featured).length
-        ? publishedProjects.filter((p) => p.is_featured)
-        : publishedProjects;
-
-  const media = mergeDbProjectsIntoHomepageMedia(featuredProjects, manifestMedia);
 
   return (
     <PremiumHomePage
@@ -46,7 +67,7 @@ export default async function HomePage() {
       featuredServices={featuredServices.length ? featuredServices : services.slice(0, 2)}
       featuredProjects={featuredProjects}
       testimonials={testimonials}
-      useDbProjects={featuredProjects.length > 0}
+      useDbProjects={useDbProjects}
     />
   );
 }

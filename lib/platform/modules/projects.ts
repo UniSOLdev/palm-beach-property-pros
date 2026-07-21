@@ -1,6 +1,8 @@
 import type { BeforeAfterPair as CuratedBeforeAfterPair } from "@/lib/media-curation/types";
 import type { HomepageMediaBundle } from "@/lib/media/homepage-media";
 import type { ProjectRecap, TransformationProject, MediaAsset } from "@/lib/media/types";
+import { MEDIA_REGISTRY } from "@/lib/media/registry";
+import { buildMediaUrl } from "@/lib/media/resolve";
 import { buildBeforeAfterPairsFromProjectMedia } from "@/lib/platform/modules/gallery";
 import {
   PROJECT_CATEGORY_LABELS,
@@ -66,15 +68,43 @@ export function siteProjectToRecap(project: SiteProject): ProjectRecap {
         project.media?.[0]?.media,
       project.title,
       "documentation",
-    ) ?? {
+    ) ??
+    (project.cover_image_url
+      ? {
+          id: project.id,
+          category: "documentation" as const,
+          src: project.cover_image_url,
+          alt: project.title,
+          source: "authentic" as const,
+          aspect: "landscape" as const,
+          overlay: "card" as const,
+        }
+      : null);
+
+  if (!cover) {
+    return {
       id: project.id,
-      category: "documentation",
-      src: project.cover_image_url ?? "/media/curated/estate-cleanup-001/images/after-img-7714.webp",
-      alt: project.title,
-      source: "authentic",
-      aspect: "landscape",
-      overlay: "card",
+      title: project.title,
+      location: project.city ?? "Palm Beach County",
+      division: divisionForProject(project),
+      duration: project.completion_date
+        ? new Date(project.completion_date).toLocaleDateString("en-US", { month: "short", year: "numeric" })
+        : "Recent project",
+      handled: scopeFromProject(project),
+      image: {
+        id: `${project.id}-fallback`,
+        category: "documentation",
+        src: buildMediaUrl(MEDIA_REGISTRY.hero.primary.src, 1200),
+        alt: project.title,
+        source: "scaffold",
+        aspect: "landscape",
+        overlay: "card",
+      },
+      isScaffold: true,
+      slug: project.slug,
+      projectHref: `/projects/${project.slug}`,
     };
+  }
 
   return {
     id: project.id,
@@ -180,4 +210,38 @@ export function mergeDbProjectsIntoHomepageMedia(
     heroImageSrc: heroSrc,
     heroImageAlt: heroProject.title,
   };
+}
+
+/** Build homepage media entirely from published DB projects (no filesystem manifest). */
+export function buildHomepageMediaFromDbProjects(projects: SiteProject[]): HomepageMediaBundle {
+  const hero = MEDIA_REGISTRY.hero.primary;
+  if (!projects.length) {
+    return {
+      hasAuthenticMedia: false,
+      transformations: [],
+      recaps: [],
+      heroImageSrc: buildMediaUrl(hero.src, 2000),
+      heroImageAlt: hero.alt,
+      heroClip: null,
+      curatedHeroImage: null,
+      featuredPairs: [],
+      galleryProjects: [],
+      reelClips: [],
+      storyArc: null,
+    };
+  }
+
+  return mergeDbProjectsIntoHomepageMedia(projects, {
+    hasAuthenticMedia: false,
+    transformations: [],
+    recaps: [],
+    heroImageSrc: buildMediaUrl(hero.src, 2000),
+    heroImageAlt: hero.alt,
+    heroClip: null,
+    curatedHeroImage: null,
+    featuredPairs: [],
+    galleryProjects: [],
+    reelClips: [],
+    storyArc: null,
+  });
 }

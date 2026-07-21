@@ -54,13 +54,62 @@ function mapProject(row: Record<string, unknown>): SiteProject {
   };
 }
 
+function validateProjectInput(input: ProjectInput) {
+  const title = input.title.trim();
+  const slug = input.slug.trim();
+
+  if (!title) throw new Error("Title is required.");
+  if (!slug) throw new Error("Slug is required.");
+  if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug)) {
+    throw new Error("Slug must use lowercase letters, numbers, and hyphens only.");
+  }
+  if (input.is_published && !input.short_summary.trim()) {
+    throw new Error("Short summary is required before publishing.");
+  }
+}
+
+function normalizeMediaInput(
+  media: ProjectInput["media"],
+  coverMediaId: string | null,
+): ProjectInput["media"] {
+  const seen = new Set<string>();
+  const normalized: ProjectInput["media"] = [];
+
+  for (const [index, item] of media.entries()) {
+    if (!item.media_asset_id || seen.has(item.media_asset_id)) continue;
+    seen.add(item.media_asset_id);
+    normalized.push({
+      media_asset_id: item.media_asset_id,
+      gallery_phase: item.gallery_phase ?? "general",
+      caption: item.caption?.trim() || null,
+      sort_order: item.sort_order ?? index,
+    });
+  }
+
+  if (coverMediaId && !seen.has(coverMediaId)) {
+    normalized.unshift({
+      media_asset_id: coverMediaId,
+      gallery_phase: "general",
+      caption: null,
+      sort_order: 0,
+    });
+    normalized.forEach((item, index) => {
+      item.sort_order = index;
+    });
+  }
+
+  return normalized;
+}
+
 async function syncProjectServices(
   supabase: Awaited<ReturnType<typeof requireOwnerRole>>["supabase"],
   projectId: string,
   serviceIds: string[] | undefined,
 ) {
-  await supabase.from("site_project_services").delete().eq("project_id", projectId);
-  const ids = (serviceIds ?? []).filter(Boolean);
+  const { error: deleteError } = await supabase.from("site_project_services").delete().eq("project_id", projectId);
+  if (deleteError) throw new Error(deleteError.message);
+
+  const ids = [...new Set((serviceIds ?? []).filter(Boolean))];
   if (!ids.length) return;
 
   const { error } = await supabase.from("site_project_services").insert(
@@ -75,23 +124,38 @@ async function syncProjectMediaAssets(
   media: ProjectInput["media"],
   coverMediaId: string | null,
 ) {
-  const linkedIds = new Set(media.map((item) => item.media_asset_id));
+  const linkedIds = media.map((item) => item.media_asset_id);
+  const featuredId = coverMediaId && linkedIds.includes(coverMediaId) ? coverMediaId : null;
 
-  await supabase.from("media_assets").update({ project_id: null }).eq("project_id", projectId);
+  const { error: clearError } = await supabase
+    .from("media_assets")
+    .update({ project_id: null, is_featured: false })
+    .eq("project_id", projectId);
+  if (clearError) throw new Error(clearError.message);
+
+  if (!linkedIds.length) return;
 
   for (const item of media) {
-    await supabase
+    const { error } = await supabase
       .from("media_assets")
       .update({
         project_id: projectId,
         gallery_phase: item.gallery_phase,
-        is_featured: item.media_asset_id === coverMediaId,
+        is_featured: featuredId !== null && item.media_asset_id === featuredId,
       })
       .eq("id", item.media_asset_id);
+    if (error) throw new Error(error.message);
   }
+}
 
-  if (coverMediaId && !linkedIds.has(coverMediaId)) {
-    await supabase.from("media_assets").update({ project_id: projectId, is_featured: true }).eq("id", coverMediaId);
+function revalidateProjectPaths(slugs: string[]) {
+  revalidatePath("/admin/site/projects");
+  revalidatePath("/projects");
+  revalidatePath("/");
+  revalidatePath("/sitemap.xml");
+
+  for (const slug of [...new Set(slugs.filter(Boolean))]) {
+    revalidatePath(`/projects/${slug}`);
   }
 }
 
@@ -131,7 +195,16 @@ export async function getAdminProject(id: string) {
 }
 
 export async function saveProject(input: ProjectInput, id?: string) {
+  validateProjectInput(input);
+
   const { supabase } = await requireOwnerRole();
+  const media = normalizeMediaInput(input.media, input.cover_media_id ?? null);
+
+  let previousSlug: string | null = null;
+  if (id) {
+    const { data: existing } = await supabase.from("site_projects").select("slug").eq("id", id).maybeSingle();
+    previousSlug = existing?.slug ? String(existing.slug) : null;
+  }
 
   const row = {
     title: input.title.trim(),
@@ -166,10 +239,12 @@ export async function saveProject(input: ProjectInput, id?: string) {
 
   if (!projectId) throw new Error("Missing project id");
 
-  await supabase.from("site_project_media").delete().eq("project_id", projectId);
-  if (input.media.length) {
+  const { error: deleteMediaError } = await supabase.from("site_project_media").delete().eq("project_id", projectId);
+  if (deleteMediaError) throw new Error(deleteMediaError.message);
+
+  if (media.length) {
     const { error: mediaError } = await supabase.from("site_project_media").insert(
-      input.media.map((m, i) => ({
+      media.map((m, i) => ({
         project_id: projectId,
         media_asset_id: m.media_asset_id,
         gallery_phase: m.gallery_phase,
@@ -181,12 +256,9 @@ export async function saveProject(input: ProjectInput, id?: string) {
   }
 
   await syncProjectServices(supabase, projectId, input.service_ids);
-  await syncProjectMediaAssets(supabase, projectId, input.media, input.cover_media_id ?? null);
+  await syncProjectMediaAssets(supabase, projectId, media, input.cover_media_id ?? null);
 
-  revalidatePath("/admin/site/projects");
-  revalidatePath("/projects");
-  revalidatePath(`/projects/${input.slug}`);
-  revalidatePath("/");
+  revalidateProjectPaths([...(previousSlug ? [previousSlug] : []), row.slug]);
   return { id: projectId };
 }
 
@@ -224,18 +296,46 @@ export async function duplicateProject(id: string) {
 
 export async function deleteProject(id: string) {
   const { supabase } = await requireOwnerRole();
+
+  const { data: existing } = await supabase.from("site_projects").select("slug").eq("id", id).maybeSingle();
+  const slug = existing?.slug ? String(existing.slug) : null;
+
   const { error } = await supabase.from("site_projects").delete().eq("id", id);
   if (error) throw new Error(error.message);
-  revalidatePath("/admin/site/projects");
-  revalidatePath("/projects");
-  revalidatePath("/");
+
+  revalidateProjectPaths(slug ? [slug] : []);
+  return { ok: true };
+}
+
+export async function unpublishProject(id: string) {
+  const { supabase } = await requireOwnerRole();
+  const { data: existing, error: fetchError } = await supabase
+    .from("site_projects")
+    .select("slug")
+    .eq("id", id)
+    .maybeSingle();
+  if (fetchError) throw new Error(fetchError.message);
+  if (!existing) throw new Error("Project not found");
+
+  const slug = String(existing.slug);
+  const { error } = await supabase
+    .from("site_projects")
+    .update({ is_published: false, updated_at: new Date().toISOString() })
+    .eq("id", id);
+  if (error) throw new Error(error.message);
+
+  revalidateProjectPaths([slug]);
+  return { ok: true };
 }
 
 export async function reorderProjects(orderedIds: string[]) {
   const { supabase } = await requireOwnerRole();
-  for (let i = 0; i < orderedIds.length; i++) {
-    await supabase.from("site_projects").update({ sort_order: i }).eq("id", orderedIds[i]);
-  }
-  revalidatePath("/admin/site/projects");
-  revalidatePath("/projects");
+  const updates = orderedIds.map((projectId, index) =>
+    supabase.from("site_projects").update({ sort_order: index }).eq("id", projectId),
+  );
+  const results = await Promise.all(updates);
+  const failed = results.find((result) => result.error);
+  if (failed?.error) throw new Error(failed.error.message);
+
+  revalidateProjectPaths([]);
 }

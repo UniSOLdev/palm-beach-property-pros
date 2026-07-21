@@ -28,6 +28,14 @@ export default async function AdminProjectsPage() {
 
       {error ? (
         <div className="admin-card text-sm text-red-700">{error}</div>
+      ) : !projects.length ? (
+        <div className="admin-card space-y-3 text-sm text-charcoal/75">
+          <p className="font-medium text-navy">No projects yet</p>
+          <p>
+            Create a case study from completed field work, attach media from the library, assign services, and publish
+            when ready. Published projects appear on the homepage and at <code>/projects</code>.
+          </p>
+        </div>
       ) : (
         <ul className="space-y-3">
           {projects.map((project) => (

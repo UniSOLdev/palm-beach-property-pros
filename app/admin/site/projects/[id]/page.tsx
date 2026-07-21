@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { AdminPageHeader } from "@/components/admin/entity-list";
 import { SiteProjectForm } from "@/components/admin/site-project-form";
 import { getAdminProject } from "@/lib/admin/actions/site-projects";
+import { listAdminServices } from "@/lib/admin/actions/site-services";
 
 export const dynamic = "force-dynamic";
 
@@ -12,7 +13,7 @@ export default async function AdminProjectEditPage({ params }: Props) {
   const { id } = await params;
 
   try {
-    const { project, media } = await getAdminProject(id);
+    const [{ project, media }, services] = await Promise.all([getAdminProject(id), listAdminServices()]);
 
     return (
       <div className="space-y-4">
@@ -31,6 +32,11 @@ export default async function AdminProjectEditPage({ params }: Props) {
           </a>
         ) : null}
         <SiteProjectForm
+          services={services.map((service) => ({
+            id: service.id,
+            title: service.title,
+            slug: service.slug,
+          }))}
           project={{
             id: project.id,
             title: project.title,

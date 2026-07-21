@@ -181,8 +181,9 @@ export function PremiumHomePage({
   testimonials?: SiteTestimonial[];
   useDbProjects?: boolean;
 }) {
-  const useCuratedHero = media.hasAuthenticMedia && media.curatedHeroImage;
-  const fallbackHeroSrc = buildMediaUrl(FALLBACK_HERO.src, 2000);
+  const useCuratedHero = !useDbProjects && media.hasAuthenticMedia && media.curatedHeroImage;
+  const fallbackHeroSrc = media.heroImageSrc || buildMediaUrl(FALLBACK_HERO.src, 2000);
+  const fallbackHeroAlt = media.heroImageAlt || FALLBACK_HERO.alt;
 
   const serviceLines: Array<(typeof SERVICE_LINES)[number] & { asset: MediaAsset }> = media.hasAuthenticMedia
     ? SERVICE_LINES.map((line, index) => {
@@ -257,7 +258,7 @@ export function PremiumHomePage({
         {useCuratedHero ? (
           <CuratedHeroMedia heroImage={media.curatedHeroImage} />
         ) : (
-          <FallbackHeroMedia src={fallbackHeroSrc} alt={FALLBACK_HERO.alt} />
+          <FallbackHeroMedia src={fallbackHeroSrc} alt={fallbackHeroAlt} />
         )}
 
         <div className="relative z-10 px-4 py-20 sm:px-6 sm:py-24 md:px-10 md:py-32 lg:py-36">

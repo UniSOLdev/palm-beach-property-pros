@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
 import { PremiumHomePage } from "@/components/marketing/premium-home-page";
 import { getHomepageMediaBundle } from "@/lib/media/homepage-media";
+import { mergeDbProjectsIntoHomepageMedia } from "@/lib/platform/modules/projects";
 import {
   getHomepageSettings,
-  getSiteProjects,
+  getSiteProjectsWithMedia,
   getSiteServices,
   getSiteTestimonials,
 } from "@/lib/site-content/queries";
@@ -16,11 +17,11 @@ export const metadata: Metadata = {
 
 /** Production homepage — premium layout with CMS-editable copy sections. */
 export default async function HomePage() {
-  const [media, homepage, services, projects, testimonials] = await Promise.all([
+  const [manifestMedia, homepage, services, publishedProjects, testimonials] = await Promise.all([
     getHomepageMediaBundle(),
     getHomepageSettings(),
     getSiteServices({ featuredOnly: true, activeOnly: true }),
-    getSiteProjects({ featuredOnly: true, publishedOnly: true, limit: 6 }),
+    getSiteProjectsWithMedia({ publishedOnly: true, limit: 12 }),
     getSiteTestimonials(true),
   ]);
 
@@ -31,8 +32,12 @@ export default async function HomePage() {
 
   const featuredProjects =
     homepage.featured_project_ids.length > 0
-      ? projects.filter((p) => homepage.featured_project_ids.includes(p.id))
-      : projects;
+      ? publishedProjects.filter((p) => homepage.featured_project_ids.includes(p.id))
+      : publishedProjects.filter((p) => p.is_featured).length
+        ? publishedProjects.filter((p) => p.is_featured)
+        : publishedProjects;
+
+  const media = mergeDbProjectsIntoHomepageMedia(featuredProjects, manifestMedia);
 
   return (
     <PremiumHomePage
@@ -41,6 +46,7 @@ export default async function HomePage() {
       featuredServices={featuredServices.length ? featuredServices : services.slice(0, 2)}
       featuredProjects={featuredProjects}
       testimonials={testimonials}
+      useDbProjects={featuredProjects.length > 0}
     />
   );
 }

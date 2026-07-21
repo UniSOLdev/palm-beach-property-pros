@@ -36,8 +36,8 @@ export function ProjectRecapCard({ project }: { project: ProjectRecap }) {
             </li>
           ))}
         </ul>
-        <Link href="/quote" className="link-luxury mt-6 inline-block">
-          Discuss a similar scope
+        <Link href={project.projectHref ?? "/quote"} className="link-luxury mt-6 inline-block">
+          {project.projectHref ? "View project case study" : "Discuss a similar scope"}
         </Link>
       </div>
     </article>

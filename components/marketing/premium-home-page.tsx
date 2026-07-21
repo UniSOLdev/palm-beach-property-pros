@@ -172,12 +172,14 @@ export function PremiumHomePage({
   featuredServices = [],
   featuredProjects = [],
   testimonials = [],
+  useDbProjects = false,
 }: {
   media: HomepageMediaBundle;
   homepage?: SiteHomepageSettings;
   featuredServices?: SiteService[];
   featuredProjects?: SiteProject[];
   testimonials?: SiteTestimonial[];
+  useDbProjects?: boolean;
 }) {
   const useCuratedHero = media.hasAuthenticMedia && media.curatedHeroImage;
   const fallbackHeroSrc = buildMediaUrl(FALLBACK_HERO.src, 2000);
@@ -451,7 +453,7 @@ export function PremiumHomePage({
 
       <FeaturedProjectsSection projects={media.recaps} />
 
-      {showFeaturedProjects && featuredProjects.length ? (
+      {!useDbProjects && showFeaturedProjects && featuredProjects.length ? (
         <CmsFeaturedProjectsSection projects={featuredProjects} />
       ) : null}
 

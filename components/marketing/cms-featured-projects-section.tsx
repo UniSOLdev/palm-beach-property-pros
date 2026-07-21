@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { SiteProject } from "@/lib/site-content/types";
-import { PROJECT_CATEGORY_LABELS, type ProjectCategory } from "@/lib/site-content/types";
+import { PROJECT_CATEGORY_LABELS, resolveMediaUrl, type ProjectCategory } from "@/lib/site-content/types";
 
 export function CmsFeaturedProjectsSection({ projects }: { projects: SiteProject[] }) {
   if (!projects.length) return null;
@@ -19,12 +19,19 @@ export function CmsFeaturedProjectsSection({ projects }: { projects: SiteProject
         </div>
 
         <div className="mt-8 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {projects.map((project) => (
+          {projects.map((project) => {
+            const coverSrc = resolveMediaUrl(project.cover_media) ?? project.cover_image_url;
+            return (
             <Link
               key={project.id}
               href={`/projects/${project.slug}`}
-              className="group rounded-2xl border border-navy/10 bg-cream p-5 no-underline shadow-sm transition hover:shadow-lift"
+              className="group overflow-hidden rounded-2xl border border-navy/10 bg-cream no-underline shadow-sm transition hover:shadow-lift"
             >
+              {coverSrc ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={coverSrc} alt={project.title} className="aspect-[16/10] w-full object-cover" loading="lazy" />
+              ) : null}
+              <div className="p-5">
               <div className="flex flex-wrap gap-2">
                 {project.service_categories.slice(0, 2).map((cat) => (
                   <span key={cat} className="rounded-full bg-sky/60 px-2.5 py-1 text-[11px] font-semibold text-navy">
@@ -39,8 +46,10 @@ export function CmsFeaturedProjectsSection({ projects }: { projects: SiteProject
                   {project.city}
                 </p>
               ) : null}
+              </div>
             </Link>
-          ))}
+            );
+          })}
         </div>
       </div>
     </section>

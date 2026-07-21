@@ -1,9 +1,9 @@
 "use client";
 
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { saveProject, type ProjectInput } from "@/lib/admin/actions/site-projects";
+import { ProjectMediaEditor, type ProjectMediaInput } from "@/components/admin/project-media-editor";
 import { PROJECT_CATEGORIES, PROJECT_CATEGORY_LABELS } from "@/lib/site-content/types";
 
 const EMPTY: ProjectInput = {
@@ -24,13 +24,19 @@ const EMPTY: ProjectInput = {
   media: [],
 };
 
-type Props = { project?: ProjectInput & { id?: string } };
+type Props = {
+  project?: ProjectInput & {
+    id?: string;
+    media?: ProjectMediaInput[];
+  };
+};
 
 export function SiteProjectForm({ project = EMPTY }: Props) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const [form, setForm] = useState<ProjectInput>(project);
+  const [mediaItems, setMediaItems] = useState<ProjectMediaInput[]>(project.media ?? []);
 
   function updateField<K extends keyof ProjectInput>(key: K, value: ProjectInput[K]) {
     setForm((prev) => ({ ...prev, [key]: value }));
@@ -47,7 +53,15 @@ export function SiteProjectForm({ project = EMPTY }: Props) {
 
   function onSubmit(publish?: boolean) {
     setError(null);
-    const payload = publish !== undefined ? { ...form, is_published: publish } : form;
+    const payload = {
+      ...(publish !== undefined ? { ...form, is_published: publish } : form),
+      media: mediaItems.map(({ media_asset_id, gallery_phase, caption, sort_order }) => ({
+        media_asset_id,
+        gallery_phase,
+        caption,
+        sort_order,
+      })),
+    };
     startTransition(async () => {
       try {
         const result = await saveProject(payload, project.id);
@@ -194,14 +208,15 @@ export function SiteProjectForm({ project = EMPTY }: Props) {
         </label>
       </div>
 
-      <p className="rounded-xl bg-sky/40 px-4 py-3 text-sm text-navy">
-        Attach photos in the Media Library, then link them here in a future update. For now, save
-        project copy and publish state, then add media via{" "}
-        <Link href="/admin/website/media" className="font-semibold text-ocean">
-          Media Library
-        </Link>
-        .
-      </p>
+      <ProjectMediaEditor
+        media={mediaItems}
+        coverMediaId={form.cover_media_id ?? null}
+        onChange={setMediaItems}
+        onCoverChange={(mediaAssetId, previewUrl) => {
+          updateField("cover_media_id", mediaAssetId);
+          updateField("cover_image_url", previewUrl ?? null);
+        }}
+      />
 
       <div className="fixed bottom-20 left-0 right-0 z-30 border-t border-navy/10 bg-cream/95 px-4 py-3 backdrop-blur md:static md:border-0 md:bg-transparent md:p-0">
         <div className="mx-auto flex max-w-3xl flex-wrap gap-2">

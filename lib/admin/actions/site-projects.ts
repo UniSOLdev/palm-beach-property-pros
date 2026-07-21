@@ -10,10 +10,14 @@ export type ProjectInput = {
   city?: string | null;
   completion_date?: string | null;
   service_categories: string[];
+  service_ids?: string[];
   short_summary: string;
   long_description: string;
   cover_image_url?: string | null;
   cover_media_id?: string | null;
+  source_job_id?: string | null;
+  client_id?: string | null;
+  legacy_filesystem_id?: string | null;
   testimonial?: string | null;
   testimonial_author?: string | null;
   is_published: boolean;
@@ -39,12 +43,56 @@ function mapProject(row: Record<string, unknown>): SiteProject {
     long_description: String(row.long_description ?? ""),
     cover_image_url: (row.cover_image_url as string) ?? null,
     cover_media_id: (row.cover_media_id as string) ?? null,
+    source_job_id: (row.source_job_id as string) ?? null,
+    client_id: (row.client_id as string) ?? null,
+    legacy_filesystem_id: (row.legacy_filesystem_id as string) ?? null,
     testimonial: (row.testimonial as string) ?? null,
     testimonial_author: (row.testimonial_author as string) ?? null,
     is_published: Boolean(row.is_published),
     is_featured: Boolean(row.is_featured),
     sort_order: Number(row.sort_order ?? 0),
   };
+}
+
+async function syncProjectServices(
+  supabase: Awaited<ReturnType<typeof requireOwnerRole>>["supabase"],
+  projectId: string,
+  serviceIds: string[] | undefined,
+) {
+  await supabase.from("site_project_services").delete().eq("project_id", projectId);
+  const ids = (serviceIds ?? []).filter(Boolean);
+  if (!ids.length) return;
+
+  const { error } = await supabase.from("site_project_services").insert(
+    ids.map((service_id) => ({ project_id: projectId, service_id })),
+  );
+  if (error) throw new Error(error.message);
+}
+
+async function syncProjectMediaAssets(
+  supabase: Awaited<ReturnType<typeof requireOwnerRole>>["supabase"],
+  projectId: string,
+  media: ProjectInput["media"],
+  coverMediaId: string | null,
+) {
+  const linkedIds = new Set(media.map((item) => item.media_asset_id));
+
+  await supabase.from("media_assets").update({ project_id: null }).eq("project_id", projectId);
+
+  for (const item of media) {
+    await supabase
+      .from("media_assets")
+      .update({
+        project_id: projectId,
+        gallery_phase: item.gallery_phase,
+        is_featured: item.media_asset_id === coverMediaId,
+      })
+      .eq("id", item.media_asset_id);
+  }
+
+  if (coverMediaId && !linkedIds.has(coverMediaId)) {
+    await supabase.from("media_assets").update({ project_id: projectId, is_featured: true }).eq("id", coverMediaId);
+  }
 }
 
 export async function listAdminProjects(): Promise<SiteProject[]> {
@@ -64,14 +112,20 @@ export async function getAdminProject(id: string) {
   if (error) throw new Error(error.message);
   if (!data) throw new Error("Project not found");
 
-  const { data: mediaRows } = await supabase
-    .from("site_project_media")
-    .select("*, media_assets(id, title, file_url, webp_url, thumbnail_url, alt_text)")
-    .eq("project_id", id)
-    .order("sort_order", { ascending: true });
+  const [{ data: mediaRows }, { data: serviceRows }] = await Promise.all([
+    supabase
+      .from("site_project_media")
+      .select("*, media_assets(id, title, file_url, webp_url, thumbnail_url, alt_text)")
+      .eq("project_id", id)
+      .order("sort_order", { ascending: true }),
+    supabase.from("site_project_services").select("service_id").eq("project_id", id),
+  ]);
 
   return {
-    project: mapProject(data as Record<string, unknown>),
+    project: {
+      ...mapProject(data as Record<string, unknown>),
+      service_ids: (serviceRows ?? []).map((row) => String(row.service_id)),
+    },
     media: mediaRows ?? [],
   };
 }
@@ -89,6 +143,9 @@ export async function saveProject(input: ProjectInput, id?: string) {
     long_description: input.long_description.trim(),
     cover_image_url: input.cover_image_url ?? null,
     cover_media_id: input.cover_media_id ?? null,
+    source_job_id: input.source_job_id ?? null,
+    client_id: input.client_id ?? null,
+    legacy_filesystem_id: input.legacy_filesystem_id ?? null,
     testimonial: input.testimonial?.trim() || null,
     testimonial_author: input.testimonial_author?.trim() || null,
     is_published: input.is_published,
@@ -123,6 +180,9 @@ export async function saveProject(input: ProjectInput, id?: string) {
     if (mediaError) throw new Error(mediaError.message);
   }
 
+  await syncProjectServices(supabase, projectId, input.service_ids);
+  await syncProjectMediaAssets(supabase, projectId, input.media, input.cover_media_id ?? null);
+
   revalidatePath("/admin/site/projects");
   revalidatePath("/projects");
   revalidatePath(`/projects/${input.slug}`);
@@ -138,10 +198,14 @@ export async function duplicateProject(id: string) {
     city: project.city,
     completion_date: project.completion_date,
     service_categories: project.service_categories,
+    service_ids: project.service_ids,
     short_summary: project.short_summary,
     long_description: project.long_description,
     cover_image_url: project.cover_image_url,
     cover_media_id: project.cover_media_id,
+    source_job_id: null,
+    client_id: project.client_id ?? null,
+    legacy_filesystem_id: null,
     testimonial: project.testimonial,
     testimonial_author: project.testimonial_author,
     is_published: false,

@@ -15,9 +15,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   try {
     const supabase = createServiceClient();
-    const [{ data: pages }, { data: serviceAreas }] = await Promise.all([
+    const [{ data: pages }, { data: serviceAreas }, { data: projects }] = await Promise.all([
       supabase.from("website_pages").select("slug, updated_at, status").eq("status", "published"),
       supabase.from("service_areas").select("slug, updated_at").eq("is_active", true),
+      supabase.from("site_projects").select("slug, updated_at").eq("is_published", true),
     ]);
 
     const cmsRoutes: MetadataRoute.Sitemap = (pages ?? [])
@@ -36,7 +37,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.65,
     }));
 
-    return [...staticRoutes, ...areaRoutes, ...cmsRoutes];
+    const projectRoutes: MetadataRoute.Sitemap = (projects ?? []).map((project) => ({
+      url: `${base}/projects/${project.slug}`,
+      lastModified: project.updated_at ? new Date(project.updated_at) : new Date(),
+      changeFrequency: "weekly" as const,
+      priority: 0.75,
+    }));
+
+    return [...staticRoutes, ...areaRoutes, ...projectRoutes, ...cmsRoutes];
   } catch {
     return staticRoutes;
   }

@@ -69,6 +69,11 @@ export type SiteProject = {
   long_description: string;
   cover_image_url: string | null;
   cover_media_id: string | null;
+  cover_media?: SiteMediaAsset | null;
+  source_job_id?: string | null;
+  client_id?: string | null;
+  legacy_filesystem_id?: string | null;
+  service_ids?: string[];
   testimonial: string | null;
   testimonial_author: string | null;
   is_published: boolean;

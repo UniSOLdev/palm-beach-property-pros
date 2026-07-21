@@ -36,6 +36,9 @@ function resolveHeroSrc(manifest: CuratedManifest): string {
 }
 
 export async function getHomepageMediaBundle(): Promise<HomepageMediaBundle> {
+  // Filesystem manifest is an import/migration source only. Published homepage project
+  // galleries, recaps, and before/after sections prefer DB-backed site_projects when available
+  // (see mergeDbProjectsIntoHomepageMedia in app/(site)/page.tsx).
   const manifest = await loadCuratedManifest();
 
   if (manifest?.hasAuthenticMedia && manifest.projects.length > 0) {

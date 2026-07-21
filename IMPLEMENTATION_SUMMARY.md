@@ -41,6 +41,15 @@
 - Reusable `BeforeAfterSlider` + `BeforeAfterGallery` components
 - Project detail pages show interactive before/after pairs when both phases exist
 
+### Projects DB-first architecture
+- **`site_projects`** is the source of truth for all project creation, editing, publishing, and galleries
+- Relationships: `site_project_media` → media, `site_project_services` → services, optional `source_job_id` / `client_id` FKs
+- Admin project editor includes inline media picker with phase + cover selection
+- Field workflow publishes draft projects with job/client links and attached photos
+- Homepage recaps, transformations, and before/after sections prefer published DB projects
+- Filesystem manifest remains available via `npm run media:import-db` (import only, not runtime reads when DB data exists)
+- Dynamic sitemap includes published `/projects/[slug]` routes
+
 ### Review automation
 - On job completion in field mode: send Google review SMS, thank-you message, mark review completed
 - Requires `business_settings.google_review_url`
@@ -81,8 +90,15 @@ Apply in order:
    - Quote discount/tax fields; job review tracking; client CRM (`client_activity`, reminders, lifetime value)
    - `service_areas` table + seed cities; RLS policies
 
+4. `supabase/migrations/20260721150000_projects_db_first.sql`
+   - Project FKs: `source_job_id`, `client_id`, `legacy_filesystem_id`
+   - `site_project_services` junction table; anon read policy for published project media
+
 ```bash
 npm run db:push
+# One-time import from curated manifest (optional):
+npm run media:import-db
+npm run media:import-db -- --publish
 ```
 
 ## New Environment Variables
@@ -128,8 +144,8 @@ No new required variables. Existing Supabase vars remain:
 
 ## Known Limitations
 
-- **Project media linking in admin** — Field mode auto-attaches job photos to draft projects; manual project editor media picker still minimal
-- **Google review URL** — No dedicated admin UI yet; set in `business_settings` table
+- **Project media linking in admin** — Full gallery editor in Project Manager; field mode auto-attaches job photos
+- **Filesystem manifest** — Import-only via `npm run media:import-db`; runtime homepage prefers DB when published projects exist
 - **Homepage hero image** — Still uses curated filesystem media; `hero_media_id` field ready but hero picker UI not yet in homepage editor
 - **Site Studio** — Legacy builder remains separate; published Site Studio pages still not wired to App Router
 - **Rate limiting** — In-memory per instance; use Redis/Upstash for multi-region production hardening

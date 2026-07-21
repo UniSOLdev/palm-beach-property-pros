@@ -189,11 +189,51 @@ export async function getSiteServiceBySlug(slug: string): Promise<SiteService | 
   }
 }
 
+function mapProjectRow(row: Record<string, unknown>, coverMedia?: SiteMediaAsset | null): SiteProject {
+  return {
+    id: String(row.id),
+    title: String(row.title),
+    slug: String(row.slug),
+    city: (row.city as string) ?? null,
+    completion_date: (row.completion_date as string) ?? null,
+    service_categories: Array.isArray(row.service_categories) ? (row.service_categories as string[]) : [],
+    short_summary: String(row.short_summary ?? ""),
+    long_description: String(row.long_description ?? ""),
+    cover_image_url: (row.cover_image_url as string) ?? null,
+    cover_media_id: (row.cover_media_id as string) ?? null,
+    cover_media: coverMedia ?? null,
+    source_job_id: (row.source_job_id as string) ?? null,
+    client_id: (row.client_id as string) ?? null,
+    legacy_filesystem_id: (row.legacy_filesystem_id as string) ?? null,
+    testimonial: (row.testimonial as string) ?? null,
+    testimonial_author: (row.testimonial_author as string) ?? null,
+    is_published: Boolean(row.is_published),
+    is_featured: Boolean(row.is_featured),
+    sort_order: Number(row.sort_order ?? 0),
+  };
+}
+
+function mapProjectMediaRows(mediaRows: Array<Record<string, unknown>>) {
+  return mediaRows.map((m) => {
+    const assetRow = m.media_assets as Record<string, unknown> | null;
+    return {
+      id: String(m.id),
+      project_id: String(m.project_id),
+      media_asset_id: String(m.media_asset_id),
+      gallery_phase: (m.gallery_phase as GalleryPhase) ?? "general",
+      caption: (m.caption as string) ?? null,
+      sort_order: Number(m.sort_order ?? 0),
+      media: mapMedia(assetRow),
+    };
+  });
+}
+
 export async function getSiteProjects(options?: {
   featuredOnly?: boolean;
   publishedOnly?: boolean;
   serviceCategory?: string;
   limit?: number;
+  withMedia?: boolean;
 }): Promise<SiteProject[]> {
   try {
     const supabase = await getSupabase();
@@ -206,26 +246,57 @@ export async function getSiteProjects(options?: {
     const { data, error } = await query;
     if (error || !data) return [];
 
-    return data.map((row) => ({
-      id: String(row.id),
-      title: String(row.title),
-      slug: String(row.slug),
-      city: (row.city as string) ?? null,
-      completion_date: (row.completion_date as string) ?? null,
-      service_categories: Array.isArray(row.service_categories) ? (row.service_categories as string[]) : [],
-      short_summary: String(row.short_summary ?? ""),
-      long_description: String(row.long_description ?? ""),
-      cover_image_url: (row.cover_image_url as string) ?? null,
-      cover_media_id: (row.cover_media_id as string) ?? null,
-      testimonial: (row.testimonial as string) ?? null,
-      testimonial_author: (row.testimonial_author as string) ?? null,
-      is_published: Boolean(row.is_published),
-      is_featured: Boolean(row.is_featured),
-      sort_order: Number(row.sort_order ?? 0),
-    }));
+    if (!options?.withMedia) {
+      return data.map((row) => mapProjectRow(row as Record<string, unknown>));
+    }
+
+    const projectIds = data.map((row) => String(row.id));
+    const coverIds = data
+      .map((row) => row.cover_media_id as string | null)
+      .filter((id): id is string => Boolean(id));
+
+    const [{ data: mediaRows }, { data: coverRows }] = await Promise.all([
+      supabase
+        .from("site_project_media")
+        .select("*, media_assets(*)")
+        .in("project_id", projectIds)
+        .order("sort_order", { ascending: true }),
+      coverIds.length
+        ? supabase.from("media_assets").select("*").in("id", coverIds)
+        : Promise.resolve({ data: [] as Record<string, unknown>[] }),
+    ]);
+
+    const coverById = new Map(
+      (coverRows ?? []).map((row) => [String(row.id), mapMedia(row as Record<string, unknown>)]),
+    );
+    const mediaByProject = new Map<string, ReturnType<typeof mapProjectMediaRows>>();
+    for (const row of mediaRows ?? []) {
+      const projectId = String(row.project_id);
+      const list = mediaByProject.get(projectId) ?? [];
+      list.push(
+        mapProjectMediaRows([row as Record<string, unknown>])[0],
+      );
+      mediaByProject.set(projectId, list);
+    }
+
+    return data.map((row) => {
+      const record = row as Record<string, unknown>;
+      const coverMediaId = record.cover_media_id as string | null;
+      return {
+        ...mapProjectRow(record, coverMediaId ? coverById.get(coverMediaId) ?? null : null),
+        media: mediaByProject.get(String(record.id)) ?? [],
+      };
+    });
   } catch {
     return [];
   }
+}
+
+/** Alias for homepage and portfolio reads that need galleries attached. */
+export async function getSiteProjectsWithMedia(
+  options?: Parameters<typeof getSiteProjects>[0],
+): Promise<SiteProject[]> {
+  return getSiteProjects({ ...options, withMedia: true });
 }
 
 export async function getSiteProjectBySlug(slug: string): Promise<SiteProject | null> {
@@ -247,34 +318,14 @@ export async function getSiteProjectBySlug(slug: string): Promise<SiteProject | 
       .order("sort_order", { ascending: true });
 
     const project: SiteProject = {
-      id: String(data.id),
-      title: String(data.title),
-      slug: String(data.slug),
-      city: (data.city as string) ?? null,
-      completion_date: (data.completion_date as string) ?? null,
-      service_categories: Array.isArray(data.service_categories) ? (data.service_categories as string[]) : [],
-      short_summary: String(data.short_summary ?? ""),
-      long_description: String(data.long_description ?? ""),
-      cover_image_url: (data.cover_image_url as string) ?? null,
-      cover_media_id: (data.cover_media_id as string) ?? null,
-      testimonial: (data.testimonial as string) ?? null,
-      testimonial_author: (data.testimonial_author as string) ?? null,
-      is_published: Boolean(data.is_published),
-      is_featured: Boolean(data.is_featured),
-      sort_order: Number(data.sort_order ?? 0),
-      media: (mediaRows ?? []).map((m) => {
-        const assetRow = m.media_assets as Record<string, unknown> | null;
-        return {
-          id: String(m.id),
-          project_id: String(m.project_id),
-          media_asset_id: String(m.media_asset_id),
-          gallery_phase: (m.gallery_phase as GalleryPhase) ?? "general",
-          caption: (m.caption as string) ?? null,
-          sort_order: Number(m.sort_order ?? 0),
-          media: mapMedia(assetRow),
-        };
-      }),
+      ...mapProjectRow(data as Record<string, unknown>),
+      media: mapProjectMediaRows((mediaRows ?? []) as Array<Record<string, unknown>>),
     };
+
+    if (project.cover_media_id) {
+      const cover = project.media?.find((item) => item.media_asset_id === project.cover_media_id)?.media;
+      if (cover) project.cover_media = cover;
+    }
 
     return project;
   } catch {

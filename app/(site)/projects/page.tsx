@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { notFound } from "next/navigation";
-import { getSiteProjects } from "@/lib/site-content/queries";
-import { PROJECT_CATEGORY_LABELS, type ProjectCategory } from "@/lib/site-content/types";
+import { getSiteProjectsWithMedia } from "@/lib/site-content/queries";
+import { PROJECT_CATEGORY_LABELS, resolveMediaUrl, type ProjectCategory } from "@/lib/site-content/types";
 import { SITE_NAME } from "@/lib/site";
 
 export const metadata: Metadata = {
@@ -11,7 +10,7 @@ export const metadata: Metadata = {
 };
 
 export default async function ProjectsIndexPage() {
-  const projects = await getSiteProjects({ publishedOnly: true });
+  const projects = await getSiteProjectsWithMedia({ publishedOnly: true });
 
   return (
     <div className="bg-cream">
@@ -36,8 +35,18 @@ export default async function ProjectsIndexPage() {
               <li key={project.id}>
                 <Link
                   href={`/projects/${project.slug}`}
-                  className="block rounded-2xl border border-navy/10 bg-white p-6 no-underline shadow-md transition hover:shadow-lift"
+                  className="block overflow-hidden rounded-2xl border border-navy/10 bg-white no-underline shadow-md transition hover:shadow-lift"
                 >
+                  {resolveMediaUrl(project.cover_media) || project.cover_image_url ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={resolveMediaUrl(project.cover_media) ?? project.cover_image_url ?? ""}
+                      alt={project.title}
+                      className="aspect-[16/10] w-full object-cover"
+                      loading="lazy"
+                    />
+                  ) : null}
+                  <div className="p-6">
                   <div className="flex flex-wrap gap-2">
                     {project.service_categories.map((cat) => (
                       <span
@@ -55,6 +64,7 @@ export default async function ProjectsIndexPage() {
                       {project.city}
                     </p>
                   ) : null}
+                  </div>
                 </Link>
               </li>
             ))}

@@ -24,9 +24,20 @@ function parsePhotoUrls(value: unknown): string[] {
 }
 
 function mapLead(row: Record<string, unknown>): QuoteRequestRow {
+  const servicesRequested = Array.isArray(row.services_requested)
+    ? row.services_requested.filter((v): v is string => typeof v === "string")
+    : row.service_requested
+      ? [String(row.service_requested)]
+      : [];
+
   return {
     ...(row as QuoteRequestRow),
     photo_urls: parsePhotoUrls(row.photo_urls),
+    services_requested: servicesRequested,
+    service_requested: String(row.service_requested ?? servicesRequested[0] ?? ""),
+    water_spigot_available: (row.water_spigot_available as QuoteRequestRow["water_spigot_available"]) ?? null,
+    requires_alternate_water: Boolean(row.requires_alternate_water),
+    alternate_water_notes: (row.alternate_water_notes as string) ?? null,
   };
 }
 
@@ -181,6 +192,35 @@ export async function getLead(id: string): Promise<{
         }
       : null,
   };
+}
+
+export async function updateLeadWaterFlag(
+  id: string,
+  requiresAlternateWater: boolean,
+  notes?: string,
+) {
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("quote_requests")
+    .update({
+      requires_alternate_water: requiresAlternateWater,
+      alternate_water_notes: notes?.trim() || null,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", id);
+
+  if (error) throw new Error(error.message);
+
+  await logActivity(supabase, id, {
+    activity_type: "note",
+    body: requiresAlternateWater
+      ? "Flagged: alternate water arrangement required"
+      : "Cleared alternate water flag",
+    metadata: { requires_alternate_water: requiresAlternateWater, notes: notes ?? null },
+  });
+
+  revalidatePath("/admin/leads");
+  revalidatePath(`/admin/leads/${id}`);
 }
 
 export async function updateLeadStatus(id: string, status: LeadStatus) {

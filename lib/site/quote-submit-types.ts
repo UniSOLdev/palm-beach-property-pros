@@ -3,7 +3,8 @@ export type QuoteSubmitErrorCode =
   | "MISSING_ENV"
   | "SCHEMA_MISSING"
   | "INSERT_FAILED"
-  | "SERVICE_UNAVAILABLE";
+  | "SERVICE_UNAVAILABLE"
+  | "RATE_LIMITED";
 
 export type QuoteRequestResult =
   | { ok: true; leadId: string; photoWarnings?: string[] }

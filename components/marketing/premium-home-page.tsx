@@ -9,6 +9,8 @@ import { MediaAssetImage } from "@/components/media/media-asset-image";
 import { MediaFrame } from "@/components/media/media-frame";
 import { StoryArcShowcase } from "@/components/media/story-arc-showcase";
 import { TransformationShowcase } from "@/components/media/transformation-showcase";
+import { CmsFeaturedProjectsSection } from "@/components/marketing/cms-featured-projects-section";
+import { FeaturedServicesSection } from "@/components/marketing/featured-services-section";
 import { CuratedHeroMedia, FallbackHeroMedia } from "@/components/marketing/curated-hero-media";
 import { ScrollReveal } from "@/components/marketing/scroll-reveal";
 import { FAQ_ITEMS } from "@/lib/faq";
@@ -20,6 +22,7 @@ import {
 } from "@/lib/media";
 import type { MediaAsset } from "@/lib/media/types";
 import type { HomepageMediaBundle } from "@/lib/media/homepage-media";
+import type { SiteHomepageSettings, SiteProject, SiteService, SiteTestimonial } from "@/lib/site-content/types";
 import { buildMediaUrl } from "@/lib/media/resolve";
 import { PHONE_DISPLAY, PHONE_TEL, SITE_NAME } from "@/lib/site";
 
@@ -163,7 +166,19 @@ function PlanIcon({ type }: { type: (typeof CARE_PLANS)[number]["icon"] }) {
   }
 }
 
-export function PremiumHomePage({ media }: { media: HomepageMediaBundle }) {
+export function PremiumHomePage({
+  media,
+  homepage,
+  featuredServices = [],
+  featuredProjects = [],
+  testimonials = [],
+}: {
+  media: HomepageMediaBundle;
+  homepage?: SiteHomepageSettings;
+  featuredServices?: SiteService[];
+  featuredProjects?: SiteProject[];
+  testimonials?: SiteTestimonial[];
+}) {
   const useCuratedHero = media.hasAuthenticMedia && media.curatedHeroImage;
   const fallbackHeroSrc = buildMediaUrl(FALLBACK_HERO.src, 2000);
 
@@ -219,6 +234,21 @@ export function PremiumHomePage({ media }: { media: HomepageMediaBundle }) {
         }
       : MEDIA_REGISTRY.operations.poolDeck;
 
+  const heroEyebrow = homepage?.hero_eyebrow ?? "Palm Beach Property Pros";
+  const heroHeadline =
+    homepage?.hero_headline ?? "Professional Cleaning & Property Care in Palm Beach County";
+  const heroSubheadline =
+    homepage?.hero_subheadline ??
+    "Complete window detailing, pressure washing, property cleanups, lawn care, detailing, and ongoing maintenance—delivered with clear communication and photo-backed scope.";
+  const heroPrimaryCta = homepage?.hero_primary_cta_label ?? "Request a Free Estimate";
+  const heroSecondaryCta = homepage?.hero_secondary_cta_label ?? "Call or Text";
+  const trustMicrocopy =
+    homepage?.trust_microcopy ?? "Free estimates • Photo uploads • Clear communication";
+  const heroChips =
+    homepage?.trust_statements?.length ? homepage.trust_statements : [...HERO_CHIPS];
+  const showFeaturedServices = homepage?.section_visibility?.featured_services !== false;
+  const showFeaturedProjects = homepage?.section_visibility?.featured_projects !== false;
+
   return (
     <>
       <section className="hero-cinematic animate-fade-up relative -mx-4 sm:-mx-6 md:mx-0 md:rounded-3xl">
@@ -231,35 +261,40 @@ export function PremiumHomePage({ media }: { media: HomepageMediaBundle }) {
         <div className="relative z-10 px-4 py-20 sm:px-6 sm:py-24 md:px-10 md:py-32 lg:py-36">
           <div className="max-w-xl md:max-w-3xl">
             <p className="section-eyebrow text-aqua/90 md:tracking-[0.32em]">
-              Palm Beach Property Operations
+              {heroEyebrow}
             </p>
             <h1 className="mt-6 text-4xl font-semibold leading-[1.08] tracking-tight text-cream drop-shadow-[0_2px_24px_rgba(8,26,46,0.45)] sm:text-5xl md:mt-7 md:text-[3.25rem] md:leading-[1.06]">
-              Property operations for Palm Beach County estates
+              {heroHeadline}
             </h1>
             <p className="mt-7 max-w-xl text-base leading-[1.75] text-silver/95 sm:text-lg md:mt-9 md:max-w-2xl md:text-xl md:leading-[1.7]">
-              Recurring estate support, turnovers, and field programs—coordinated with professional crews,
-              documented execution, and modern client systems.
+              {heroSubheadline}
             </p>
           </div>
 
           <ul className="mt-10 flex flex-wrap justify-center gap-2.5 md:mt-12 md:justify-start md:gap-3">
-            {HERO_CHIPS.map((chip) => (
+            {heroChips.map((chip) => (
               <li key={chip} className="luxury-pill">
                 {chip}
               </li>
             ))}
           </ul>
 
-          <div className="mt-12 flex w-full max-w-xl flex-col gap-3 sm:max-w-none md:mt-14 md:max-w-3xl md:flex-row md:flex-wrap md:items-center md:gap-4">
+          <p className="mt-6 text-sm text-silver/90">{trustMicrocopy}</p>
+
+          <div className="mt-8 flex w-full max-w-xl flex-col gap-3 sm:max-w-none md:max-w-3xl md:flex-row md:flex-wrap md:items-center md:gap-4">
             <Link href="/quote" className="btn-hero-primary min-h-[56px] w-full sm:w-auto">
-              Request a scope review
+              {heroPrimaryCta}
             </Link>
             <a href={PHONE_TEL} className="btn-hero-secondary min-h-[56px] w-full sm:w-auto">
-              Call or Text {PHONE_DISPLAY}
+              {heroSecondaryCta} {PHONE_DISPLAY}
             </a>
           </div>
         </div>
       </section>
+
+      {showFeaturedServices && featuredServices.length ? (
+        <FeaturedServicesSection services={featuredServices} />
+      ) : null}
 
       <TransformationShowcase projects={media.transformations} isAuthentic={media.hasAuthenticMedia} />
 
@@ -415,6 +450,10 @@ export function PremiumHomePage({ media }: { media: HomepageMediaBundle }) {
       </ScrollReveal>
 
       <FeaturedProjectsSection projects={media.recaps} />
+
+      {showFeaturedProjects && featuredProjects.length ? (
+        <CmsFeaturedProjectsSection projects={featuredProjects} />
+      ) : null}
 
       <ScrollReveal>
         <section className="py-16 md:py-24">

@@ -1,63 +1,74 @@
 "use client";
 
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, useEffect, useMemo, useState } from "react";
 import { submitQuoteRequest } from "@/lib/site/actions/submit-quote-request";
+import { needsWaterSpigotQuestion } from "@/lib/site/quote-form-utils";
 import { QUOTE_ERRORS } from "@/lib/site/quote-submit-types";
 import { PHONE_DISPLAY, PHONE_TEL, SITE_NAME } from "@/lib/site";
 
-const services = [
-  "Window Cleaning",
-  "Residential Cleaning",
-  "Commercial Cleaning",
-  "Pressure Washing / Exterior",
-  "Auto Detailing",
-  "Carpet & Steam Cleaning",
-  "Trash Can Cleaning",
-  "Property Maintenance",
-  "Airbnb / Co-host Services",
-  "Multiple / Not sure",
-] as const;
+type ServiceOption = { slug: string; title: string };
 
 type QuoteFormProps = {
+  services: ServiceOption[];
   defaultService?: string;
 };
 
-export function QuoteForm({ defaultService }: QuoteFormProps) {
+export function QuoteForm({ services, defaultService }: QuoteFormProps) {
   const [status, setStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [photoNotice, setPhotoNotice] = useState<string | null>(null);
   const [referrer, setReferrer] = useState("");
+  const [selectedServices, setSelectedServices] = useState<string[]>([]);
 
   useEffect(() => {
     setReferrer(document.referrer || "");
   }, []);
 
+  useEffect(() => {
+    if (!defaultService) return;
+    const match = services.find(
+      (s) => s.title === defaultService || s.slug === defaultService,
+    );
+    if (match) setSelectedServices([match.title]);
+  }, [defaultService, services]);
+
+  const showWaterSpigot = useMemo(
+    () => needsWaterSpigotQuestion(selectedServices),
+    [selectedServices],
+  );
+
+  function toggleService(title: string) {
+    setSelectedServices((prev) =>
+      prev.includes(title) ? prev.filter((s) => s !== title) : [...prev, title],
+    );
+  }
+
   async function onSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    if (!selectedServices.length) {
+      setErrorMessage("Select at least one service.");
+      setStatus("error");
+      return;
+    }
+
     setStatus("submitting");
     setErrorMessage(null);
     setPhotoNotice(null);
 
     const formData = new FormData(e.currentTarget);
+    selectedServices.forEach((s) => formData.append("services", s));
+
     const result = await submitQuoteRequest(formData);
 
     if (result.ok) {
       if (result.photoWarnings?.length) {
-        console.warn("[PBPP Quote] submitted with photo warnings:", result.photoWarnings);
         setPhotoNotice(QUOTE_ERRORS.photosSaved);
       }
       setStatus("success");
+      setSelectedServices([]);
       e.currentTarget.reset();
       return;
     }
-
-    console.error("[PBPP Quote] submit failed:", {
-      code: result.code,
-      error: result.error,
-      ...(process.env.NODE_ENV === "development" && "debug" in result
-        ? { debug: result.debug }
-        : {}),
-    });
 
     setStatus("error");
     setErrorMessage(result.error);
@@ -92,8 +103,6 @@ export function QuoteForm({ defaultService }: QuoteFormProps) {
     );
   }
 
-  const matchedService = services.find((s) => s === defaultService) ?? "";
-
   return (
     <form
       onSubmit={onSubmit}
@@ -102,14 +111,50 @@ export function QuoteForm({ defaultService }: QuoteFormProps) {
     >
       <input type="hidden" name="source" value="website" />
       <input type="hidden" name="referrer" value={referrer} />
+      {/* Honeypot — hidden from users */}
+      <input
+        type="text"
+        name="companyWebsite"
+        tabIndex={-1}
+        autoComplete="off"
+        className="absolute -left-[9999px] h-0 w-0 opacity-0"
+        aria-hidden
+      />
 
       <p className="text-sm text-charcoal/85">
-        Share your property details below. Our team uses this information to prepare scope-based
-        pricing—photos, scheduling, invoices, and approvals all stay on {SITE_NAME}.
+        Select one or more services, share property details, and upload photos for the fastest
+        scope-based estimate.
       </p>
+
+      <fieldset>
+        <legend className="text-sm font-medium text-navy">
+          Services needed <span className="text-red-600">*</span>
+        </legend>
+        <div className="mt-3 grid gap-2 sm:grid-cols-2">
+          {services.map((s) => (
+            <label
+              key={s.slug}
+              className={`flex min-h-[48px] cursor-pointer items-center gap-3 rounded-xl border px-3 py-2.5 text-sm transition ${
+                selectedServices.includes(s.title)
+                  ? "border-ocean bg-sky/40 text-navy"
+                  : "border-navy/15 bg-cream text-charcoal"
+              }`}
+            >
+              <input
+                type="checkbox"
+                checked={selectedServices.includes(s.title)}
+                onChange={() => toggleService(s.title)}
+                className="h-4 w-4 accent-ocean"
+              />
+              {s.title}
+            </label>
+          ))}
+        </div>
+      </fieldset>
+
       <div className="grid gap-4 sm:grid-cols-2">
         <label className="block text-sm font-medium text-navy">
-          Name
+          Name <span className="text-red-600">*</span>
           <input
             required
             name="name"
@@ -118,7 +163,7 @@ export function QuoteForm({ defaultService }: QuoteFormProps) {
           />
         </label>
         <label className="block text-sm font-medium text-navy">
-          Phone
+          Phone <span className="text-red-600">*</span>
           <input
             required
             name="phone"
@@ -128,6 +173,7 @@ export function QuoteForm({ defaultService }: QuoteFormProps) {
           />
         </label>
       </div>
+
       <label className="block text-sm font-medium text-navy">
         Email <span className="font-normal text-charcoal/60">(optional)</span>
         <input
@@ -137,24 +183,9 @@ export function QuoteForm({ defaultService }: QuoteFormProps) {
           className="mt-1 w-full rounded-xl border border-navy/15 bg-cream px-3 py-2.5 text-charcoal outline-none ring-ocean/30 focus:ring-2"
         />
       </label>
+
       <label className="block text-sm font-medium text-navy">
-        Service needed
-        <select
-          required
-          name="service"
-          defaultValue={matchedService}
-          className="mt-1 w-full rounded-xl border border-navy/15 bg-cream px-3 py-2.5 text-charcoal outline-none ring-ocean/30 focus:ring-2"
-        >
-          <option value="">Select…</option>
-          {services.map((s) => (
-            <option key={s} value={s}>
-              {s}
-            </option>
-          ))}
-        </select>
-      </label>
-      <label className="block text-sm font-medium text-navy">
-        Property address
+        Property address / city <span className="text-red-600">*</span>
         <input
           required
           name="address"
@@ -163,6 +194,7 @@ export function QuoteForm({ defaultService }: QuoteFormProps) {
           className="mt-1 w-full rounded-xl border border-navy/15 bg-cream px-3 py-2.5 text-charcoal outline-none ring-ocean/30 focus:ring-2"
         />
       </label>
+
       <div className="grid gap-4 sm:grid-cols-2">
         <label className="block text-sm font-medium text-navy">
           City
@@ -188,15 +220,43 @@ export function QuoteForm({ defaultService }: QuoteFormProps) {
           </select>
         </label>
       </div>
+
       <label className="block text-sm font-medium text-navy">
-        Details / message
+        Scope notes
         <textarea
           name="message"
           rows={4}
           className="mt-1 w-full rounded-xl border border-navy/15 bg-cream px-3 py-2.5 text-charcoal outline-none ring-ocean/30 focus:ring-2"
-          placeholder="Square footage, number of windows, timing constraints, access instructions…"
+          placeholder="Square footage, pane counts, stains, access constraints, timing…"
         />
       </label>
+
+      {showWaterSpigot ? (
+        <fieldset>
+          <legend className="text-sm font-medium text-navy">
+            Is an accessible exterior water spigot available? <span className="text-red-600">*</span>
+          </legend>
+          <p className="mt-1 text-xs text-charcoal/70">
+            PBPP normally connects to your exterior spigot. Alternate water arrangements may require
+            an additional charge.
+          </p>
+          <div className="mt-2 flex flex-wrap gap-4 text-sm text-charcoal">
+            <label className="inline-flex min-h-[44px] items-center gap-2">
+              <input type="radio" name="waterSpigot" value="yes" required />
+              Yes
+            </label>
+            <label className="inline-flex min-h-[44px] items-center gap-2">
+              <input type="radio" name="waterSpigot" value="no" required />
+              No
+            </label>
+            <label className="inline-flex min-h-[44px] items-center gap-2">
+              <input type="radio" name="waterSpigot" value="unsure" required />
+              Unsure
+            </label>
+          </div>
+        </fieldset>
+      ) : null}
+
       <div className="grid gap-4 sm:grid-cols-2">
         <label className="block text-sm font-medium text-navy">
           Preferred date <span className="font-normal text-charcoal/60">(optional)</span>
@@ -207,16 +267,21 @@ export function QuoteForm({ defaultService }: QuoteFormProps) {
           />
         </label>
         <label className="block text-sm font-medium text-navy">
-          Preferred time <span className="font-normal text-charcoal/60">(optional)</span>
-          <input
-            name="preferredTime"
-            placeholder="Morning, afternoon, after 2pm…"
+          Preferred contact method
+          <select
+            name="contact"
+            defaultValue="Call"
             className="mt-1 w-full rounded-xl border border-navy/15 bg-cream px-3 py-2.5 text-charcoal outline-none ring-ocean/30 focus:ring-2"
-          />
+          >
+            <option value="Call">Call</option>
+            <option value="Text">Text</option>
+            <option value="Email">Email</option>
+          </select>
         </label>
       </div>
+
       <label className="block text-sm font-medium text-navy">
-        Photos <span className="font-normal text-charcoal/60">(optional, up to 5)</span>
+        Photos <span className="font-normal text-charcoal/60">(optional, up to 5, max 10MB each)</span>
         <input
           name="photos"
           type="file"
@@ -225,63 +290,25 @@ export function QuoteForm({ defaultService }: QuoteFormProps) {
           className="mt-1 w-full rounded-xl border border-navy/15 bg-cream px-3 py-2.5 text-sm text-charcoal file:mr-3 file:rounded-lg file:border-0 file:bg-sky/60 file:px-3 file:py-2 file:text-sm file:font-semibold file:text-navy"
         />
       </label>
-      <fieldset>
-        <legend className="text-sm font-medium text-navy">Preferred contact method</legend>
-        <div className="mt-2 flex flex-wrap gap-4 text-sm text-charcoal">
-          <label className="inline-flex items-center gap-2">
-            <input type="radio" name="contact" value="Call" defaultChecked />
-            Call
-          </label>
-          <label className="inline-flex items-center gap-2">
-            <input type="radio" name="contact" value="Text" />
-            Text
-          </label>
-          <label className="inline-flex items-center gap-2">
-            <input type="radio" name="contact" value="Email" />
-            Email
-          </label>
-        </div>
-      </fieldset>
+
       {errorMessage ? (
         <div className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-800" role="alert">
           <p>{errorMessage}</p>
-          <p className="mt-2 text-red-700">
-            Need help now? Call{" "}
-            <a href={PHONE_TEL} className="font-semibold underline">
-              {PHONE_DISPLAY}
-            </a>
-            .
-          </p>
         </div>
       ) : null}
+
       <button
         type="submit"
         disabled={status === "submitting"}
         className="btn-primary-lg w-full disabled:opacity-70"
         aria-busy={status === "submitting"}
       >
-        {status === "submitting" ? (
-          <span className="inline-flex items-center justify-center gap-2">
-            <span className="h-4 w-4 animate-spin rounded-full border-2 border-cream/30 border-t-cream" />
-            Submitting…
-          </span>
-        ) : (
-          "Submit quote request"
-        )}
+        {status === "submitting" ? "Submitting…" : "Request a Free Estimate"}
       </button>
+
       <p className="text-center text-xs text-charcoal/70">
-        We do not sell your information. Details you enter here stay with {SITE_NAME} for scheduling
-        and estimating only.
+        Free estimates • Photo uploads • Clear communication
       </p>
-      <div className="rounded-2xl bg-sky/80 p-4 text-center text-sm text-navy">
-        Prefer voice?{" "}
-        <a
-          href={PHONE_TEL}
-          className="font-semibold text-ocean no-underline underline-offset-2 hover:underline"
-        >
-          Call {PHONE_DISPLAY}
-        </a>
-      </div>
     </form>
   );
 }

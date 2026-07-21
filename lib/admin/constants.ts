@@ -17,6 +17,7 @@ export const ADMIN_NAV = [
 ] as const;
 
 export const ADMIN_MORE_NAV = [
+  { href: "/admin/site", label: "Website CMS" },
   { href: "/admin/leads", label: "Leads" },
   { href: "/admin/quotes", label: "Quotes" },
   { href: "/admin/change-orders", label: "Change Orders" },

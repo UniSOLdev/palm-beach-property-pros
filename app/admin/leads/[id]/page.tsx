@@ -4,10 +4,9 @@ import { AdminPageHeader } from "@/components/admin/entity-list";
 import { LeadDetailActions } from "@/components/admin/lead-detail-actions";
 import { LoadError } from "@/components/admin/load-error";
 import { getLead, getLeadPhotoUrls } from "@/lib/admin/actions/leads";
-import { LEAD_STATUS_LABELS, leadStatusClass } from "@/lib/admin/lead-constants";
+import { LEAD_STATUS_LABELS, WATER_SPIGOT_LABELS, leadStatusClass, normalizeLeadStatus } from "@/lib/admin/lead-constants";
 import { logAdminError } from "@/lib/admin/logger";
 import { formatDate } from "@/lib/admin/format";
-import type { LeadStatus } from "@/lib/admin/lead-constants";
 import {
   QUOTE_APPROVAL_LABELS,
   quoteApprovalClass,
@@ -67,18 +66,45 @@ export default async function AdminLeadDetailPage({ params }: Props) {
 
       <AdminPageHeader
         title={lead.name}
-        subtitle={`${lead.service_requested} · ${formatDate(lead.created_at)}`}
+        subtitle={`${lead.services_requested.join(", ") || lead.service_requested} · ${formatDate(lead.created_at)}`}
       />
 
       <div className="admin-card space-y-3">
         <div className="flex flex-wrap items-center gap-2">
           <span className={`admin-chip ${leadStatusClass(lead.status)}`}>
-            {LEAD_STATUS_LABELS[lead.status as LeadStatus] ?? lead.status}
+            {LEAD_STATUS_LABELS[normalizeLeadStatus(lead.status)] ?? lead.status}
           </span>
           <span className="text-xs text-charcoal/50">Source: {lead.source}</span>
         </div>
 
         <dl className="grid gap-2 text-sm">
+          <div>
+            <dt className="text-charcoal/60">Services requested</dt>
+            <dd className="font-medium text-navy">
+              {lead.services_requested.length
+                ? lead.services_requested.join(" · ")
+                : lead.service_requested}
+            </dd>
+          </div>
+          {lead.water_spigot_available ? (
+            <div>
+              <dt className="text-charcoal/60">Exterior water spigot</dt>
+              <dd className="font-medium text-navy">
+                {WATER_SPIGOT_LABELS[lead.water_spigot_available] ?? lead.water_spigot_available}
+              </dd>
+            </div>
+          ) : null}
+          {lead.requires_alternate_water ? (
+            <div className="rounded-xl bg-sand/60 px-3 py-2">
+              <dt className="text-xs font-semibold uppercase tracking-wide text-charcoal/60">
+                Alternate water arrangement
+              </dt>
+              <dd className="mt-1 text-sm text-navy">
+                Flagged by admin
+                {lead.alternate_water_notes ? ` — ${lead.alternate_water_notes}` : ""}
+              </dd>
+            </div>
+          ) : null}
           <div>
             <dt className="text-charcoal/60">Phone</dt>
             <dd className="font-medium text-navy">{lead.phone}</dd>
@@ -201,7 +227,7 @@ export default async function AdminLeadDetailPage({ params }: Props) {
         <div className="mt-3">
           <LeadDetailActions
             leadId={lead.id}
-            currentStatus={lead.status}
+            currentStatus={normalizeLeadStatus(lead.status)}
             hasClient={Boolean(lead.client_id)}
             hasQuote={Boolean(lead.quote_id)}
             hasInvoice={Boolean(lead.invoice_id)}
@@ -210,6 +236,9 @@ export default async function AdminLeadDetailPage({ params }: Props) {
             quoteApprovalStatus={quoteMeta?.approval_status ?? null}
             phone={lead.phone}
             email={lead.email}
+            waterSpigotAvailable={lead.water_spigot_available}
+            requiresAlternateWater={lead.requires_alternate_water}
+            alternateWaterNotes={lead.alternate_water_notes}
           />
         </div>
       </section>

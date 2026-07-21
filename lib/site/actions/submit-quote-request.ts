@@ -13,6 +13,12 @@ import {
   quoteSubmitError,
 } from "@/lib/site/quote-submit-types";
 import {
+  isHoneypotTriggered,
+  needsWaterSpigotQuestion,
+  parseServicesFromForm,
+} from "@/lib/site/quote-form-utils";
+import { checkQuoteRateLimit } from "@/lib/site/quote-rate-limit.server";
+import {
   checkSupabaseEnv,
   createServerAnonClient,
   tryCreateServiceClient,
@@ -32,11 +38,15 @@ function isFailure(result: InsertResult): result is InsertFailure {
 
 function parseForm(formData: FormData) {
   const preferredDate = String(formData.get("preferredDate") ?? "").trim();
+  const services = parseServicesFromForm(formData);
+  const waterSpigot = String(formData.get("waterSpigot") ?? "").trim() as "" | "yes" | "no" | "unsure";
+
   return {
     name: String(formData.get("name") ?? "").trim(),
     phone: String(formData.get("phone") ?? "").trim(),
     email: String(formData.get("email") ?? "").trim(),
-    service: String(formData.get("service") ?? "").trim(),
+    services,
+    service: services[0] ?? "",
     address: String(formData.get("address") ?? "").trim(),
     city: String(formData.get("city") ?? "").trim(),
     propertyType: String(formData.get("propertyType") ?? "").trim(),
@@ -46,15 +56,17 @@ function parseForm(formData: FormData) {
     preferredTime: String(formData.get("preferredTime") ?? "").trim() || null,
     referrer: String(formData.get("referrer") ?? "").trim(),
     source: String(formData.get("source") ?? "website").trim() || "website",
+    waterSpigot: waterSpigot || null,
   };
 }
 
-function rowFromPayload(payload: Payload) {
+function rowFromPayload(payload: ReturnType<typeof parseForm>) {
   return {
     name: payload.name,
     phone: payload.phone,
     email: payload.email || null,
     service_requested: payload.service,
+    services_requested: payload.services,
     address: payload.address,
     city: payload.city || null,
     property_type: payload.propertyType || null,
@@ -64,6 +76,7 @@ function rowFromPayload(payload: Payload) {
     preferred_time: payload.preferredTime,
     source: payload.source,
     referrer: payload.referrer || null,
+    water_spigot_available: payload.waterSpigot,
     status: "new" as const,
     photo_urls: [] as string[],
   };
@@ -107,6 +120,8 @@ async function insertViaRpc(payload: Payload): Promise<InsertResult> {
     p_preferred_time: payload.preferredTime,
     p_source: payload.source,
     p_referrer: payload.referrer || null,
+    p_services_requested: payload.services,
+    p_water_spigot_available: payload.waterSpigot,
   });
 
   if (error) {
@@ -224,6 +239,15 @@ async function insertLead(payload: Payload): Promise<InsertOk | QuoteRequestResu
 }
 
 export async function submitQuoteRequest(formData: FormData): Promise<QuoteRequestResult> {
+  if (isHoneypotTriggered(formData)) {
+    return { ok: true, leadId: "spam-filtered" };
+  }
+
+  const rateCheck = await checkQuoteRateLimit();
+  if (!rateCheck.ok) {
+    return quoteSubmitError(rateCheck.error, rateCheck.error, "RATE_LIMITED");
+  }
+
   const payload = parseForm(formData);
   const envStatus = checkSupabaseEnv();
 
@@ -237,8 +261,16 @@ export async function submitQuoteRequest(formData: FormData): Promise<QuoteReque
     },
   });
 
-  if (!payload.name || !payload.phone || !payload.service || !payload.address) {
+  if (!payload.name || !payload.phone || !payload.services.length || !payload.address) {
     return quoteSubmitError(QUOTE_ERRORS.validation, "Missing required field", "VALIDATION_ERROR");
+  }
+
+  if (needsWaterSpigotQuestion(payload.services) && !payload.waterSpigot) {
+    return quoteSubmitError(
+      QUOTE_ERRORS.validation,
+      "Please indicate whether an accessible exterior water spigot is available.",
+      "VALIDATION_ERROR",
+    );
   }
 
   if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {

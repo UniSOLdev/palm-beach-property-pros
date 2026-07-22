@@ -31,11 +31,30 @@ const migrations = [
   "20260721140000_platform_upgrade.sql",
   "20260721150000_projects_db_first.sql",
   "20260721160000_projects_production_hardening.sql",
+  "20260721170000_repo_production_reconciliation.sql",
 ];
 
 for (const file of migrations) {
   const sql = readFileSync(join(root, "supabase/migrations", file), "utf8");
   assert(sql.length > 0, `${file} is readable`);
+}
+
+const reconciliation = readFileSync(
+  join(root, "supabase/migrations/20260721170000_repo_production_reconciliation.sql"),
+  "utf8",
+);
+assert(reconciliation.includes("optimization_status"), "reconciliation adds media optimization tracking");
+
+for (const removed of [
+  "20260520120000_change_orders.sql",
+  "20260530120000_media_library_persistence.sql",
+]) {
+  try {
+    readFileSync(join(root, "supabase/migrations", removed), "utf8");
+    assert(false, `${removed} should be removed after reconciliation`);
+  } catch {
+    assert(true, `${removed} correctly removed`);
+  }
 }
 
 const hardening = readFileSync(

@@ -155,6 +155,26 @@ Run after `npm run db:push` and optional `npm run media:import-db -- --publish`:
 
 ## Migration apply status (agent run)
 
+**Reconciled in commit `cb3ead0`+:** See [MIGRATION_RECONCILIATION.md](./MIGRATION_RECONCILIATION.md) for full classification table.
+
+After reconciliation:
+- 13 production-fetched migrations align local = remote
+- 6 pending migrations: `20260721120000`–`20260721170000` (CMS batch + forward reconciliation)
+- 15 duplicate hand-timestamp files removed
+
+```bash
+npx supabase migration list --linked
+npx supabase db push --linked --dry-run   # verify before real push
+npm run db:push                           # when dry-run is clean
+npm run db:types
+```
+
+**Do not** run `supabase db reset` or `migration repair --status reverted` on production.
+
+---
+
+## Migration apply status (historical — blocked in cloud agent)
+
 **Blocked — Supabase CLI not authenticated in cloud agent environment.**
 
 | Check | Result |

@@ -153,6 +153,71 @@ Run after `npm run db:push` and optional `npm run media:import-db -- --publish`:
 
 ---
 
+## Migration apply status (agent run)
+
+**Blocked — Supabase CLI not authenticated in cloud agent environment.**
+
+| Check | Result |
+|-------|--------|
+| Config project ref (`supabase/config.toml`) | `pfojtrfkeoeymmtkvijo` |
+| Expected production URL (`.env.example`) | `https://pfojtrfkeoeymmtkvijo.supabase.co` |
+| Project name in config comment | `palm-beach-property-pros` (us-west-1) |
+| Local link file (`supabase/.temp/project-ref`) | Not present |
+| `SUPABASE_ACCESS_TOKEN` | Not set |
+| Supabase MCP | `needsAuth` |
+
+**Owner action required before migrations can be applied:**
+
+```bash
+npx supabase login
+# Opens browser — or set a personal access token:
+export SUPABASE_ACCESS_TOKEN=sbp_xxxxxxxx   # from https://supabase.com/dashboard/account/tokens
+
+cd palm-beach-property-pros
+npm run db:push          # applies through 20260721160000 (no reset/reseed)
+npm run db:types         # regenerates lib/supabase/database.types.ts
+npm run verify:project-workflow
+npm run build
+```
+
+To inspect pending migrations without applying:
+
+```bash
+npx supabase link --project-ref pfojtrfkeoeymmtkvijo
+npx supabase migration list
+```
+
+**Do not** run `supabase db reset` on production.
+
+---
+
+## Owner E2E checklist (preview)
+
+Preview deployments are SSO-protected. Confirm Vercel env vars include:
+
+- `NEXT_PUBLIC_SUPABASE_URL=https://pfojtrfkeoeymmtkvijo.supabase.co`
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY` (production anon/publishable key)
+- `SUPABASE_SERVICE_ROLE_KEY` (server/admin only)
+
+After `npm run db:push`, use the Vercel preview URL for branch `cursor/pbpp-cms-upgrade-c6a1`:
+
+| Step | Route / action |
+|------|----------------|
+| 1. Create draft | `/admin/site/projects/new` → fill title, slug, summary → **Save draft** |
+| 2. Attach media | Same page → **Add media** → set phases + cover |
+| 3. Assign services | Toggle **Linked services** checkboxes → save |
+| 4. Publish | **Save & publish** |
+| 5. Homepage | `/` → project in featured/recap section |
+| 6. Projects index | `/projects` → card with cover |
+| 7. Detail page | `/projects/{slug}` → gallery + before/after |
+| 8. Edit persists | `/admin/site/projects/{id}` → change title → save → refresh public page |
+| 9. Media survives edit | Re-save without touching gallery → images remain |
+| 10. Unpublish | **Unpublish** → confirm removed from `/` and `/projects` |
+| 11. Republish | **Save & publish** → confirm returns on public routes |
+| 12. Delete | **Delete project** → confirm gone from admin + public |
+
+---
+
 ## Environment Variables
 
 | Variable | Required |

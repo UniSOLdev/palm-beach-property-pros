@@ -1,121 +1,42 @@
 import Link from "next/link";
 import { FaqAccordion } from "@/components/faq-accordion";
-import { TransformationCarousel, ProjectReelGrid } from "@/components/media/cinematic-project-media";
 import { BeforeAfterGrid } from "@/components/media/before-after-grid";
-import { DocumentationSuite } from "@/components/media/documentation-suite";
 import { FeaturedProjectsSection } from "@/components/media/featured-projects-section";
 import { FieldExecutionTimeline } from "@/components/media/field-execution-timeline";
-import { MediaAssetImage } from "@/components/media/media-asset-image";
-import { MediaFrame } from "@/components/media/media-frame";
-import { StoryArcShowcase } from "@/components/media/story-arc-showcase";
 import { TransformationShowcase } from "@/components/media/transformation-showcase";
 import { CmsFeaturedProjectsSection } from "@/components/marketing/cms-featured-projects-section";
 import { FeaturedServicesSection } from "@/components/marketing/featured-services-section";
 import { CuratedHeroMedia, FallbackHeroMedia } from "@/components/marketing/curated-hero-media";
 import { ScrollReveal } from "@/components/marketing/scroll-reveal";
 import { FAQ_ITEMS } from "@/lib/faq";
-import {
-  FIELD_EXECUTION_STEPS,
-  LOCAL_MARKETS,
-  MEDIA_REGISTRY,
-  OPERATIONAL_PROOF,
-} from "@/lib/media";
-import type { MediaAsset } from "@/lib/media/types";
+import { FIELD_EXECUTION_STEPS, LOCAL_MARKETS, MEDIA_REGISTRY } from "@/lib/media";
 import type { HomepageMediaBundle } from "@/lib/media/homepage-media";
 import type { SiteHomepageSettings, SiteProject, SiteService, SiteTestimonial } from "@/lib/site-content/types";
 import { buildMediaUrl } from "@/lib/media/resolve";
-import { PHONE_DISPLAY, PHONE_TEL, SITE_NAME } from "@/lib/site";
+import { PHONE_DISPLAY, PHONE_TEL, QUOTE_PATH, SITE_NAME } from "@/lib/site";
 
 const FALLBACK_HERO = MEDIA_REGISTRY.hero.primary;
+const HOMEPAGE_FAQ = FAQ_ITEMS.slice(0, 4);
 
 const HERO_CHIPS = [
   "Licensed & insured",
-  "Palm Beach County operations",
-  "Documented field execution",
-  "Estate & turnover programs",
+  "Palm Beach County",
+  "Photo-backed scope",
+  "Free estimates",
 ] as const;
 
 const CREDIBILITY_PILLARS = [
   {
     title: "Written scope first",
-    body: "Access notes, substrates, and checkpoints confirmed before crews dispatch.",
+    body: "Access, substrates, and checkpoints confirmed before crews dispatch.",
   },
   {
     title: "County-native scheduling",
-    body: "Salt exposure, humidity, and seasonal occupancy inform how programs run.",
+    body: "Salt, humidity, and seasonal occupancy inform how programs run.",
   },
   {
-    title: "Operational records",
-    body: "Photo checklists, walkthrough notes, and visit logs when your asset requires them.",
-  },
-] as const;
-
-const CARE_PLANS = [
-  {
-    eyebrow: "Weekly rhythm",
-    title: "Weekly estate care",
-    body: "High-touch residences and active storefronts on a steady operational baseline year-round.",
-    icon: "calendar",
-  },
-  {
-    eyebrow: "Seasonal playbook",
-    title: "Seasonal property programs",
-    body: "Open, close, and peak-season sequences for coastal estates and second homes.",
-    icon: "palm",
-  },
-  {
-    eyebrow: "Owner-offsite coverage",
-    title: "Vacation home coordination",
-    body: "Coordinated visits while you are away—glass, exterior, interior, and arrival readiness.",
-    icon: "estate",
-  },
-  {
-    eyebrow: "Per turnover",
-    title: "Short-term rental turnovers",
-    body: "Check-in aligned crews, linen resets, and staging details under your SOPs.",
-    icon: "key",
-  },
-  {
-    eyebrow: "Commercial cadence",
-    title: "Storefront maintenance",
-    body: "Glass, floors, and high-traffic zones matched to operating hours and foot traffic.",
-    icon: "storefront",
-  },
-] as const;
-
-const SERVICE_LINES = [
-  {
-    title: "Exterior care",
-    body: "Curb presence, glass clarity, hardscape, and exterior surfaces maintained to coastal estate standards.",
-    asset: MEDIA_REGISTRY.divisions.exterior,
-    examples: ["Pressure washing", "Window lines", "Driveway refresh", "Pool deck care"],
-    links: [
-      { href: "/services/window-cleaning", label: "Window cleaning" },
-      { href: "/services/pressure-washing", label: "Pressure washing" },
-      { href: "/services/auto-detailing", label: "Exterior detailing" },
-    ],
-  },
-  {
-    title: "Interior care",
-    body: "Estate resets, turnover prep, and interiors kept inspection-ready with repeatable crew standards.",
-    asset: MEDIA_REGISTRY.divisions.interior,
-    examples: ["Estate resets", "Move-out prep", "Kitchen detail", "Carpet care"],
-    links: [
-      { href: "/services/residential-cleaning", label: "Residential cleaning" },
-      { href: "/services/carpet-steam-cleaning", label: "Carpet cleaning" },
-      { href: "/services/residential-cleaning", label: "Move-out cleaning" },
-    ],
-  },
-  {
-    title: "Property support",
-    body: "Turnovers, maintenance coordination, and onsite support aligned to operations calendars.",
-    asset: MEDIA_REGISTRY.divisions.propertySupport,
-    examples: ["Airbnb turnovers", "Vendor oversight", "Seasonal checks", "Trash services"],
-    links: [
-      { href: "/services/airbnb-services", label: "Airbnb turnovers" },
-      { href: "/services/property-maintenance", label: "Property maintenance" },
-      { href: "/services/trash-can-cleaning", label: "Trash services" },
-    ],
+    title: "Documented field work",
+    body: "Photo checklists and visit records when your property requires them.",
   },
 ] as const;
 
@@ -124,47 +45,8 @@ const WHO_WE_SERVE = [
   "Seasonal residents",
   "Property managers",
   "Airbnb operators",
-  "Realtor partners",
   "Storefront operators",
-  "HOA communities",
 ] as const;
-
-function PlanIcon({ type }: { type: (typeof CARE_PLANS)[number]["icon"] }) {
-  const shared = "h-5 w-5 text-aqua";
-  switch (type) {
-    case "calendar":
-      return (
-        <svg className={shared} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden>
-          <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3M4 11h16M6 5h12a2 2 0 012 2v13a2 2 0 01-2 2H6a2 2 0 01-2-2V7a2 2 0 012-2z" />
-        </svg>
-      );
-    case "palm":
-      return (
-        <svg className={shared} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden>
-          <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v18M8 8c-2 2-4 5-4 8M16 8c2 2 4 5 4 8M5 12h14" />
-        </svg>
-      );
-    case "estate":
-      return (
-        <svg className={shared} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden>
-          <path strokeLinecap="round" strokeLinejoin="round" d="M3 10.5L12 3l9 7.5V21H3v-10.5z" />
-          <path strokeLinecap="round" strokeLinejoin="round" d="M9 21v-6h6v6" />
-        </svg>
-      );
-    case "key":
-      return (
-        <svg className={shared} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden>
-          <path strokeLinecap="round" strokeLinejoin="round" d="M15.5 7.5a4.5 4.5 0 11-6.4 6.4L5 18l-2 2 2-2 4.1-4.1A4.5 4.5 0 0115.5 7.5z" />
-        </svg>
-      );
-    case "storefront":
-      return (
-        <svg className={shared} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden>
-          <path strokeLinecap="round" strokeLinejoin="round" d="M4 10h16l-1 10H5L4 10zM4 10l2-6h12l2 6M9 14h6" />
-        </svg>
-      );
-  }
-}
 
 export function PremiumHomePage({
   media,
@@ -185,75 +67,43 @@ export function PremiumHomePage({
   const fallbackHeroSrc = media.heroImageSrc || buildMediaUrl(FALLBACK_HERO.src, 2000);
   const fallbackHeroAlt = media.heroImageAlt || FALLBACK_HERO.alt;
 
-  const serviceLines: Array<(typeof SERVICE_LINES)[number] & { asset: MediaAsset }> = media.hasAuthenticMedia
-    ? SERVICE_LINES.map((line, index) => {
-        const project = media.galleryProjects[index] ?? media.galleryProjects[0];
-        const image = project?.gallery[0] ?? project?.heroCandidates[0] ?? project?.beforeAfter[0]?.after;
-        if (!image) return line;
-        return {
-          ...line,
-          asset: {
-            id: image.id,
-            category: line.asset.category,
-            src: image.src,
-            alt: image.alt,
-            source: "authentic",
-            focal: image.focal,
-            blurDataURL: image.blurDataURL,
-            aspect: "landscape",
-            overlay: "card",
-          },
-        };
-      })
-    : [...SERVICE_LINES];
-
-  const audienceAsset: MediaAsset =
-    media.hasAuthenticMedia && media.galleryProjects[0]?.heroCandidates[0]
-      ? {
-          id: media.galleryProjects[0].heroCandidates[0].id,
-          category: "local",
-          src: media.galleryProjects[0].heroCandidates[0].src,
-          alt: media.galleryProjects[0].heroCandidates[0].alt,
-          source: "authentic",
-          focal: media.galleryProjects[0].heroCandidates[0].focal,
-          blurDataURL: media.galleryProjects[0].heroCandidates[0].blurDataURL,
-          aspect: "landscape",
-          overlay: "subtle",
-        }
-      : MEDIA_REGISTRY.audience;
-
-  const workflowAsset: MediaAsset =
-    media.hasAuthenticMedia && media.galleryProjects[0]?.detailShots[0]
-      ? {
-          id: media.galleryProjects[0].detailShots[0].id,
-          category: "exterior",
-          src: media.galleryProjects[0].detailShots[0].src,
-          alt: media.galleryProjects[0].detailShots[0].alt,
-          source: "authentic",
-          focal: media.galleryProjects[0].detailShots[0].focal,
-          blurDataURL: media.galleryProjects[0].detailShots[0].blurDataURL,
-          aspect: "portrait",
-          overlay: "card",
-        }
-      : MEDIA_REGISTRY.operations.poolDeck;
-
   const heroEyebrow = homepage?.hero_eyebrow ?? "Palm Beach Property Pros";
   const heroHeadline =
     homepage?.hero_headline ?? "Professional Cleaning & Property Care in Palm Beach County";
   const heroSubheadline =
     homepage?.hero_subheadline ??
-    "Complete window detailing, pressure washing, property cleanups, lawn care, detailing, and ongoing maintenance—delivered with clear communication and photo-backed scope.";
+    "Window detailing, pressure washing, estate cleanups, and ongoing property care—clear communication and photo-backed scope.";
   const heroPrimaryCta = homepage?.hero_primary_cta_label ?? "Request a Free Estimate";
   const heroSecondaryCta = homepage?.hero_secondary_cta_label ?? "Call or Text";
   const trustMicrocopy =
     homepage?.trust_microcopy ?? "Free estimates • Photo uploads • Clear communication";
   const heroChips =
-    homepage?.trust_statements?.length ? homepage.trust_statements : [...HERO_CHIPS];
+    homepage?.trust_statements?.length ? homepage.trust_statements.slice(0, 4) : [...HERO_CHIPS];
   const showFeaturedServices = homepage?.section_visibility?.featured_services !== false;
   const showFeaturedProjects = homepage?.section_visibility?.featured_projects !== false;
 
+  const closingHeadline = homepage?.closing_cta_headline ?? "Ready for a free estimate?";
+  const closingBody =
+    homepage?.closing_cta_body ??
+    "Share your property details and photos—we respond with scope-based pricing and clear next steps.";
+  const serviceAreaCopy =
+    homepage?.service_area_content ??
+    "Serving homeowners, estates, property managers, and commercial clients throughout Palm Beach County.";
+
+  const pinnedProjects = featuredProjects.slice(0, 3);
+  const recapProjects = media.recaps.slice(0, 3);
+  const beforeAfterPairs = media.featuredPairs.slice(0, 4);
+  const featuredTestimonials = testimonials.slice(0, 2);
+
+  const showDbProjects = useDbProjects && showFeaturedProjects && pinnedProjects.length > 0;
+  const showTransformation = !showDbProjects && media.transformations.length > 0;
+  const showBeforeAfterGrid =
+    !showDbProjects && !showTransformation && beforeAfterPairs.length > 0;
+  const showRecaps = !showDbProjects && !showTransformation && !showBeforeAfterGrid && recapProjects.length > 0;
+
   return (
     <>
+      {/* 1. Hero */}
       <section className="hero-cinematic animate-fade-up relative -mx-4 sm:-mx-6 md:mx-0 md:rounded-3xl">
         {useCuratedHero ? (
           <CuratedHeroMedia heroImage={media.curatedHeroImage} />
@@ -261,20 +111,18 @@ export function PremiumHomePage({
           <FallbackHeroMedia src={fallbackHeroSrc} alt={fallbackHeroAlt} />
         )}
 
-        <div className="relative z-10 px-4 py-20 sm:px-6 sm:py-24 md:px-10 md:py-32 lg:py-36">
+        <div className="relative z-10 px-4 py-16 sm:px-6 sm:py-20 md:px-10 md:py-28 lg:py-32">
           <div className="max-w-xl md:max-w-3xl">
-            <p className="section-eyebrow text-aqua/90 md:tracking-[0.32em]">
-              {heroEyebrow}
-            </p>
-            <h1 className="mt-6 text-4xl font-semibold leading-[1.08] tracking-tight text-cream drop-shadow-[0_2px_24px_rgba(8,26,46,0.45)] sm:text-5xl md:mt-7 md:text-[3.25rem] md:leading-[1.06]">
+            <p className="section-eyebrow text-aqua/90 md:tracking-[0.32em]">{heroEyebrow}</p>
+            <h1 className="mt-5 text-4xl font-semibold leading-[1.08] tracking-tight text-cream drop-shadow-[0_2px_24px_rgba(8,26,46,0.45)] sm:text-5xl md:mt-6 md:text-[3.1rem] md:leading-[1.06]">
               {heroHeadline}
             </h1>
-            <p className="mt-7 max-w-xl text-base leading-[1.75] text-silver/95 sm:text-lg md:mt-9 md:max-w-2xl md:text-xl md:leading-[1.7]">
+            <p className="mt-5 max-w-xl text-base leading-[1.7] text-silver/95 sm:text-lg md:max-w-2xl md:text-xl">
               {heroSubheadline}
             </p>
           </div>
 
-          <ul className="mt-10 flex flex-wrap justify-center gap-2.5 md:mt-12 md:justify-start md:gap-3">
+          <ul className="mt-8 flex flex-wrap justify-center gap-2 md:justify-start md:gap-2.5">
             {heroChips.map((chip) => (
               <li key={chip} className="luxury-pill">
                 {chip}
@@ -282,10 +130,10 @@ export function PremiumHomePage({
             ))}
           </ul>
 
-          <p className="mt-6 text-sm text-silver/90">{trustMicrocopy}</p>
+          <p className="mt-5 text-sm text-silver/90">{trustMicrocopy}</p>
 
-          <div className="mt-8 flex w-full max-w-xl flex-col gap-3 sm:max-w-none md:max-w-3xl md:flex-row md:flex-wrap md:items-center md:gap-4">
-            <Link href="/quote" className="btn-hero-primary min-h-[56px] w-full sm:w-auto">
+          <div className="mt-7 flex w-full max-w-xl flex-col gap-3 sm:max-w-none md:max-w-3xl md:flex-row md:flex-wrap md:items-center md:gap-4">
+            <Link href={QUOTE_PATH} className="btn-hero-primary min-h-[56px] w-full sm:w-auto">
               {heroPrimaryCta}
             </Link>
             <a href={PHONE_TEL} className="btn-hero-secondary min-h-[56px] w-full sm:w-auto">
@@ -295,316 +143,179 @@ export function PremiumHomePage({
         </div>
       </section>
 
+      {/* 2. Core services */}
       {showFeaturedServices && featuredServices.length ? (
         <FeaturedServicesSection services={featuredServices} />
       ) : null}
 
-      <TransformationShowcase projects={media.transformations} isAuthentic={media.hasAuthenticMedia} />
-
-      {media.hasAuthenticMedia && media.featuredPairs.length > 0 ? (
-        <section className="pb-16 md:pb-24">
-          <div className="mx-auto max-w-2xl text-center">
-            <p className="section-eyebrow text-ocean">Before &amp; after gallery</p>
-            <h2 className="section-title mt-4">Every angle documented</h2>
-            <p className="section-lead">
-              Four paired comparisons from the Palm Beach Gardens estate cleanup—overgrown conditions
-              beside restored pathways and exterior lines.
-            </p>
-          </div>
-          <div className="mt-12">
-            <BeforeAfterGrid pairs={media.featuredPairs} />
-          </div>
-        </section>
+      {/* 3. Project / before-and-after proof (one primary block) */}
+      {showDbProjects ? (
+        <CmsFeaturedProjectsSection projects={pinnedProjects} />
       ) : null}
 
-      <div className="section-divider my-2 md:my-4" aria-hidden />
+      {showTransformation ? (
+        <TransformationShowcase projects={media.transformations} isAuthentic={media.hasAuthenticMedia} />
+      ) : null}
 
-      <ScrollReveal>
-        <section className="section-band-light relative overflow-hidden">
-          <div className="absolute inset-0 bg-luxury-mesh opacity-60" aria-hidden />
-          <div className="relative mx-auto max-w-2xl text-center">
-            <p className="section-eyebrow text-ocean">Client platform</p>
-            <h2 className="section-title">One secure operations portal</h2>
+      {showBeforeAfterGrid ? (
+        <section className="pb-14 md:pb-20">
+          <div className="mx-auto max-w-2xl text-center">
+            <p className="section-eyebrow text-ocean">Before &amp; after</p>
+            <h2 className="section-title mt-3">Documented field results</h2>
             <p className="section-lead">
-              Quotes, scheduling, invoices, payment, and approvals stay on {SITE_NAME}—so nothing gets
-              lost between field crews, owners, and property stakeholders.
+              Real project contrast from Palm Beach County work—restored lines beside neglected conditions.
             </p>
-            <Link href="/quote" className="btn-primary mx-auto mt-8 inline-flex">
-              Request a scope review
+          </div>
+          <div className="mt-10">
+            <BeforeAfterGrid pairs={beforeAfterPairs} />
+          </div>
+          <p className="mt-8 text-center">
+            <Link href="/projects" className="text-sm font-semibold text-ocean hover:underline">
+              View all projects →
             </Link>
-          </div>
+          </p>
         </section>
-      </ScrollReveal>
-
-      {media.storyArc ? <StoryArcShowcase storyArc={media.storyArc} /> : null}
-
-      {media.hasAuthenticMedia && media.reelClips.length > 0 ? (
-        <ScrollReveal delay={20}>
-          <section className="py-16 md:py-24">
-            <div className="mx-auto max-w-2xl text-center">
-              <p className="section-eyebrow text-ocean">Field documentation</p>
-              <h2 className="section-title mt-4">On-site video</h2>
-              <p className="section-lead">
-                Operational clips from the estate cleanup—crews clearing vegetation and restoring
-                exterior lines in Palm Beach Gardens.
-              </p>
-            </div>
-            <div className="mt-12">
-              <ProjectReelGrid clips={media.reelClips.slice(0, 3)} />
-            </div>
-          </section>
-        </ScrollReveal>
       ) : null}
 
-      {media.hasAuthenticMedia && media.featuredPairs.length > 1 ? (
-        <ScrollReveal delay={40}>
-          <section className="pb-16 md:pb-24">
-            <div className="mx-auto max-w-2xl text-center">
-              <p className="section-eyebrow text-ocean">Interactive proof</p>
-              <h2 className="section-title mt-4">Swipe through transformations</h2>
-            </div>
-            <div className="mt-10">
-              <TransformationCarousel pairs={media.featuredPairs} />
-            </div>
-          </section>
-        </ScrollReveal>
+      {showRecaps ? (
+        <>
+          <FeaturedProjectsSection projects={recapProjects} />
+          <p className="-mt-6 pb-10 text-center md:-mt-10">
+            <Link href="/projects" className="text-sm font-semibold text-ocean hover:underline">
+              View all projects →
+            </Link>
+          </p>
+        </>
       ) : null}
 
-      <ScrollReveal delay={60}>
-        <section className="relative py-16 md:py-24">
-          <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-aqua/15 to-transparent" aria-hidden />
-          <div className="mx-auto max-w-2xl text-center">
-            <p className="section-eyebrow text-ocean">Recurring programs</p>
-            <h2 className="section-title mt-4">Estate maintenance cadence</h2>
-            <p className="section-lead">
-              Predictable visits, documented scope, and crews aligned to how your property actually
-              runs—concierge-level coordination, not generic recurring visits.
-            </p>
-          </div>
-          <div className="mt-12 grid gap-5 md:mt-16 md:grid-cols-2 md:gap-6 lg:grid-cols-3">
-            {CARE_PLANS.map((plan) => (
-              <article key={plan.title} className="care-plan-card group flex flex-col">
-                <div className="care-plan-icon-wrap">
-                  <PlanIcon type={plan.icon} />
-                </div>
-                <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-aqua-muted">
-                  {plan.eyebrow}
-                </p>
-                <h3 className="mt-3 text-lg font-semibold tracking-tight text-navy">{plan.title}</h3>
-                <p className="mt-4 flex-1 text-sm leading-relaxed text-charcoal/75">{plan.body}</p>
-                <Link href="/quote" className="link-luxury mt-6 inline-block">
-                  Discuss a program
-                </Link>
-              </article>
-            ))}
-          </div>
-        </section>
-      </ScrollReveal>
-
-      <ScrollReveal delay={120}>
-        <section className="section-band-warm relative overflow-hidden">
-          <div className="absolute -right-24 top-0 h-64 w-64 rounded-full bg-aqua/[0.04] blur-3xl" aria-hidden />
-          <div className="relative mx-auto max-w-2xl text-center">
-            <p className="section-eyebrow text-ocean">Service divisions</p>
-            <h2 className="section-title mt-4">Operational service lines</h2>
-            <p className="section-lead">
-              Exterior, interior, and property support—structured the way mature field operators run
-              county-wide programs.
-            </p>
-          </div>
-          <div className="relative mt-14 grid gap-10 md:gap-12 lg:grid-cols-3">
-            {serviceLines.map((line) => (
-              <div key={line.title} className="service-division group flex flex-col">
-                <MediaFrame aspect="landscape" className="service-division-image image-frame mb-8 rounded-2xl md:rounded-3xl">
-                  <MediaAssetImage asset={line.asset} width={900} hoverScale={!media.hasAuthenticMedia} />
-                  <div className="absolute bottom-0 left-0 right-0 z-[3] p-5">
-                    <span className="inline-flex rounded-full border border-white/20 bg-navy-deep/50 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.22em] text-cream/90 backdrop-blur-md">
-                      {line.title}
-                    </span>
-                  </div>
-                </MediaFrame>
-                <p className="max-w-sm text-sm leading-relaxed text-charcoal/70">{line.body}</p>
-                <ul className="mt-4 flex flex-wrap gap-2">
-                  {line.examples.map((example) => (
-                    <li
-                      key={example}
-                      className="rounded-full border border-navy/[0.06] bg-white/70 px-2.5 py-1 text-[11px] font-medium text-charcoal/60"
-                    >
-                      {example}
-                    </li>
-                  ))}
-                </ul>
-                <ul className="mt-6 space-y-3">
-                  {line.links.map((link) => (
-                    <li key={link.label}>
-                      <Link href={link.href} className="service-link-card group/link">
-                        <span>{link.label}</span>
-                        <span className="text-aqua-muted transition duration-500 group-hover/link:translate-x-0.5">
-                          →
-                        </span>
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ))}
-          </div>
-        </section>
-      </ScrollReveal>
-
-      <FeaturedProjectsSection projects={media.recaps} />
-
-      {!useDbProjects && showFeaturedProjects && featuredProjects.length ? (
-        <CmsFeaturedProjectsSection projects={featuredProjects} />
-      ) : null}
-
+      {/* 4. Why choose PBPP / trust */}
       <ScrollReveal>
-        <section className="py-16 md:py-24">
-          <div className="grid min-w-0 gap-10 md:gap-14 lg:grid-cols-2 lg:items-center">
-            <MediaFrame aspect="landscape" className="image-frame min-h-[220px] sm:min-h-[280px] md:min-h-0">
-              <MediaAssetImage asset={audienceAsset} width={1200} hoverScale={!media.hasAuthenticMedia} />
-            </MediaFrame>
-            <div className="lg:pl-4">
-              <p className="section-eyebrow text-ocean">Who we serve</p>
-              <h2 className="section-title mt-3">Built for Palm Beach stakeholders</h2>
-              <p className="mt-5 max-w-md text-base leading-relaxed text-charcoal/75">
-                From estate driveways to dealership glass lines—one operations mindset: quiet execution,
-                written scope, and repeatable field standards.
-              </p>
-              <ul className="mt-8 grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3">
-                {WHO_WE_SERVE.map((label) => (
-                  <li key={label} className="audience-chip">
-                    {label}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </div>
-        </section>
-      </ScrollReveal>
-
-      <ScrollReveal delay={80}>
-        <section className="trust-band relative overflow-hidden rounded-2xl border border-white/[0.06] bg-gradient-to-br from-navy via-navy to-navy-deep py-14 text-cream shadow-luxury md:rounded-3xl md:py-16">
+        <section className="trust-band relative overflow-hidden rounded-2xl border border-white/[0.06] bg-gradient-to-br from-navy via-navy to-navy-deep py-12 text-cream shadow-luxury md:rounded-3xl md:py-14">
           <div className="absolute inset-0 bg-luxury-radial opacity-60" aria-hidden />
           <div className="hero-grain absolute inset-0 opacity-20" aria-hidden />
-          <div className="relative">
-            <div className="mx-auto max-w-2xl px-2 text-center">
-              <p className="section-eyebrow text-aqua/80">Operational credibility</p>
-              <h2 className="section-title mt-3 text-cream">How mature field programs run</h2>
-              <p className="mx-auto mt-5 max-w-xl text-sm leading-relaxed text-cream/80 md:text-base">
-                No inflated claims—just the execution standards owners and managers expect from a
-                county-embedded property operations partner.
+          <div className="relative mx-auto max-w-5xl px-4 sm:px-6">
+            <div className="mx-auto max-w-2xl text-center">
+              <p className="section-eyebrow text-aqua/80">Why {SITE_NAME}</p>
+              <h2 className="section-title mt-3 text-cream">Quiet execution, written scope</h2>
+              <p className="mx-auto mt-4 max-w-xl text-sm leading-relaxed text-cream/80 md:text-base">
+                County-embedded crews for estates, seasonal homes, rentals, and storefronts—without inflated
+                claims or vague pricing.
               </p>
             </div>
-            <ul className="mx-auto mt-10 grid max-w-4xl gap-5 px-2 md:grid-cols-3">
+            <ul className="mx-auto mt-8 grid max-w-4xl gap-4 md:grid-cols-3">
               {CREDIBILITY_PILLARS.map((pillar) => (
                 <li key={pillar.title} className="credibility-pillar">
                   <h3 className="text-sm font-semibold text-cream">{pillar.title}</h3>
-                  <p className="mt-3 text-sm leading-relaxed text-silver/80">{pillar.body}</p>
+                  <p className="mt-2 text-sm leading-relaxed text-silver/80">{pillar.body}</p>
                 </li>
               ))}
             </ul>
-          </div>
-        </section>
-      </ScrollReveal>
-
-      <ScrollReveal>
-        <section className="relative overflow-hidden rounded-2xl border border-white/[0.06] bg-gradient-to-br from-navy via-navy to-navy-deep py-16 text-cream shadow-luxury md:rounded-3xl md:py-20">
-          <div className="absolute inset-0 bg-luxury-radial opacity-60" aria-hidden />
-          <div className="hero-grain absolute inset-0 opacity-20" aria-hidden />
-          <div className="relative mx-auto max-w-3xl px-2 text-center">
-            <p className="section-eyebrow text-aqua/80">Local presence</p>
-            <h2 className="section-title text-cream">Embedded in Palm Beach County</h2>
-            <p className="mx-auto mt-6 max-w-2xl text-base leading-relaxed text-cream/85 md:text-lg">
-              {SITE_NAME} coordinates programs throughout the county—where coastal humidity, salt exposure,
-              and seasonal occupancy patterns inform how we schedule exterior refreshes, interior care, and
-              turnovers.
-            </p>
-            <ul className="mx-auto mt-8 flex max-w-2xl flex-wrap justify-center gap-2">
-              {LOCAL_MARKETS.map((market) => (
+            <ul className="mx-auto mt-8 flex max-w-3xl flex-wrap justify-center gap-2">
+              {WHO_WE_SERVE.map((label) => (
                 <li
-                  key={market}
-                  className="rounded-full border border-white/15 bg-white/[0.05] px-3 py-1.5 text-xs font-medium text-cream/85 backdrop-blur-sm"
+                  key={label}
+                  className="rounded-full border border-white/15 bg-white/[0.05] px-3 py-1.5 text-xs font-medium text-cream/85"
                 >
-                  {market}
+                  {label}
                 </li>
               ))}
             </ul>
-            <Link
-              href="/service-area"
-              className="mt-8 inline-block text-sm font-semibold tracking-wide text-aqua no-underline transition duration-500 hover:text-cream"
-            >
-              View full service area →
-            </Link>
           </div>
         </section>
       </ScrollReveal>
 
-      <ScrollReveal delay={60}>
-        <section className="py-16 md:py-24">
-          <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,300px)] lg:items-start lg:gap-14">
-            <div>
-              <p className="section-eyebrow text-ocean">Field workflow</p>
-              <h2 className="section-title mt-3">From scope to documented completion</h2>
-              <p className="mt-4 max-w-lg text-sm leading-relaxed text-charcoal/70 md:text-base">
-                A clear operational path from first contact to completed scope—no ambiguity for owners,
-                managers, or seasonal stakeholders.
-              </p>
-              <div className="mt-10">
-                <FieldExecutionTimeline steps={FIELD_EXECUTION_STEPS} />
+      {featuredTestimonials.length ? (
+        <ScrollReveal delay={40}>
+          <section className="py-12 md:py-16">
+            <div className="mx-auto max-w-4xl px-4 sm:px-6">
+              <p className="section-eyebrow text-ocean">Client feedback</p>
+              <div className="mt-6 grid gap-4 md:grid-cols-2">
+                {featuredTestimonials.map((item) => (
+                  <blockquote
+                    key={item.id}
+                    className="rounded-2xl border border-navy/10 bg-white p-5 shadow-sm"
+                  >
+                    <p className="text-sm italic leading-relaxed text-charcoal/85">&ldquo;{item.quote}&rdquo;</p>
+                    <footer className="mt-3 text-xs font-semibold text-navy">
+                      — {item.author}
+                      {item.location ? ` · ${item.location}` : ""}
+                    </footer>
+                  </blockquote>
+                ))}
               </div>
             </div>
-            <MediaFrame aspect="portrait" className="image-frame hidden min-h-[320px] lg:block">
-              <MediaAssetImage asset={workflowAsset} width={600} hoverScale={!media.hasAuthenticMedia} />
-            </MediaFrame>
-          </div>
-        </section>
-      </ScrollReveal>
+          </section>
+        </ScrollReveal>
+      ) : null}
 
-      <ScrollReveal>
-        <section className="section-band-muted relative overflow-hidden py-16 md:py-24">
-          <div className="absolute inset-0 bg-luxury-mesh opacity-40" aria-hidden />
-          <div className="relative mx-auto max-w-3xl">
-            <p className="section-eyebrow text-ocean">Documentation systems</p>
-            <h2 className="section-title mt-3">Owner visibility &amp; operational records</h2>
-            <p className="mt-5 max-w-2xl text-base leading-relaxed text-charcoal/75">
-              Walkthrough notes, photo checklists, property logs, and written scopes—structured for owners
-              and managers who expect vendor accountability.
-            </p>
-            <div className="mt-10">
-              <DocumentationSuite items={OPERATIONAL_PROOF} />
+      {/* 5. Service area + process (compact) */}
+      <ScrollReveal delay={60}>
+        <section className="section-band-light py-12 md:py-16">
+          <div className="mx-auto max-w-5xl px-4 sm:px-6">
+            <div className="grid gap-10 lg:grid-cols-2 lg:items-start lg:gap-12">
+              <div>
+                <p className="section-eyebrow text-ocean">Service area</p>
+                <h2 className="section-title mt-3">Palm Beach County</h2>
+                <p className="mt-4 text-sm leading-relaxed text-charcoal/75 md:text-base">{serviceAreaCopy}</p>
+                <ul className="mt-5 flex flex-wrap gap-2">
+                  {LOCAL_MARKETS.slice(0, 6).map((market) => (
+                    <li
+                      key={market}
+                      className="rounded-full border border-navy/10 bg-white px-3 py-1 text-xs font-medium text-charcoal/70"
+                    >
+                      {market}
+                    </li>
+                  ))}
+                </ul>
+                <Link href="/service-area" className="mt-5 inline-block text-sm font-semibold text-ocean hover:underline">
+                  View full service area →
+                </Link>
+              </div>
+              <div>
+                <p className="section-eyebrow text-ocean">How it works</p>
+                <h2 className="section-title mt-3">From estimate to completion</h2>
+                <p className="mt-4 text-sm leading-relaxed text-charcoal/75">
+                  Request scope, confirm access, execute with photo checkpoints, and receive clear invoicing.
+                </p>
+                <div className="mt-6">
+                  <FieldExecutionTimeline steps={FIELD_EXECUTION_STEPS.slice(0, 4)} />
+                </div>
+              </div>
             </div>
           </div>
         </section>
       </ScrollReveal>
 
-      <ScrollReveal delay={40}>
-        <section className="py-16 md:py-20">
-          <div className="mx-auto w-full max-w-3xl">
-            <h2 className="section-title">FAQ</h2>
-            <p className="mt-4 text-sm text-charcoal/65">
-              Common questions from property owners, managers, and seasonal residents.
+      {/* Supporting FAQ (short — full detail on service pages) */}
+      <ScrollReveal delay={80}>
+        <section className="py-12 md:py-16">
+          <div className="mx-auto w-full max-w-3xl px-4 sm:px-6">
+            <h2 className="section-title">Common questions</h2>
+            <p className="mt-3 text-sm text-charcoal/65">
+              Quick answers for property owners and managers. Service-specific FAQs live on each service page.
             </p>
-            <div className="mt-10">
-              <FaqAccordion items={FAQ_ITEMS} />
+            <div className="mt-8">
+              <FaqAccordion items={HOMEPAGE_FAQ} />
             </div>
+            <p className="mt-6 text-center">
+              <Link href="/services" className="text-sm font-semibold text-ocean hover:underline">
+                Browse services &amp; detailed FAQs →
+              </Link>
+            </p>
           </div>
         </section>
       </ScrollReveal>
 
-      <section className="animate-fade-up relative overflow-hidden rounded-2xl border border-white/[0.08] bg-gradient-to-b from-charcoal to-navy-deep px-4 py-16 text-center text-cream shadow-luxury sm:px-8 md:rounded-3xl md:py-20">
+      {/* 6. Final CTA */}
+      <section className="animate-fade-up relative overflow-hidden rounded-2xl border border-white/[0.08] bg-gradient-to-b from-charcoal to-navy-deep px-4 py-14 text-center text-cream shadow-luxury sm:px-8 md:rounded-3xl md:py-16">
         <div className="absolute inset-0 bg-luxury-vignette opacity-70" aria-hidden />
         <div className="hero-grain absolute inset-0 opacity-15" aria-hidden />
-        <div className="hero-glow absolute inset-0 opacity-40" aria-hidden />
         <div className="relative">
-          <h2 className="section-title text-cream">Ready when you are</h2>
-          <p className="mx-auto mt-5 max-w-lg text-base leading-relaxed text-silver/90">
-            Same team for scope review, field execution, invoicing, and ongoing programs—organized the way
-            modern property operations should be.
-          </p>
-          <div className="mx-auto mt-10 flex w-full max-w-xl flex-col items-stretch gap-3 sm:flex-row sm:items-center sm:justify-center md:gap-4">
-            <Link href="/quote" className="btn-hero-primary min-h-[52px] w-full sm:w-auto">
-              Request a scope review
+          <h2 className="section-title text-cream">{closingHeadline}</h2>
+          <p className="mx-auto mt-4 max-w-lg text-base leading-relaxed text-silver/90">{closingBody}</p>
+          <div className="mx-auto mt-8 flex w-full max-w-xl flex-col items-stretch gap-3 sm:flex-row sm:items-center sm:justify-center md:gap-4">
+            <Link href={QUOTE_PATH} className="btn-hero-primary min-h-[52px] w-full sm:w-auto">
+              {heroPrimaryCta}
             </Link>
             <a href={PHONE_TEL} className="btn-hero-secondary min-h-[52px] w-full sm:w-auto">
               Call or Text {PHONE_DISPLAY}

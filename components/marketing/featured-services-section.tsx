@@ -55,6 +55,12 @@ export function FeaturedServicesSection({ services }: { services: SiteService[] 
             </article>
           ))}
         </div>
+
+        <div className="mt-8 text-center">
+          <Link href="/services" className="text-sm font-semibold text-ocean hover:underline">
+            View all services →
+          </Link>
+        </div>
       </div>
     </section>
   );

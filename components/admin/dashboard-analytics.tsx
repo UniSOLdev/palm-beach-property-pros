@@ -17,19 +17,25 @@ export type DashboardAnalyticsProps = {
     leadCount: number;
     avgTicket: number;
     monthlyGrowth: number;
+    newLeads: number;
+    scheduledJobs: number;
+    draftProjects: number;
+    publishedProjects: number;
+    quoteConversion: number;
+    totalQuotes: number;
   };
 };
 
 export function DashboardAnalytics({ stats }: DashboardAnalyticsProps) {
   const metrics = [
+    { label: "New leads", value: String(stats.newLeads), href: "/admin/leads" },
+    { label: "Scheduled jobs", value: String(stats.scheduledJobs), href: "/admin/schedule" },
+    { label: "Completed jobs", value: String(stats.completedJobs), href: "/admin/jobs" },
+    { label: "Published projects", value: String(stats.publishedProjects), href: "/admin/site/projects" },
+    { label: "Draft projects", value: String(stats.draftProjects), href: "/admin/site/projects" },
+    { label: "Quote conversion", value: `${stats.quoteConversion.toFixed(0)}%`, href: "/admin/quotes" },
     { label: "Revenue pipeline", value: formatCurrency(stats.pipeline), href: "/admin/jobs", trend: stats.monthlyGrowth },
-    { label: "Jobs completed", value: String(stats.completedJobs), href: "/admin/jobs" },
     { label: "Outstanding invoices", value: String(stats.unpaidInvoices), href: "/admin/invoices", highlight: stats.unpaidInvoices > 0 },
-    { label: "Active clients", value: String(stats.activeClients), href: "/admin/clients" },
-    { label: "Open tasks", value: String(stats.openTasks), href: "/admin/tasks" },
-    { label: "Avg ticket", value: formatCurrency(stats.avgTicket), href: "/admin/jobs" },
-    { label: "Avg margin", value: formatPercent(stats.avgMargin), href: "/admin/jobs" },
-    { label: "Lead pipeline", value: String(stats.leadCount), href: "/admin/leads" },
   ];
 
   const chartData = [

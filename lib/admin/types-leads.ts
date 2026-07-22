@@ -6,6 +6,7 @@ export type QuoteRequestRow = {
   phone: string;
   email: string | null;
   service_requested: string;
+  services_requested: string[];
   address: string;
   city: string | null;
   property_type: string | null;
@@ -17,6 +18,9 @@ export type QuoteRequestRow = {
   source: string;
   referrer: string | null;
   status: LeadStatus;
+  water_spigot_available: "yes" | "no" | "unsure" | null;
+  requires_alternate_water: boolean;
+  alternate_water_notes: string | null;
   client_id: string | null;
   quote_id: string | null;
   invoice_id: string | null;

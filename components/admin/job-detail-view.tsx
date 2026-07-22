@@ -14,6 +14,7 @@ import { EXPENSE_CATEGORIES, PAYMENT_METHODS } from "@/lib/admin/constants";
 import { formatCurrency, formatDate, formatPercent } from "@/lib/admin/format";
 import { calculateJobProfitDetail } from "@/lib/admin/job-profit";
 import { uploadAdminFile } from "@/lib/admin/upload-client";
+import { googleMapsDirectionsUrl } from "@/lib/platform/constants";
 import { ChangeOrderJobPanel } from "@/components/admin/change-order-job-panel";
 import { ReceiptScannerFlow } from "@/components/admin/receipt-scanner-flow";
 import { TaskJobPanel } from "@/components/admin/task-job-panel";
@@ -110,6 +111,14 @@ export function JobDetailView({
       <section className="admin-card space-y-3">
         <h2 className="text-lg font-bold text-navy">Job details</h2>
         <DetailRow label="Address" value={job.address} />
+        <a
+          href={googleMapsDirectionsUrl(job.address)}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex min-h-[44px] items-center rounded-full bg-ocean/10 px-4 text-sm font-semibold text-ocean no-underline"
+        >
+          Open in Google Maps
+        </a>
         <DetailRow
           label="Scheduled"
           value={`${formatDate(job.job_date)}${job.start_time ? ` · ${job.start_time}` : ""}${job.end_time ? ` – ${job.end_time}` : ""}`}
@@ -446,6 +455,12 @@ function JobActionBar({
   return (
     <div className="fixed inset-x-0 bottom-16 z-40 border-t border-navy/10 bg-cream/95 px-3 py-2 backdrop-blur-md pb-safe">
       <div className="mx-auto grid max-w-3xl grid-cols-2 gap-2 sm:grid-cols-3">
+        <Link
+          href={`/admin/jobs/${jobId}/field`}
+          className="admin-btn col-span-2 min-h-[48px] text-center text-xs no-underline sm:col-span-1"
+        >
+          Field mode
+        </Link>
         <Link href={`/admin/jobs/${jobId}/edit`} className="admin-btn-secondary min-h-[48px] text-center text-xs no-underline">
           Edit job
         </Link>

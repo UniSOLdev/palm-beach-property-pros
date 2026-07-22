@@ -57,6 +57,8 @@ export type ProjectRecap = {
   handled: readonly string[];
   image: MediaAsset;
   isScaffold: boolean;
+  slug?: string;
+  projectHref?: string;
 };
 
 export type OperationalProof = {

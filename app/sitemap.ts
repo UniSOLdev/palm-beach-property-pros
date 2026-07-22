@@ -9,16 +9,17 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${base}/services`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.9 },
     { url: `${base}/pricing`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.8 },
     { url: `${base}/quote`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.9 },
+    { url: `${base}/projects`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.8 },
     { url: `${base}/service-area`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.7 },
-    { url: `${base}/contact`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.7 },
   ];
 
   try {
     const supabase = createServiceClient();
-    const { data: pages } = await supabase
-      .from("website_pages")
-      .select("slug, updated_at, status")
-      .eq("status", "published");
+    const [{ data: pages }, { data: serviceAreas }, { data: projects }] = await Promise.all([
+      supabase.from("website_pages").select("slug, updated_at, status").eq("status", "published"),
+      supabase.from("service_areas").select("slug, updated_at").eq("is_active", true),
+      supabase.from("site_projects").select("slug, updated_at").eq("is_published", true),
+    ]);
 
     const cmsRoutes: MetadataRoute.Sitemap = (pages ?? [])
       .filter((p) => p.slug !== "home")
@@ -29,7 +30,21 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         priority: 0.6,
       }));
 
-    return [...staticRoutes, ...cmsRoutes];
+    const areaRoutes: MetadataRoute.Sitemap = (serviceAreas ?? []).map((area) => ({
+      url: `${base}/service-area/${area.slug}`,
+      lastModified: area.updated_at ? new Date(area.updated_at) : new Date(),
+      changeFrequency: "monthly" as const,
+      priority: 0.65,
+    }));
+
+    const projectRoutes: MetadataRoute.Sitemap = (projects ?? []).map((project) => ({
+      url: `${base}/projects/${project.slug}`,
+      lastModified: project.updated_at ? new Date(project.updated_at) : new Date(),
+      changeFrequency: "weekly" as const,
+      priority: 0.75,
+    }));
+
+    return [...staticRoutes, ...areaRoutes, ...projectRoutes, ...cmsRoutes];
   } catch {
     return staticRoutes;
   }

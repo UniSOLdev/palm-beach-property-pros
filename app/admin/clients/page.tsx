@@ -40,19 +40,21 @@ export default async function AdminClientsPage() {
           <EmptyState>No clients yet.</EmptyState>
         ) : (
           query.data.map((c) => (
-            <li key={c.id} className="admin-card">
-              <p className="font-semibold text-navy">{c.name}</p>
-              <p className="text-xs text-charcoal/60">
-                {c.client_type} · {c.phone ?? "—"} · {formatDate(c.created_at)}
-              </p>
-              <div className="mt-3">
-                <TaskQuickAdd
-                  crew={crew}
-                  variant="compact"
-                  label="+ Task"
-                  defaults={{ client_id: c.id, category: "Client Communication" }}
-                />
-              </div>
+            <li key={c.id}>
+              <Link href={`/admin/clients/${c.id}`} className="admin-card block no-underline">
+                <p className="font-semibold text-navy">{c.name}</p>
+                <p className="text-xs text-charcoal/60">
+                  {c.client_type} · {c.phone ?? "—"} · {formatDate(c.created_at)}
+                </p>
+                <div className="mt-3">
+                  <TaskQuickAdd
+                    crew={crew}
+                    variant="compact"
+                    label="+ Task"
+                    defaults={{ client_id: c.id, category: "Client Communication" }}
+                  />
+                </div>
+              </Link>
             </li>
           ))
         )}

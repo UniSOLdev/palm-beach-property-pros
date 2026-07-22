@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { QuoteForm } from "./quote-form";
+import { getQuoteFormServices } from "@/lib/site-content/queries";
 import { PHONE_DISPLAY, PHONE_TEL, SITE_NAME } from "@/lib/site";
 
 export const metadata: Metadata = {
@@ -14,6 +15,7 @@ type Props = {
 
 export default async function QuotePage({ searchParams }: Props) {
   const { service } = await searchParams;
+  const services = await getQuoteFormServices();
 
   return (
     <div className="bg-cream">
@@ -39,7 +41,7 @@ export default async function QuotePage({ searchParams }: Props) {
           </a>
         </div>
         <div className="mt-10">
-          <QuoteForm defaultService={service} />
+          <QuoteForm services={services} defaultService={service} />
         </div>
       </section>
     </div>

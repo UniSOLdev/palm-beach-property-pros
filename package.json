@@ -9,9 +9,12 @@
     "lint": "next lint",
     "type-check": "tsc --noEmit",
     "db:push": "node scripts/db-push.mjs",
+    "db:types": "node scripts/db-types.mjs",
     "verify:public-homepage": "node scripts/verify-public-homepage-lock.mjs",
     "media:import": "node scripts/import-desktop-project.mjs",
     "media:curate": "tsx scripts/curate-media.ts",
+    "media:import-db": "node scripts/import-manifest-to-db.mjs",
+    "verify:project-workflow": "node scripts/verify-project-workflow.mjs",
     "media:health": "node scripts/media-health-report.mjs",
     "verify:media-deploy": "node scripts/verify-media-deploy.mjs"
   },

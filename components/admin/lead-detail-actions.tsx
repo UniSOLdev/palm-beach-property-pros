@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import {
@@ -9,9 +10,10 @@ import {
   convertLeadToQuote,
   logLeadContact,
   updateLeadStatus,
+  updateLeadWaterFlag,
 } from "@/lib/admin/actions/leads";
 import { copyQuotePublicLink, markQuoteSent } from "@/lib/admin/actions/quotes";
-import { LEAD_STATUSES, LEAD_STATUS_LABELS, type LeadStatus } from "@/lib/admin/lead-constants";
+import { LEAD_STATUSES, LEAD_STATUS_LABELS, WATER_SPIGOT_LABELS, type LeadStatus } from "@/lib/admin/lead-constants";
 import {
   QUOTE_APPROVAL_LABELS,
   quoteApprovalClass,
@@ -29,6 +31,9 @@ type Props = {
   quoteApprovalStatus: string | null;
   phone: string;
   email: string | null;
+  waterSpigotAvailable?: "yes" | "no" | "unsure" | null;
+  requiresAlternateWater?: boolean;
+  alternateWaterNotes?: string | null;
 };
 
 function phoneTel(phone: string) {
@@ -52,10 +57,14 @@ export function LeadDetailActions({
   quoteApprovalStatus,
   phone,
   email,
+  waterSpigotAvailable,
+  requiresAlternateWater = false,
+  alternateWaterNotes,
 }: Props) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [note, setNote] = useState("");
+  const [waterNotes, setWaterNotes] = useState(alternateWaterNotes ?? "");
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
@@ -100,6 +109,58 @@ export function LeadDetailActions({
         ) : null}
       </div>
 
+      {waterSpigotAvailable ? (
+        <div className="rounded-xl border border-navy/10 bg-white px-4 py-3 text-sm">
+          <p className="font-semibold text-navy">Water spigot (customer response)</p>
+          <p className="mt-1 text-charcoal/85">
+            {WATER_SPIGOT_LABELS[waterSpigotAvailable] ?? waterSpigotAvailable}
+          </p>
+          <div className="mt-3 space-y-2">
+            <label className="block text-xs font-semibold uppercase tracking-wide text-charcoal/60">
+              Alternate water notes
+            </label>
+            <textarea
+              value={waterNotes}
+              onChange={(e) => setWaterNotes(e.target.value)}
+              rows={2}
+              placeholder="Tank setup, additional charge, landlord coordination…"
+              className="w-full rounded-xl border border-navy/15 px-3 py-2 text-sm"
+            />
+            <div className="flex flex-wrap gap-2">
+              <button
+                type="button"
+                disabled={pending}
+                className="admin-btn-secondary min-h-[44px] px-3 text-xs"
+                onClick={() =>
+                  run(async () => {
+                    await updateLeadWaterFlag(leadId, true, waterNotes);
+                    setSuccess("Flagged for alternate water arrangement.");
+                  })
+                }
+              >
+                Flag alternate water
+              </button>
+              {requiresAlternateWater ? (
+                <button
+                  type="button"
+                  disabled={pending}
+                  className="admin-btn-secondary min-h-[44px] px-3 text-xs"
+                  onClick={() =>
+                    run(async () => {
+                      await updateLeadWaterFlag(leadId, false, "");
+                      setWaterNotes("");
+                      setSuccess("Alternate water flag cleared.");
+                    })
+                  }
+                >
+                  Clear flag
+                </button>
+              ) : null}
+            </div>
+          </div>
+        </div>
+      ) : null}
+
       {quotePublicUrl ? (
         <div className="rounded-xl bg-sky/40 px-4 py-3 text-sm space-y-2">
           <p>
@@ -120,6 +181,12 @@ export function LeadDetailActions({
           ) : null}
           {quoteId ? (
             <div className="flex flex-wrap gap-2 pt-1">
+              <Link
+                href={`/admin/quotes/${quoteId}/edit`}
+                className="admin-btn min-h-[44px] px-3 text-xs no-underline"
+              >
+                Edit estimate
+              </Link>
               <button
                 type="button"
                 disabled={pending}

@@ -112,6 +112,11 @@ export default async function AdminQuoteDetailPage({ params }: Props) {
 
       <section className="admin-card">
         <h2 className="text-sm font-semibold text-navy">Actions</h2>
+        <div className="mt-3 flex flex-wrap gap-2">
+          <Link href={`/admin/quotes/${quote.id}/edit`} className="admin-btn min-h-[48px] px-4 text-sm no-underline">
+            Edit estimate
+          </Link>
+        </div>
         <div className="mt-3">
           <QuoteAdminActions
             quoteId={quote.id}

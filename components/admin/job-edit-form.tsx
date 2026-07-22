@@ -3,9 +3,10 @@
 import { useRouter } from "next/navigation";
 import { useTransition } from "react";
 import { updateJob } from "@/lib/admin/actions/jobs";
+import { JOB_STATUSES } from "@/lib/platform/constants";
 import type { JobRow } from "@/lib/admin/types-jobs";
 
-const STATUSES = ["Scheduled", "In Progress", "Completed", "Cancelled", "On Hold"];
+const STATUSES = [...JOB_STATUSES, "On Hold"] as const;
 
 export function JobEditForm({ job }: { job: JobRow }) {
   const router = useRouter();

@@ -1,5 +1,6 @@
 import { DashboardAnalytics } from "@/components/admin/dashboard-analytics";
 import { DashboardTasks } from "@/components/admin/dashboard-tasks";
+import { SiteDashboardWidget } from "@/components/admin/site-dashboard-widget";
 import { getDashboardStats } from "@/lib/admin/queries";
 import { listCrewOptions, listTasks, spawnRecurringTasks } from "@/lib/admin/actions/tasks";
 
@@ -27,6 +28,7 @@ export default async function AdminDashboardPage() {
       </div>
 
       <DashboardTasks tasks={tasks} crew={crew} />
+      <SiteDashboardWidget />
       <DashboardAnalytics stats={stats} />
     </div>
   );

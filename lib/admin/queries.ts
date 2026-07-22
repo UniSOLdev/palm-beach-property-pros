@@ -66,6 +66,25 @@ export async function getDashboardStats() {
   const leadCount = leadsRes.count ?? 0;
   const avgTicket = jobs.length ? pipeline / jobs.length : 0;
 
+  const [
+    newLeadsRes,
+    scheduledJobsRes,
+    draftProjectsRes,
+    publishedProjectsRes,
+    quotesRes,
+    signedQuotesRes,
+  ] = await Promise.all([
+    supabase.from("quote_requests").select("id", { count: "exact", head: true }).eq("archived", false).eq("status", "new"),
+    supabase.from("jobs").select("id", { count: "exact", head: true }).eq("archived", false).eq("status", "Scheduled"),
+    supabase.from("site_projects").select("id", { count: "exact", head: true }).eq("is_published", false),
+    supabase.from("site_projects").select("id", { count: "exact", head: true }).eq("is_published", true),
+    supabase.from("quotes").select("id", { count: "exact", head: true }).eq("archived", false),
+    supabase.from("quotes").select("id", { count: "exact", head: true }).eq("archived", false).eq("approval_status", "signed"),
+  ]);
+
+  const quoteConversion =
+    (quotesRes.count ?? 0) > 0 ? ((signedQuotesRes.count ?? 0) / (quotesRes.count ?? 1)) * 100 : 0;
+
   const now = new Date();
   const thisMonth = jobs.filter((j) => {
     const d = new Date(j.created_at);
@@ -93,5 +112,11 @@ export async function getDashboardStats() {
     leadCount,
     avgTicket,
     monthlyGrowth,
+    newLeads: newLeadsRes.count ?? 0,
+    scheduledJobs: scheduledJobsRes.count ?? 0,
+    draftProjects: draftProjectsRes.count ?? 0,
+    publishedProjects: publishedProjectsRes.count ?? 0,
+    quoteConversion,
+    totalQuotes: quotesRes.count ?? 0,
   };
 }

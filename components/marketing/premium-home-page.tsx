@@ -1,12 +1,13 @@
 import Link from "next/link";
 import { FaqAccordion } from "@/components/faq-accordion";
 import { BeforeAfterCompare } from "@/components/media/before-after-compare";
-import { CuratedHeroMedia, FallbackHeroMedia } from "@/components/marketing/curated-hero-media";
+import { FallbackHeroMedia } from "@/components/marketing/curated-hero-media";
 import { CaseStudyPreview } from "@/components/marketing/case-study-preview";
 import { CustomerPaths } from "@/components/marketing/customer-paths";
 import { EstimateCta } from "@/components/marketing/estimate-cta";
 import { HomeServiceCards } from "@/components/marketing/home-service-cards";
 import { HowItWorksSection } from "@/components/marketing/how-it-works-section";
+import { RecurringPropertyCareSection } from "@/components/marketing/recurring-property-care-section";
 import { ReviewsSection } from "@/components/marketing/reviews-section";
 import { ScrollReveal } from "@/components/marketing/scroll-reveal";
 import { ServiceAreaSection } from "@/components/marketing/service-area-section";
@@ -15,52 +16,25 @@ import { getPublishedCaseStudies } from "@/lib/case-studies";
 import { CTA } from "@/lib/cta";
 import { FAQ_ITEMS } from "@/lib/faq";
 import { HOME_SERVICE_CARDS } from "@/lib/homepage-services";
-import { MEDIA_REGISTRY } from "@/lib/media";
 import type { HomepageMediaBundle } from "@/lib/media/homepage-media";
-import type { MediaAsset } from "@/lib/media/types";
-import { buildMediaUrl } from "@/lib/media/resolve";
+import { getSiteImage } from "@/lib/media/site-imagery";
 import { PHONE_DISPLAY, PHONE_TEL, SITE_NAME } from "@/lib/site";
 
-const FALLBACK_HERO = MEDIA_REGISTRY.hero.primary;
-
 export function PremiumHomePage({ media }: { media: HomepageMediaBundle }) {
-  const useCuratedHero = media.hasAuthenticMedia && media.curatedHeroImage;
-  const fallbackHeroSrc = buildMediaUrl(FALLBACK_HERO.src, 2000);
+  const heroImage = getSiteImage("hero-home-exterior");
   const publishedCaseStudies = getPublishedCaseStudies();
   const featuredCaseStudy = publishedCaseStudies[0];
 
-  const serviceCards = HOME_SERVICE_CARDS.map((card, index) => {
-    if (!media.hasAuthenticMedia) return card;
-    const project = media.galleryProjects[index % media.galleryProjects.length];
-    const image = project?.gallery[0] ?? project?.heroCandidates[0] ?? project?.beforeAfter[0]?.after;
-    if (!image) return card;
-    return {
-      ...card,
-      asset: {
-        id: image.id,
-        category: card.asset.category,
-        src: image.src,
-        alt: image.alt,
-        source: "authentic" as const,
-        focal: image.focal,
-        blurDataURL: image.blurDataURL,
-        aspect: "landscape" as const,
-        overlay: "card" as const,
-      },
-    };
-  });
-
+  /** Only authentic PBPP before/after — never stock in this section */
   const featuredTransformation =
     media.hasAuthenticMedia && media.transformations[0] ? media.transformations[0] : null;
 
   return (
     <>
       <section className="hero-cinematic animate-fade-up relative -mx-4 sm:-mx-6 md:mx-0 md:rounded-3xl">
-        {useCuratedHero ? (
-          <CuratedHeroMedia heroImage={media.curatedHeroImage} />
-        ) : (
-          <FallbackHeroMedia src={fallbackHeroSrc} alt={FALLBACK_HERO.alt} />
-        )}
+        {heroImage ? (
+          <FallbackHeroMedia src={heroImage.filePath} alt={heroImage.alt} />
+        ) : null}
 
         <div className="relative z-10 px-4 py-20 sm:px-6 sm:py-24 md:px-10 md:py-32 lg:py-36">
           <div className="max-w-xl md:max-w-3xl">
@@ -100,7 +74,7 @@ export function PremiumHomePage({ media }: { media: HomepageMediaBundle }) {
             </p>
           </div>
           <div className="mt-12">
-            <HomeServiceCards cards={serviceCards} />
+            <HomeServiceCards cards={HOME_SERVICE_CARDS} />
           </div>
           <p className="mt-8 text-center">
             <Link href="/services" className="link-luxury text-sm">
@@ -117,10 +91,11 @@ export function PremiumHomePage({ media }: { media: HomepageMediaBundle }) {
           <section className="section-band-light relative overflow-hidden py-16 md:py-24">
             <div className="absolute inset-0 bg-luxury-mesh opacity-60" aria-hidden />
             <div className="relative mx-auto max-w-2xl text-center">
-              <p className="section-eyebrow text-ocean">Before &amp; after</p>
-              <h2 className="section-title mt-4">Real results from Palm Beach County projects</h2>
+              <p className="section-eyebrow text-ocean">Palm Beach Property Pros project</p>
+              <h2 className="section-title mt-4">Before &amp; after from a Palm Beach Gardens estate</h2>
               <p className="section-lead">
-                Drag the slider to compare conditions before and after our crew completed the work.
+                Real project documentation from our crew—drag the slider to compare conditions
+                before and after the work was completed.
               </p>
             </div>
             <div className="relative mx-auto mt-12 max-w-4xl">
@@ -146,6 +121,12 @@ export function PremiumHomePage({ media }: { media: HomepageMediaBundle }) {
         </section>
       </ScrollReveal>
 
+      <ScrollReveal delay={50}>
+        <section className="py-16 md:py-24">
+          <RecurringPropertyCareSection />
+        </section>
+      </ScrollReveal>
+
       <ScrollReveal delay={60}>
         <section className="section-band-muted relative overflow-hidden py-16 md:py-24">
           <div className="absolute inset-0 bg-luxury-mesh opacity-40" aria-hidden />
@@ -157,7 +138,7 @@ export function PremiumHomePage({ media }: { media: HomepageMediaBundle }) {
               results.
             </p>
           </div>
-          <div className="relative mt-12">
+          <div className="relative mx-auto mt-12 max-w-6xl">
             <HowItWorksSection />
           </div>
         </section>
@@ -168,7 +149,10 @@ export function PremiumHomePage({ media }: { media: HomepageMediaBundle }) {
           <section className="py-16 md:py-24">
             <div className="mx-auto max-w-2xl text-center">
               <p className="section-eyebrow text-ocean">Project results</p>
-              <h2 className="section-title mt-4">Selected work from the field</h2>
+              <h2 className="section-title mt-4">Palm Beach Property Pros project</h2>
+              <p className="section-lead mt-3 text-sm text-charcoal/65">
+                Documented work from a completed Palm Beach County project.
+              </p>
             </div>
             <div className="mt-10">
               <CaseStudyPreview study={featuredCaseStudy} />
@@ -198,6 +182,7 @@ export function PremiumHomePage({ media }: { media: HomepageMediaBundle }) {
       <EstimateCta
         title="Ready when you are"
         body="Share photos and property details—we will call or text you to confirm scope and next steps."
+        withBackground
       />
     </>
   );

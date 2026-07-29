@@ -1,6 +1,12 @@
 /** Media source lifecycle — swap scaffold entries with authentic PBPP assets over time. */
 export type MediaSource = "scaffold" | "authentic" | "video";
 
+/**
+ * Content classification for honest image use.
+ * ONLY `real-project` may appear in case studies, before/after, or "Our Work" sections.
+ */
+export type SiteImageType = "real-project" | "stock" | "generated" | "decorative";
+
 export type MediaCategory =
   | "hero"
   | "exterior"
@@ -22,6 +28,8 @@ export type MediaAsset = {
   src: string;
   alt: string;
   source: MediaSource;
+  /** Classification for honest labeling — see SiteImageType. */
+  imageType?: SiteImageType;
   /** Optional future video / reel / drone clip. */
   videoSrc?: string;
   posterSrc?: string;

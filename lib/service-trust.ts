@@ -1,10 +1,10 @@
-/** Consistent trust signals for service detail pages. */
+/** Consistent trust signals for service detail pages — only verifiable claims. */
 export const SERVICE_TRUST_BULLETS = [
-  "Licensed & insured",
+  "Locally operated in Palm Beach County",
   "Surface-appropriate techniques",
-  "Residential & commercial expertise",
-  "Clear, upfront pricing",
-  "Local Palm Beach County team",
+  "Residential & commercial service",
+  "Clear estimates with photos",
+  "Before-and-after documentation",
 ] as const;
 
 export const DEFAULT_SERVICE_PROCESS = [

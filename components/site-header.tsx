@@ -3,13 +3,13 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
-import { PHONE_TEL } from "@/lib/site";
+import { CTA } from "@/lib/cta";
+import { PHONE_TEL, QUOTE_PATH } from "@/lib/site";
 
 const nav = [
   { href: "/services", label: "Services" },
-  { href: "/pricing", label: "Pricing" },
   { href: "/service-area", label: "Service Area" },
-  { href: "/quote", label: "Quote" },
+  { href: QUOTE_PATH, label: "Estimate" },
 ] as const;
 
 export function SiteHeader() {
@@ -46,7 +46,10 @@ export function SiteHeader() {
               {item.label}
             </Link>
           ))}
-          <a href={PHONE_TEL} className="btn-primary hidden sm:inline-flex">
+          <Link href={QUOTE_PATH} className="btn-secondary hidden border-white/20 bg-transparent text-cream hover:bg-white/10 sm:inline-flex">
+            {CTA.primaryEstimate}
+          </Link>
+          <a href={PHONE_TEL} className="btn-primary hidden lg:inline-flex" data-analytics-location="header">
             Call Now
           </a>
         </div>
@@ -94,16 +97,17 @@ export function SiteHeader() {
             <a
               href={PHONE_TEL}
               className="btn-primary mt-2 text-center"
+              data-analytics-location="mobile-nav"
               onClick={() => setOpen(false)}
             >
               Call Now
             </a>
             <Link
-              href="/quote"
+              href={QUOTE_PATH}
               className="btn-secondary-lg mt-2 border-white/20 bg-transparent text-center text-cream hover:bg-white/10"
               onClick={() => setOpen(false)}
             >
-              Get Free Quote
+              {CTA.primaryEstimate}
             </Link>
           </div>
         </div>

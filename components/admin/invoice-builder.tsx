@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { createInvoiceDraft } from "@/lib/admin/actions/invoices";
@@ -16,9 +17,9 @@ export function InvoiceBuilder({ clients }: { clients: Client[] }) {
     return (
       <div className="admin-card space-y-3">
         <p className="text-sm text-charcoal/70">Add a client in Supabase before creating invoices.</p>
-        <a href="/admin/clients" className="admin-btn-secondary inline-flex no-underline">
+        <Link href="/admin/clients" className="admin-btn-secondary inline-flex no-underline">
           View clients
-        </a>
+        </Link>
       </div>
     );
   }

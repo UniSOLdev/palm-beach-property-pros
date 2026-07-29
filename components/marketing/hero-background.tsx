@@ -7,7 +7,18 @@ import { MEDIA_UNAVAILABLE_PLACEHOLDER } from "@/lib/media/resolve";
 const BLUR =
   "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAAIAAoDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAb/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwCdABmX/9k=";
 
-export function HeroBackground({ src, alt }: { src: string; alt: string }) {
+type HeroBackgroundProps = {
+  src: string;
+  alt: string;
+  /** CSS object-position — defaults favor architecture on the right at desktop widths */
+  objectPosition?: string;
+};
+
+export function HeroBackground({
+  src,
+  alt,
+  objectPosition = "object-[62%_42%] md:object-[72%_38%]",
+}: HeroBackgroundProps) {
   const [offset, setOffset] = useState(0);
   const [loaded, setLoaded] = useState(false);
   const [failed, setFailed] = useState(false);
@@ -33,21 +44,24 @@ export function HeroBackground({ src, alt }: { src: string; alt: string }) {
     };
   }, []);
 
+  const imageClass = `absolute inset-0 h-full w-full object-cover ${objectPosition} ${failed ? "opacity-40" : ""}`;
+
   return (
     <div className={`hero-image-layer absolute inset-0 md:rounded-3xl ${loaded ? "is-loaded" : ""}`}>
       {!loaded && <div className="image-skeleton absolute inset-0 z-[1]" aria-hidden />}
       <div
         className="absolute inset-0 will-change-transform"
-        style={{ transform: `translate3d(0, ${offset}px, 0) scale(1.06)` }}
+        style={{ transform: `translate3d(0, ${offset}px, 0) scale(1.05)` }}
       >
         {displaySrc.startsWith("/media/") ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
             src={displaySrc}
             alt={failed ? "Media unavailable" : alt}
-            className={`absolute inset-0 h-full w-full object-cover object-[center_42%] ${failed ? "opacity-40" : ""}`}
+            className={imageClass}
             loading="eager"
             decoding="async"
+            fetchPriority="high"
             onLoad={() => setLoaded(true)}
             onError={() => {
               if (!failed) {
@@ -66,7 +80,7 @@ export function HeroBackground({ src, alt }: { src: string; alt: string }) {
             unoptimized={isLocal}
             placeholder={failed ? "empty" : "blur"}
             blurDataURL={BLUR}
-            className={`object-cover object-[center_42%] ${failed ? "opacity-40" : ""}`}
+            className={imageClass}
             sizes="100vw"
             onLoad={() => setLoaded(true)}
             onError={() => {
@@ -79,12 +93,21 @@ export function HeroBackground({ src, alt }: { src: string; alt: string }) {
           />
         )}
       </div>
-      <div className="absolute inset-0 bg-black/45 md:hidden" aria-hidden />
+      {/* Mobile: bottom-weighted overlay for stacked content */}
       <div
-        className="absolute inset-0 bg-gradient-to-t from-navy-deep via-charcoal/92 to-charcoal/45 md:rounded-3xl md:from-navy-deep md:via-navy/[0.88] md:to-navy/35"
+        className="absolute inset-0 bg-gradient-to-t from-navy-deep via-navy/90 to-navy/40 md:hidden"
         aria-hidden
       />
-      <div className="absolute inset-0 bg-luxury-vignette opacity-75 md:rounded-3xl" aria-hidden />
+      {/* Desktop: left-to-right navy gradient — text left, property visible right */}
+      <div
+        className="absolute inset-0 hidden bg-gradient-to-r from-navy-deep/96 via-navy/78 to-navy/15 md:block md:rounded-3xl"
+        aria-hidden
+      />
+      <div
+        className="absolute inset-0 hidden bg-gradient-to-t from-navy-deep/50 via-transparent to-navy/25 md:block md:rounded-3xl"
+        aria-hidden
+      />
+      <div className="absolute inset-0 bg-luxury-vignette opacity-50 md:rounded-3xl" aria-hidden />
       <div className="hero-grain absolute inset-0 md:rounded-3xl" aria-hidden />
     </div>
   );

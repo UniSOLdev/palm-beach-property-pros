@@ -33,29 +33,40 @@ export function PremiumHomePage({ media }: { media: HomepageMediaBundle }) {
     <>
       <section className="hero-cinematic animate-fade-up relative -mx-4 sm:-mx-6 md:mx-0 md:rounded-3xl">
         {heroImage ? (
-          <FallbackHeroMedia src={heroImage.filePath} alt={heroImage.alt} />
+          <FallbackHeroMedia
+            src={heroImage.filePath}
+            alt={heroImage.alt}
+            objectPosition={heroImage.focal}
+          />
         ) : null}
 
-        <div className="relative z-10 px-4 py-20 sm:px-6 sm:py-24 md:px-10 md:py-32 lg:py-36">
+        <div className="relative z-10 px-4 py-16 sm:px-6 sm:py-20 md:px-10 md:py-24 lg:py-28">
           <div className="max-w-xl md:max-w-3xl">
             <p className="section-eyebrow text-aqua/90 md:tracking-[0.32em]">
               Palm Beach County Property Care
             </p>
-            <h1 className="mt-6 text-4xl font-semibold leading-[1.08] tracking-tight text-cream drop-shadow-[0_2px_24px_rgba(8,26,46,0.45)] sm:text-5xl md:mt-7 md:text-[3.25rem] md:leading-[1.06]">
-              One Reliable Team to Keep Your Palm Beach Property Clean, Maintained and Ready
+            <h1 className="hero-headline">
+              One Reliable Team to Keep Your{" "}
+              <span className="whitespace-nowrap">Palm Beach</span> Property Clean and Ready
             </h1>
-            <p className="mt-7 max-w-xl text-base leading-[1.75] text-silver/95 sm:text-lg md:mt-9 md:max-w-2xl md:text-xl md:leading-[1.7]">
-              Window cleaning, pressure washing, property cleanups, recurring cleaning and dependable
-              property care throughout Palm Beach County.
+            <p className="hero-lead">
+              Window cleaning, pressure washing, recurring cleaning and dependable property care
+              throughout Palm Beach County.
             </p>
           </div>
 
-          <div className="mt-12 flex w-full max-w-xl flex-col gap-3 sm:max-w-none md:mt-14 md:max-w-3xl md:flex-row md:flex-wrap md:items-center md:gap-4">
-            <Link href="/quote" className="btn-hero-primary min-h-[56px] w-full sm:w-auto">
+          <div className="mt-10 flex w-full max-w-xl flex-col gap-3 sm:max-w-none md:mt-12 md:max-w-3xl md:flex-row md:flex-wrap md:items-stretch md:gap-4">
+            <Link href="/quote" className="btn-hero-primary min-h-[56px] w-full sm:w-auto md:min-w-[240px]">
               {CTA.primaryEstimate}
             </Link>
-            <a href={PHONE_TEL} className="btn-hero-secondary min-h-[56px] w-full sm:w-auto">
-              {CTA.callOrText} {PHONE_DISPLAY}
+            <a
+              href={PHONE_TEL}
+              className="btn-hero-secondary min-h-[56px] w-full sm:w-auto md:min-w-[240px]"
+            >
+              <span className="flex flex-col items-center gap-0.5 sm:flex-row sm:gap-1.5">
+                <span>{CTA.callOrText}</span>
+                <span className="font-semibold tracking-wide">{PHONE_DISPLAY}</span>
+              </span>
             </a>
           </div>
         </div>

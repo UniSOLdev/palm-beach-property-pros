@@ -1,4 +1,4 @@
-import { getSiteImageAsset, SERVICE_STOCK_IMAGE_IDS } from "@/lib/media/site-imagery";
+import { getServiceStockAsset, getSiteImageAsset, SERVICE_STOCK_IMAGE_IDS } from "@/lib/media/site-imagery";
 import type { MediaAsset } from "@/lib/media/types";
 
 export type HomeServiceCard = {
@@ -12,8 +12,7 @@ export type HomeServiceCard = {
 };
 
 function stockAssetForSlug(slug: string, fallbackId: string): MediaAsset {
-  const imageId = SERVICE_STOCK_IMAGE_IDS[slug] ?? fallbackId;
-  return getSiteImageAsset(imageId)!;
+  return getServiceStockAsset(slug) ?? getSiteImageAsset(SERVICE_STOCK_IMAGE_IDS[slug] ?? fallbackId)!;
 }
 
 /** Six primary homepage service cards — cleaning and property care lead; detailing is secondary. */

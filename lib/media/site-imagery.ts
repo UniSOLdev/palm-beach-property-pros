@@ -46,7 +46,7 @@ export const SITE_IMAGERY: SiteImageEntry[] = [
     usage: ["Homepage hero background"],
     width: 2200,
     height: 1238,
-    focal: "object-[center_40%]",
+    focal: "object-[62%_42%] md:object-[72%_38%]",
     aspect: "hero",
     overlay: "cinematic",
     replacementPriority: "high",
@@ -228,6 +228,86 @@ export const SITE_IMAGERY: SiteImageEntry[] = [
     replacementPriority: "low",
     replacementNote: "Decorative CTA background — optional replacement",
   },
+  {
+    id: "service-carpet-cleaning",
+    service: "Carpet & Steam Cleaning",
+    filePath: `${STOCK_BASE}/services/carpet-cleaning.webp`,
+    alt: "Clean, bright living space with well-maintained flooring",
+    imageType: "stock",
+    source: "https://unsplash.com/photos/white-wooden-table-with-chairs-cde436f6a4d0",
+    licenseNotes: UNSPLASH,
+    usage: ["Services page card"],
+    width: 1200,
+    height: 800,
+    aspect: "landscape",
+    overlay: "card",
+    replacementPriority: "medium",
+    replacementNote: "Replace with PBPP carpet cleaning project photo",
+  },
+  {
+    id: "service-trash-can-cleaning",
+    service: "Trash Can Cleaning",
+    filePath: `${STOCK_BASE}/services/trash-can-cleaning.webp`,
+    alt: "Clean residential driveway and garage area at a South Florida home",
+    imageType: "stock",
+    source: "https://unsplash.com/photos/white-and-brown-concrete-house-with-swimming-pool-c7171b42498f",
+    licenseNotes: UNSPLASH,
+    usage: ["Services page card"],
+    width: 1200,
+    height: 800,
+    aspect: "landscape",
+    overlay: "card",
+    replacementPriority: "low",
+    replacementNote: "Replace with PBPP trash can cleaning service photo",
+  },
+  {
+    id: "service-airbnb-turnover",
+    service: "Airbnb & Turnover Cleaning",
+    filePath: `${STOCK_BASE}/services/airbnb-turnover.webp`,
+    alt: "Furnished rental interior ready for guest arrival",
+    imageType: "stock",
+    source: "https://unsplash.com/photos/white-wooden-table-with-chairs-757bb62b4baf",
+    licenseNotes: UNSPLASH,
+    usage: ["Services page card"],
+    width: 1200,
+    height: 800,
+    aspect: "landscape",
+    overlay: "card",
+    replacementPriority: "medium",
+    replacementNote: "Replace with PBPP short-term rental turnover photo",
+  },
+  {
+    id: "service-property-maintenance",
+    service: "Property Maintenance",
+    filePath: `${STOCK_BASE}/services/property-maintenance.webp`,
+    alt: "Well-kept South Florida home exterior with pool deck and landscaping",
+    imageType: "stock",
+    source: "https://unsplash.com/photos/white-and-brown-concrete-house-near-green-trees-990dced4db0d",
+    licenseNotes: UNSPLASH,
+    usage: ["Services page card"],
+    width: 1200,
+    height: 800,
+    aspect: "landscape",
+    overlay: "card",
+    replacementPriority: "medium",
+    replacementNote: "Replace with PBPP maintenance or punch-list project photo",
+  },
+  {
+    id: "service-vacation-home-checks",
+    service: "Vacation Home Checks",
+    filePath: `${STOCK_BASE}/services/vacation-home-checks.webp`,
+    alt: "Maintained coastal property exterior with pool and landscaping",
+    imageType: "stock",
+    source: "https://unsplash.com/photos/white-and-brown-concrete-house-with-swimming-pool-be6161a56a0c",
+    licenseNotes: UNSPLASH,
+    usage: ["Services page card", "Vacation home checks page intro"],
+    width: 1200,
+    height: 800,
+    aspect: "landscape",
+    overlay: "card",
+    replacementPriority: "medium",
+    replacementNote: "Replace with PBPP vacation-home check walkthrough photo",
+  },
 ];
 
 const byId = new Map(SITE_IMAGERY.map((e) => [e.id, e]));
@@ -257,15 +337,26 @@ export function getSiteImageAsset(id: string): MediaAsset | undefined {
   return entry ? siteImageToMediaAsset(entry) : undefined;
 }
 
-/** Service slug → stock image id for homepage cards */
+/** Service slug → stock image id for cards and page intros */
 export const SERVICE_STOCK_IMAGE_IDS: Record<string, string> = {
   "window-cleaning": "service-window-cleaning",
   "pressure-washing": "service-pressure-washing",
   "residential-cleaning": "service-residential-cleaning",
   "commercial-cleaning": "service-commercial-cleaning",
   "property-care": "service-property-care",
+  "property-maintenance": "service-property-maintenance",
   "mobile-detailing": "service-mobile-detailing",
+  "auto-detailing": "service-mobile-detailing",
+  "carpet-steam-cleaning": "service-carpet-cleaning",
+  "trash-can-cleaning": "service-trash-can-cleaning",
+  "airbnb-services": "service-airbnb-turnover",
+  "vacation-home-checks": "service-vacation-home-checks",
 };
+
+export function getServiceStockAsset(slug: string) {
+  const imageId = SERVICE_STOCK_IMAGE_IDS[slug];
+  return imageId ? getSiteImageAsset(imageId) : undefined;
+}
 
 export function assertRealProjectImage(entry: SiteImageEntry, context: string): void {
   if (entry.imageType !== "real-project" && process.env.NODE_ENV === "development") {

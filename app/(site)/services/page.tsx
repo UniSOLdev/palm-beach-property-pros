@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { ServiceListingCard } from "@/components/marketing/service-listing-card";
 import { SERVICES } from "@/lib/services";
-import { getServicePublicHref } from "@/lib/service-pages";
 import { CTA } from "@/lib/cta";
 import { QUOTE_PATH, SITE_NAME, SITE_URL } from "@/lib/site";
 
@@ -32,30 +32,7 @@ export default function ServicesPage() {
 
           <div className="mt-14 grid gap-6 sm:grid-cols-2">
             {SERVICES.map((s) => (
-              <article
-                key={s.slug}
-                id={s.anchor}
-                className="scroll-mt-28 rounded-xl border border-navy/10 bg-white p-6 shadow-md transition duration-200 hover:shadow-lg"
-              >
-                <h2 className="text-xl font-bold text-navy">{s.name}</h2>
-                <p className="mt-2 text-sm leading-relaxed text-charcoal/90">{s.shortDescription}</p>
-                <p className="mt-3 text-sm font-medium text-ocean">Best for</p>
-                <p className="text-sm text-charcoal/85">{s.bestFor}</p>
-                <div className="mt-6 flex flex-wrap gap-3">
-                  <Link
-                    href={getServicePublicHref(s.slug)}
-                    className="btn-primary px-4 py-2 text-xs sm:text-sm"
-                  >
-                    Learn more
-                  </Link>
-                  <Link
-                    href={`${QUOTE_PATH}?service=${encodeURIComponent(s.name)}`}
-                    className="btn-secondary px-4 py-2 text-xs sm:text-sm"
-                  >
-                    {CTA.requestEstimate}
-                  </Link>
-                </div>
-              </article>
+              <ServiceListingCard key={s.slug} service={s} />
             ))}
           </div>
         </div>

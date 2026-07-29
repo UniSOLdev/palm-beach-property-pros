@@ -29,6 +29,7 @@ export {
   SERVICE_STOCK_IMAGE_IDS,
   getSiteImage,
   getSiteImageAsset,
+  getServiceStockAsset,
   siteImageToMediaAsset,
   getReplacementPriorityList,
 } from "./site-imagery";

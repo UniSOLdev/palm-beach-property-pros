@@ -23,6 +23,7 @@ export function ServiceListingCard({ service }: { service: ServiceDefinition }) 
             className={`object-cover ${image.focal ?? "object-center"}`}
             sizes="(max-width: 640px) 100vw, 50vw"
             loading="lazy"
+            unoptimized
           />
         </div>
       ) : null}

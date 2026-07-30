@@ -51,6 +51,7 @@ export function CustomerPaths() {
                   className="object-cover"
                   sizes="(max-width: 768px) 100vw, 50vw"
                   loading="lazy"
+                  unoptimized
                 />
               </div>
             ) : null}

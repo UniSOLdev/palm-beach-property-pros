@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { useEffect, useState } from "react";
+import { useImageLoaded } from "@/lib/hooks/use-image-loaded";
 import { MEDIA_UNAVAILABLE_PLACEHOLDER } from "@/lib/media/resolve";
 
 const BLUR =
@@ -20,10 +21,10 @@ export function HeroBackground({
   objectPosition = "object-[62%_42%] md:object-[72%_38%]",
 }: HeroBackgroundProps) {
   const [offset, setOffset] = useState(0);
-  const [loaded, setLoaded] = useState(false);
   const [failed, setFailed] = useState(false);
   const displaySrc = failed || !src?.trim() ? MEDIA_UNAVAILABLE_PLACEHOLDER : src;
   const isLocal = displaySrc.startsWith("/");
+  const { loaded, markLoaded, setRef } = useImageLoaded(displaySrc);
 
   useEffect(() => {
     const prefersReduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -44,11 +45,11 @@ export function HeroBackground({
     };
   }, []);
 
-  const imageClass = `absolute inset-0 h-full w-full object-cover ${objectPosition} ${failed ? "opacity-40" : ""}`;
+  const imageClass = `absolute inset-0 z-0 h-full w-full object-cover ${objectPosition} ${failed ? "opacity-40" : ""}`;
 
   return (
     <div className={`hero-image-layer absolute inset-0 md:rounded-3xl ${loaded ? "is-loaded" : ""}`}>
-      {!loaded && <div className="image-skeleton absolute inset-0 z-[1]" aria-hidden />}
+      {!loaded && !failed ? <div className="image-skeleton absolute inset-0 z-[1]" aria-hidden /> : null}
       <div
         className="absolute inset-0 will-change-transform"
         style={{ transform: `translate3d(0, ${offset}px, 0) scale(1.05)` }}
@@ -56,18 +57,22 @@ export function HeroBackground({
         {displaySrc.startsWith("/media/") ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
+            ref={setRef}
             src={displaySrc}
             alt={failed ? "Media unavailable" : alt}
             className={imageClass}
             loading="eager"
             decoding="async"
             fetchPriority="high"
-            onLoad={() => setLoaded(true)}
+            onLoad={markLoaded}
             onError={() => {
               if (!failed) {
-                console.warn("[PBPP Media Render]", JSON.stringify({ level: "warn", src, message: "hero load failed" }));
+                console.warn(
+                  "[PBPP Media Render]",
+                  JSON.stringify({ level: "warn", src, message: "hero load failed" }),
+                );
                 setFailed(true);
-                setLoaded(true);
+                markLoaded();
               }
             }}
           />
@@ -82,23 +87,24 @@ export function HeroBackground({
             blurDataURL={BLUR}
             className={imageClass}
             sizes="100vw"
-            onLoad={() => setLoaded(true)}
+            onLoad={markLoaded}
             onError={() => {
               if (!failed) {
-                console.warn("[PBPP Media Render]", JSON.stringify({ level: "warn", src, message: "hero load failed" }));
+                console.warn(
+                  "[PBPP Media Render]",
+                  JSON.stringify({ level: "warn", src, message: "hero load failed" }),
+                );
                 setFailed(true);
-                setLoaded(true);
+                markLoaded();
               }
             }}
           />
         )}
       </div>
-      {/* Mobile: bottom-weighted overlay for stacked content */}
       <div
         className="absolute inset-0 bg-gradient-to-t from-navy-deep via-navy/90 to-navy/40 md:hidden"
         aria-hidden
       />
-      {/* Desktop: left-to-right navy gradient — text left, property visible right */}
       <div
         className="absolute inset-0 hidden bg-gradient-to-r from-navy-deep/96 via-navy/78 to-navy/15 md:block md:rounded-3xl"
         aria-hidden

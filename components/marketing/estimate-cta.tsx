@@ -35,6 +35,7 @@ export function EstimateCta({
             className="object-cover object-center"
             sizes="100vw"
             priority={false}
+            unoptimized
           />
           <div className="absolute inset-0 bg-gradient-to-b from-navy-deep/85 via-navy/80 to-navy-deep/90" aria-hidden />
         </>

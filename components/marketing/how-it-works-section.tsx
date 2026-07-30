@@ -16,6 +16,7 @@ export function HowItWorksSection() {
             className="object-cover opacity-[0.12]"
             sizes="100vw"
             loading="lazy"
+            unoptimized
           />
         </div>
       ) : null}

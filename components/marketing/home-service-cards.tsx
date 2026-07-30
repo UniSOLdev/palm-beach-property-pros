@@ -1,8 +1,7 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
-import { MediaAssetImage } from "@/components/media/media-asset-image";
-import { MediaFrame } from "@/components/media/media-frame";
 import { trackServiceCardClick } from "@/lib/analytics";
 import type { HomeServiceCard } from "@/lib/homepage-services";
 import type { MediaAsset } from "@/lib/media/types";
@@ -14,18 +13,23 @@ type Props = {
 export function HomeServiceCards({ cards }: Props) {
   return (
     <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-      {cards.map((card) => (
+      {cards.map((card, index) => (
         <article
           key={card.slug}
           className={`group flex h-full flex-col overflow-hidden rounded-2xl border bg-white shadow-sm transition duration-300 hover:shadow-md ${
-            card.secondary
-              ? "border-navy/[0.08]"
-              : "border-navy/[0.1]"
+            card.secondary ? "border-navy/[0.08]" : "border-navy/[0.1]"
           }`}
         >
-          <MediaFrame aspect="landscape" className="image-frame rounded-none">
-            <MediaAssetImage asset={card.asset} width={600} hoverScale />
-          </MediaFrame>
+          <div className="relative aspect-[4/3] w-full overflow-hidden bg-navy/5">
+            <Image
+              src={card.asset.src}
+              alt={card.asset.alt}
+              fill
+              priority={index < 3}
+              className={`object-cover transition duration-500 group-hover:scale-[1.02] ${card.asset.focal ?? "object-center"}`}
+              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+            />
+          </div>
           <div className="flex flex-1 flex-col p-5">
             <h3 className="text-lg font-semibold tracking-tight text-navy">{card.title}</h3>
             <p className="mt-2 flex-1 text-sm leading-relaxed text-charcoal/75">{card.description}</p>

@@ -2,6 +2,7 @@
 
 import Image, { type ImageProps } from "next/image";
 import { useState } from "react";
+import { useImageLoaded } from "@/lib/hooks/use-image-loaded";
 import { MEDIA_UNAVAILABLE_PLACEHOLDER } from "@/lib/media/resolve";
 
 const BLUR =
@@ -31,11 +32,13 @@ export function LuxuryImage({
   preferNative = false,
   ...props
 }: LuxuryImageProps) {
-  const [loaded, setLoaded] = useState(false);
   const [failed, setFailed] = useState(false);
   const initialSrc = typeof src === "string" && src.trim() ? src : MEDIA_UNAVAILABLE_PLACEHOLDER;
   const displaySrc = failed ? MEDIA_UNAVAILABLE_PLACEHOLDER : initialSrc;
   const useNative = preferNative || displaySrc.startsWith("/media/");
+  const { loaded, markLoaded, setRef } = useImageLoaded(
+    typeof displaySrc === "string" ? displaySrc : undefined,
+  );
 
   const overlayClass =
     overlay === "cinematic"
@@ -53,29 +56,32 @@ export function LuxuryImage({
         JSON.stringify({ level: "warn", assetId, src: initialSrc, message: "image load failed" }),
       );
       setFailed(true);
-      setLoaded(true);
+      markLoaded();
     }
     onError?.(e as never);
   };
 
   const handleLoad = (e: React.SyntheticEvent<HTMLImageElement | HTMLImageElement, Event>) => {
-    setLoaded(true);
+    markLoaded();
     onLoad?.(e as never);
   };
 
+  const showSkeleton = !loaded && !failed;
+
   return (
     <div
-      className={`image-reveal-root relative overflow-hidden ${fill ? "absolute inset-0" : ""} ${hoverScale ? "group/image" : ""} ${loaded ? "is-loaded" : ""}`}
+      className={`image-reveal-root overflow-hidden ${fill ? "absolute inset-0 h-full w-full" : "relative"} ${hoverScale ? "group/image" : ""} ${loaded ? "is-loaded" : ""}`}
     >
-      {!loaded && <div className="image-skeleton absolute inset-0 z-[1]" aria-hidden />}
+      {showSkeleton ? <div className="image-skeleton absolute inset-0 z-[1]" aria-hidden /> : null}
       {useNative ? (
         // eslint-disable-next-line @next/next/no-img-element
         <img
+          ref={setRef}
           src={displaySrc}
           alt={failed ? "Media unavailable" : alt}
           loading={props.priority ? "eager" : "lazy"}
           decoding="async"
-          className={`${fill ? "absolute inset-0 h-full w-full object-cover" : ""} ${failed ? "object-contain p-8 opacity-30" : ""} ${hoverScale ? "transition duration-[1.4s] ease-out group-hover/image:scale-[1.012]" : ""} ${className}`}
+          className={`${fill ? "absolute inset-0 z-0 h-full w-full object-cover" : ""} ${failed ? "object-contain p-8 opacity-30" : ""} ${hoverScale ? "transition duration-[1.4s] ease-out group-hover/image:scale-[1.012]" : ""} ${className}`}
           onLoad={handleLoad}
           onError={handleError}
         />

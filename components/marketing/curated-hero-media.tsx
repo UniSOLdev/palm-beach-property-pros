@@ -9,6 +9,14 @@ export function CuratedHeroMedia({ heroImage }: { heroImage: CuratedImage | null
   return <HeroBackground src={heroImage.src} alt={heroImage.alt} />;
 }
 
-export function FallbackHeroMedia({ src, alt }: { src: string; alt: string }) {
-  return <HeroBackground src={src} alt={alt} />;
+export function FallbackHeroMedia({
+  src,
+  alt,
+  objectPosition,
+}: {
+  src: string;
+  alt: string;
+  objectPosition?: string;
+}) {
+  return <HeroBackground src={src} alt={alt} objectPosition={objectPosition} />;
 }

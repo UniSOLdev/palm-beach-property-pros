@@ -8,6 +8,8 @@ export const HOME_SERVICE_SUMMARY: Record<ServiceSlug, string> = {
     "Crystal-clear glass inside and out. Screens and frames handled with care.",
   "pressure-washing":
     "Exterior renewal with pressure or soft washing matched to each substrate.",
+  "recurring-lawn-driveway":
+    "Proven recurring lawn edging, blow-down, and driveway maintenance on a dependable schedule.",
   "auto-detailing":
     "Interior freshness and exterior depth—trim, wheels, and cabin materials protected.",
   "residential-cleaning":

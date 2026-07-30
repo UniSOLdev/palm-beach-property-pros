@@ -13,12 +13,10 @@ const overview = [
   { service: "Deep Cleaning", price: "Starting at $200" },
   { service: "Commercial Cleaning", price: "Custom quote" },
   { service: "Pressure Washing / Exterior", price: "Starting at $129" },
-  { service: "Auto Detailing", price: "Starting at $150" },
-  { service: "Full Detail", price: "Starting at $250" },
+  { service: "Recurring Lawn & Driveway Maintenance", price: "About $300 per visit" },
+  { service: "Mobile Detailing", price: "$200–$400 typical range" },
   { service: "Carpet & Steam Cleaning", price: "Starting at $99" },
-  { service: "Trash Can Cleaning", price: "Starting at $25" },
   { service: "Property Maintenance", price: "Custom quote" },
-  { service: "Airbnb Turnover Services", price: "Custom quote" },
 ] as const;
 
 const bundles = [
@@ -38,9 +36,9 @@ const bundles = [
       "Detailed turnover cleaning with optional carpet extraction—timed to your closing or lease dates.",
   },
   {
-    name: "Airbnb Turnover",
+    name: "Recurring Exterior Care",
     detail:
-      "Guest-ready cleaning aligned to check-in windows; linen and staging add-ons by agreement.",
+      "Monthly or biweekly lawn edging, blow-down, and driveway maintenance—typically around $300 per visit within agreed scope.",
   },
 ] as const;
 

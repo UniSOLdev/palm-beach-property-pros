@@ -5,9 +5,9 @@ export const SITE_NAME = "Palm Beach Property Pros";
 export const TAGLINE =
   "One reliable local team for everything your property needs.";
 
-export const PHONE_DISPLAY = "561-629-2617";
-export const PHONE_TEL = "tel:15616292617";
-export const SMS_TEL = "sms:15616292617";
+export const PHONE_DISPLAY = "561-764-7818";
+export const PHONE_TEL = "tel:15617647818";
+export const SMS_TEL = "sms:15617647818";
 
 /** Primary public client flows — all on PBPP domain. */
 export const QUOTE_PATH = "/quote" as const;

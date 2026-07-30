@@ -3,52 +3,62 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
-import { PHONE_TEL } from "@/lib/site";
+import { CTA } from "@/lib/cta";
+import { PHONE_TEL, QUOTE_PATH } from "@/lib/site";
 
 const nav = [
   { href: "/services", label: "Services" },
-  { href: "/pricing", label: "Pricing" },
+  { href: "/about", label: "About" },
   { href: "/service-area", label: "Service Area" },
-  { href: "/quote", label: "Quote" },
 ] as const;
 
 export function SiteHeader() {
   const [open, setOpen] = useState(false);
 
   return (
-    <header className="sticky top-0 z-40 overflow-x-hidden border-b border-white/[0.08] bg-navy-deep/80 shadow-[0_8px_40px_rgba(8,26,46,0.35)] backdrop-blur-xl backdrop-saturate-150">
+    <header className="sticky top-0 z-40 border-b border-white/[0.08] bg-navy-deep/80 shadow-[0_8px_40px_rgba(8,26,46,0.35)] backdrop-blur-xl backdrop-saturate-150">
       <nav
-        className="mx-auto flex w-full min-w-0 max-w-6xl items-center justify-between gap-2 px-4 py-3 sm:gap-3 sm:px-5 sm:py-4 md:gap-4 md:px-6 md:py-4"
+        className="mx-auto flex w-full min-w-0 max-w-6xl items-center justify-between gap-3 px-4 py-3.5 sm:px-5 sm:py-4 md:gap-5 md:px-6"
         aria-label="Primary"
       >
         <Link
           href="/"
-          className="min-w-0 shrink-0 no-underline pr-2"
+          className="flex shrink-0 items-center py-1 no-underline"
           aria-label="Palm Beach Property Pros home"
         >
           <Image
             src="/brand/pbpp-wordmark-light.svg"
             alt="Palm Beach Property Pros"
             width={280}
-            height={42}
+            height={48}
             priority
-            className="h-8 w-auto max-w-[10.75rem] sm:h-9 sm:max-w-[13rem] md:h-10 md:max-w-[16rem]"
+            className="h-9 w-auto max-w-[11.5rem] object-contain object-left sm:h-10 sm:max-w-[13.5rem] md:h-11 md:max-w-[15.5rem]"
           />
         </Link>
 
-        <div className="hidden items-center gap-6 text-sm font-medium text-cream/90 md:flex">
+        <div className="hidden min-w-0 items-center gap-4 text-sm font-medium text-cream/90 md:flex lg:gap-5">
           {nav.map((item) => (
             <Link
               key={item.href}
               href={item.href}
-              className="text-cream/85 no-underline transition-colors duration-300 hover:text-aqua"
+              className="whitespace-nowrap text-cream/85 no-underline transition-colors duration-300 hover:text-aqua"
             >
               {item.label}
             </Link>
           ))}
-          <a href={PHONE_TEL} className="btn-primary hidden sm:inline-flex">
+          <a
+            href={PHONE_TEL}
+            className="inline-flex items-center justify-center whitespace-nowrap rounded-xl border border-white/20 bg-transparent px-4 py-2.5 text-sm font-medium text-cream/90 no-underline transition duration-300 hover:border-white/30 hover:bg-white/[0.06] lg:px-5"
+            data-analytics-location="header"
+          >
             Call Now
           </a>
+          <Link
+            href={QUOTE_PATH}
+            className="btn-primary whitespace-nowrap px-4 py-2.5 text-sm lg:px-5"
+          >
+            {CTA.primaryEstimate}
+          </Link>
         </div>
 
         <div className="flex shrink-0 items-center md:hidden">
@@ -91,20 +101,21 @@ export function SiteHeader() {
                 {item.label}
               </Link>
             ))}
+            <Link
+              href={QUOTE_PATH}
+              className="btn-primary mt-2 text-center"
+              onClick={() => setOpen(false)}
+            >
+              {CTA.primaryEstimate}
+            </Link>
             <a
               href={PHONE_TEL}
-              className="btn-primary mt-2 text-center"
+              className="btn-secondary-lg mt-2 border-white/20 bg-transparent text-center text-cream hover:bg-white/10"
+              data-analytics-location="mobile-nav"
               onClick={() => setOpen(false)}
             >
               Call Now
             </a>
-            <Link
-              href="/quote"
-              className="btn-secondary-lg mt-2 border-white/20 bg-transparent text-center text-cream hover:bg-white/10"
-              onClick={() => setOpen(false)}
-            >
-              Get Free Quote
-            </Link>
           </div>
         </div>
       ) : null}

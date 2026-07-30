@@ -1,0 +1,159 @@
+{
+  "generatedAt": "2026-07-29T06:32:28.997Z",
+  "license": "Unsplash License",
+  "assets": [
+    {
+      "id": "hero-home-exterior",
+      "file": "/media/stock/hero/home-exterior.webp",
+      "sourcePage": "https://unsplash.com/photos/white-and-brown-concrete-building-under-blue-sky-during-daytime-ba8f99d2cdde",
+      "license": "Unsplash License — commercial use permitted",
+      "bytes": 346276,
+      "width": 2200,
+      "height": 1238
+    },
+    {
+      "id": "service-window-cleaning",
+      "file": "/media/stock/services/window-cleaning.webp",
+      "sourcePage": "https://unsplash.com/photos/person-holding-white-plastic-bottle-c64695cc6952",
+      "license": "Unsplash License — commercial use permitted",
+      "bytes": 35940,
+      "width": 1200,
+      "height": 800
+    },
+    {
+      "id": "service-pressure-washing",
+      "file": "/media/stock/services/pressure-washing.webp",
+      "sourcePage": "https://unsplash.com/photos/white-and-brown-concrete-house-near-green-trees-during-daytime-d208bec867a1",
+      "license": "Unsplash License — commercial use permitted",
+      "bytes": 137068,
+      "width": 1200,
+      "height": 800
+    },
+    {
+      "id": "service-residential-cleaning",
+      "file": "/media/stock/services/residential-cleaning.webp",
+      "sourcePage": "https://unsplash.com/photos/white-wooden-table-with-chairs-46c336c7fd55",
+      "license": "Unsplash License — commercial use permitted",
+      "bytes": 68390,
+      "width": 1200,
+      "height": 800
+    },
+    {
+      "id": "service-commercial-cleaning",
+      "file": "/media/stock/services/commercial-cleaning.webp",
+      "sourcePage": "https://unsplash.com/photos/macbook-pro-on-table-beside-white-imac-and-magic-mouse-37526070297c",
+      "license": "Unsplash License — commercial use permitted",
+      "bytes": 47272,
+      "width": 1200,
+      "height": 800
+    },
+    {
+      "id": "service-property-care",
+      "file": "/media/stock/services/property-care.webp",
+      "sourcePage": "https://unsplash.com/photos/white-and-brown-concrete-house-with-swimming-pool-be6161a56a0c",
+      "license": "Unsplash License — commercial use permitted",
+      "bytes": 164366,
+      "width": 1200,
+      "height": 800
+    },
+    {
+      "id": "service-mobile-detailing",
+      "file": "/media/stock/services/mobile-detailing.webp",
+      "sourcePage": "https://unsplash.com/photos/white-suv-on-road-during-daytime-bd32c8ce0db2",
+      "license": "Unsplash License — commercial use permitted",
+      "bytes": 172616,
+      "width": 1200,
+      "height": 800
+    },
+    {
+      "id": "service-carpet-cleaning",
+      "file": "/media/stock/services/carpet-cleaning.webp",
+      "sourcePage": "https://unsplash.com/photos/white-wooden-table-with-chairs-cde436f6a4d0",
+      "license": "Unsplash License — commercial use permitted",
+      "bytes": 102524,
+      "width": 1200,
+      "height": 800
+    },
+    {
+      "id": "service-trash-can-cleaning",
+      "file": "/media/stock/services/trash-can-cleaning.webp",
+      "sourcePage": "https://unsplash.com/photos/white-and-brown-concrete-house-with-swimming-pool-c7171b42498f",
+      "license": "Unsplash License — commercial use permitted",
+      "bytes": 50082,
+      "width": 1200,
+      "height": 800
+    },
+    {
+      "id": "service-airbnb-turnover",
+      "file": "/media/stock/services/airbnb-turnover.webp",
+      "sourcePage": "https://unsplash.com/photos/white-wooden-table-with-chairs-757bb62b4baf",
+      "license": "Unsplash License — commercial use permitted",
+      "bytes": 73248,
+      "width": 1200,
+      "height": 800
+    },
+    {
+      "id": "service-property-maintenance",
+      "file": "/media/stock/services/property-maintenance.webp",
+      "sourcePage": "https://images.unsplash.com/photos/white-and-brown-concrete-house-near-green-trees-990dced4db0d",
+      "license": "Unsplash License — commercial use permitted",
+      "bytes": 82194,
+      "width": 1200,
+      "height": 800
+    },
+    {
+      "id": "service-vacation-home-checks",
+      "file": "/media/stock/services/vacation-home-checks.webp",
+      "sourcePage": "https://unsplash.com/photos/white-and-brown-concrete-house-with-swimming-pool-be6161a56a0c",
+      "license": "Unsplash License — commercial use permitted",
+      "bytes": 164366,
+      "width": 1200,
+      "height": 800
+    },
+    {
+      "id": "path-residential",
+      "file": "/media/stock/sections/residential-path.webp",
+      "sourcePage": "https://unsplash.com/photos/gray-couch-and-brown-wooden-table-a197022b5858",
+      "license": "Unsplash License — commercial use permitted",
+      "bytes": 54136,
+      "width": 1400,
+      "height": 933
+    },
+    {
+      "id": "path-commercial",
+      "file": "/media/stock/sections/commercial-path.webp",
+      "sourcePage": "https://unsplash.com/photos/people-sitting-on-chair-beside-table-f200968a6e72",
+      "license": "Unsplash License — commercial use permitted",
+      "bytes": 69678,
+      "width": 1400,
+      "height": 933
+    },
+    {
+      "id": "section-recurring-care",
+      "file": "/media/stock/sections/recurring-property-care.webp",
+      "sourcePage": "https://unsplash.com/photos/white-and-brown-house-near-green-trees-during-daytime-ce09059eeffa",
+      "license": "Unsplash License — commercial use permitted",
+      "bytes": 46222,
+      "width": 1600,
+      "height": 900
+    },
+    {
+      "id": "section-how-it-works",
+      "file": "/media/stock/sections/how-it-works.webp",
+      "sourcePage": "https://unsplash.com/photos/white-bed-linen-on-bed-6ed189bf02f4",
+      "license": "Unsplash License — commercial use permitted",
+      "bytes": 134696,
+      "width": 1600,
+      "height": 900
+    },
+    {
+      "id": "section-final-cta",
+      "file": "/media/stock/sections/final-cta.webp",
+      "sourcePage": "https://unsplash.com/photos/white-and-brown-concrete-building-under-blue-sky-during-daytime-ffad4c1539a9",
+      "license": "Unsplash License — commercial use permitted",
+      "bytes": 184806,
+      "width": 2000,
+      "height": 1125
+    }
+  ]
+}

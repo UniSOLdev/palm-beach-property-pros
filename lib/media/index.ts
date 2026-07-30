@@ -7,6 +7,7 @@ export type {
   MediaSource,
   OperationalProof,
   ProjectRecap,
+  SiteImageType,
   TransformationProject,
 } from "./types";
 
@@ -22,3 +23,14 @@ export {
 } from "./registry";
 
 export { aspectClass, buildMediaUrl, resolveMedia, sizesForAspect } from "./resolve";
+
+export {
+  SITE_IMAGERY,
+  SERVICE_STOCK_IMAGE_IDS,
+  getSiteImage,
+  getSiteImageAsset,
+  getServiceStockAsset,
+  siteImageToMediaAsset,
+  getReplacementPriorityList,
+} from "./site-imagery";
+export type { SiteImageEntry } from "./site-imagery";

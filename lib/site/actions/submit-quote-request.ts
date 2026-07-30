@@ -32,6 +32,15 @@ function isFailure(result: InsertResult): result is InsertFailure {
 
 function parseForm(formData: FormData) {
   const preferredDate = String(formData.get("preferredDate") ?? "").trim();
+  const utilitiesAccess = String(formData.get("utilitiesAccess") ?? "").trim();
+  const baseMessage = String(formData.get("message") ?? "").trim();
+  const message =
+    utilitiesAccess && baseMessage
+      ? `[Utilities access: ${utilitiesAccess}]\n\n${baseMessage}`
+      : utilitiesAccess
+        ? `[Utilities access: ${utilitiesAccess}]`
+        : baseMessage;
+
   return {
     name: String(formData.get("name") ?? "").trim(),
     phone: String(formData.get("phone") ?? "").trim(),
@@ -40,7 +49,7 @@ function parseForm(formData: FormData) {
     address: String(formData.get("address") ?? "").trim(),
     city: String(formData.get("city") ?? "").trim(),
     propertyType: String(formData.get("propertyType") ?? "").trim(),
-    message: String(formData.get("message") ?? "").trim(),
+    message,
     contact: String(formData.get("contact") ?? "Call").trim(),
     preferredDate: preferredDate || null,
     preferredTime: String(formData.get("preferredTime") ?? "").trim() || null,
@@ -55,7 +64,7 @@ function rowFromPayload(payload: Payload) {
     phone: payload.phone,
     email: payload.email || null,
     service_requested: payload.service,
-    address: payload.address,
+    address: payload.address || null,
     city: payload.city || null,
     property_type: payload.propertyType || null,
     message: payload.message || null,
@@ -237,8 +246,13 @@ export async function submitQuoteRequest(formData: FormData): Promise<QuoteReque
     },
   });
 
-  if (!payload.name || !payload.phone || !payload.service || !payload.address) {
+  if (!payload.name || !payload.phone || !payload.service || !payload.city || !payload.message) {
     return quoteSubmitError(QUOTE_ERRORS.validation, "Missing required field", "VALIDATION_ERROR");
+  }
+
+  const honeypot = String(formData.get("_gotcha") ?? "").trim();
+  if (honeypot) {
+    return { ok: true, leadId: "spam-filtered" };
   }
 
   if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {

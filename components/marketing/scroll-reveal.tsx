@@ -1,6 +1,8 @@
 "use client";
 
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useLayoutEffect, useRef, useState, type ReactNode } from "react";
+
+type RevealState = "pending" | "shown" | "waiting";
 
 export function ScrollReveal({
   children,
@@ -12,28 +14,32 @@ export function ScrollReveal({
   delay?: number;
 }) {
   const ref = useRef<HTMLDivElement>(null);
-  const [visible, setVisible] = useState(false);
+  /** Start pending so content is visible until we measure (avoids stuck opacity-0 on first paint). */
+  const [state, setState] = useState<RevealState>("pending");
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const el = ref.current;
     if (!el) return;
 
     const prefersReduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     if (prefersReduced) {
-      setVisible(true);
+      setState("shown");
       return;
     }
 
     const rect = el.getBoundingClientRect();
-    if (rect.top < window.innerHeight * 0.92 && rect.bottom > 0) {
-      setVisible(true);
+    const inView = rect.top < window.innerHeight * 0.92 && rect.bottom > 0;
+    if (inView) {
+      setState("shown");
       return;
     }
+
+    setState("waiting");
 
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
-          setVisible(true);
+          setState("shown");
           observer.disconnect();
         }
       },
@@ -43,13 +49,15 @@ export function ScrollReveal({
     return () => observer.disconnect();
   }, []);
 
+  const hidden = state === "waiting";
+
   return (
     <div
       ref={ref}
       className={`transition-all duration-700 ease-out ${className} ${
-        visible ? "translate-y-0 opacity-100" : "translate-y-6 opacity-0"
+        hidden ? "translate-y-6 opacity-0" : "translate-y-0 opacity-100"
       }`}
-      style={{ transitionDelay: `${delay}ms` }}
+      style={{ transitionDelay: hidden ? undefined : `${delay}ms` }}
     >
       {children}
     </div>

@@ -24,7 +24,7 @@ export function MobileCtaBar() {
           href={QUOTE_PATH}
           className="flex min-h-[56px] flex-col items-center justify-center rounded-2xl bg-gradient-to-br from-aqua via-ocean to-navy text-xs font-bold text-white no-underline shadow-lg shadow-ocean/30 ring-2 ring-aqua/40 transition duration-200 active:scale-[0.98] hover:shadow-xl focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cream"
         >
-          Get Quote
+          Get Estimate
         </Link>
       </nav>
     </div>

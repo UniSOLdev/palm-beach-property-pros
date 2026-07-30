@@ -35,7 +35,7 @@ export function quoteSubmitError(
 
 /** User-facing messages — no generic "temporarily unavailable" copy. */
 export const QUOTE_ERRORS = {
-  validation: "Please complete all required fields (name, phone, service, and address).",
+  validation: "Please complete all required fields (name, phone, email, service, city or ZIP, and project description).",
   config:
     "Online quote submission is not configured yet. Please call us and we will help you directly.",
   schema:

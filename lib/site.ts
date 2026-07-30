@@ -6,6 +6,7 @@ export const TAGLINE =
   "One reliable local team for everything your property needs.";
 
 export const PHONE_DISPLAY = "561-629-2617";
+/** Confirm with PBPP ownership before changing — prior supplied number was 561-764-7818. */
 export const PHONE_TEL = "tel:15616292617";
 export const SMS_TEL = "sms:15616292617";
 

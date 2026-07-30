@@ -3,6 +3,7 @@ export type ServiceSlug =
   | "residential-cleaning"
   | "commercial-cleaning"
   | "pressure-washing"
+  | "recurring-lawn-driveway"
   | "auto-detailing"
   | "carpet-steam-cleaning"
   | "trash-can-cleaning"
@@ -196,6 +197,50 @@ export const SERVICES: ServiceDefinition[] = [
     ],
   },
   {
+    slug: "recurring-lawn-driveway",
+    anchor: "recurring-lawn-driveway",
+    name: "Recurring Lawn & Driveway Maintenance",
+    shortDescription:
+      "Dependable recurring care for lawns, driveways, and exterior approaches—one scheduled visit keeps curb appeal steady month to month.",
+    bestFor:
+      "Homeowners, HOAs, and property managers who want a proven recurring exterior maintenance program.",
+    headline: "Recurring Lawn & Driveway Maintenance in Palm Beach County",
+    authorityIntro:
+      "This is one of our most requested recurring programs: scheduled lawn edging, blow-down, and driveway or walkway maintenance that keeps properties presentable between deeper cleanings. One reliable cadence, clear pricing, and a local crew that knows your property.",
+    included: [
+      "Scheduled lawn edging and blow-down by agreed scope",
+      "Driveway and walkway debris removal",
+      "Exterior approach refresh aligned to your property layout",
+      "Recurring visit notes and photo updates when helpful",
+    ],
+    whoItsFor: [
+      "Homeowners who want steady curb appeal without coordinating multiple vendors",
+      "HOAs maintaining entries, pads, and common approaches",
+      "Property managers with recurring exterior standards",
+      "Seasonal residents between longer visits",
+    ],
+    startingPriceLabel:
+      "Recurring lawn and driveway maintenance is typically $300 per visit on an agreed monthly or biweekly schedule, depending on property size and scope.",
+    faq: [
+      {
+        q: "What does the recurring program include?",
+        a: "Lawn edging, blow-down, and driveway or walkway maintenance within an agreed scope. We confirm boundaries, access, and frequency before the first visit.",
+      },
+      {
+        q: "How often is service scheduled?",
+        a: "Most clients choose monthly or biweekly visits. We recommend a cadence after reviewing your property and how quickly debris and growth return.",
+      },
+      {
+        q: "Do you need water and power on site?",
+        a: "Yes. We bring equipment and supplies but generally need customer water and a standard electrical outlet for on-site service.",
+      },
+      {
+        q: "Can this be bundled with pressure washing or property care?",
+        a: "Yes. Many clients pair recurring maintenance with periodic pressure washing or estate care visits for a complete exterior program.",
+      },
+    ],
+  },
+  {
     slug: "auto-detailing",
     anchor: "auto-detailing",
     name: "Auto Detailing",
@@ -217,7 +262,7 @@ export const SERVICES: ServiceDefinition[] = [
       "Small business fleets",
     ],
     startingPriceLabel:
-      "Interior–exterior detailing packages often start around $150; full correction-level work is quoted after inspection.",
+      "Most mobile details range from $200–$400 depending on vehicle size, condition, and selected services.",
     faq: [
       {
         q: "Do you service vehicles onsite?",
@@ -397,6 +442,13 @@ export const SERVICES: ServiceDefinition[] = [
     ],
   },
 ];
+
+/** Services shown on the public /services page — proven offerings first; niche lines stay reachable via direct URL. */
+const DEPROMOTED_SERVICE_SLUGS = new Set<ServiceSlug>(["trash-can-cleaning", "airbnb-services"]);
+
+export function getPromotedServices(): ServiceDefinition[] {
+  return SERVICES.filter((s) => !DEPROMOTED_SERVICE_SLUGS.has(s.slug));
+}
 
 export function getServiceBySlug(slug: string): ServiceDefinition | undefined {
   return SERVICES.find((s) => s.slug === slug);

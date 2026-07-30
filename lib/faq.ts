@@ -29,7 +29,7 @@ export const FAQ_ITEMS: FaqItem[] = [
   {
     question: "Do you bring your own equipment?",
     answer:
-      "We arrive with professional equipment and supplies suited to the job. If you require specific products, note that when you request service.",
+      "Yes. We arrive with professional equipment, tools, and cleaning products suited to the job. Most on-site services also need access to your water supply and a standard electrical outlet—we confirm utility access when scheduling so there are no surprises on service day.",
   },
   {
     question: "How soon can I schedule?",

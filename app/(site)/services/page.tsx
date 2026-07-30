@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ServiceListingCard } from "@/components/marketing/service-listing-card";
-import { SERVICES } from "@/lib/services";
+import { getPromotedServices } from "@/lib/services";
 import { CTA } from "@/lib/cta";
 import { QUOTE_PATH, SITE_NAME, SITE_URL } from "@/lib/site";
 
@@ -12,6 +12,8 @@ export const metadata: Metadata = {
 };
 
 export default function ServicesPage() {
+  const promotedServices = getPromotedServices();
+
   return (
     <div className="bg-cream">
       <section className="py-16">
@@ -31,7 +33,7 @@ export default function ServicesPage() {
           </div>
 
           <div className="mt-14 grid gap-6 sm:grid-cols-2">
-            {SERVICES.map((s) => (
+            {promotedServices.map((s) => (
               <ServiceListingCard key={s.slug} service={s} />
             ))}
           </div>

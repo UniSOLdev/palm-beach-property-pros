@@ -10,6 +10,7 @@ export type FlatServiceSlug =
   | "commercial-cleaning"
   | "property-care"
   | "vacation-home-checks"
+  | "recurring-lawn-driveway"
   | "mobile-detailing";
 
 const SLUG_TO_SERVICE: Partial<Record<FlatServiceSlug, ServiceSlug>> = {
@@ -18,12 +19,14 @@ const SLUG_TO_SERVICE: Partial<Record<FlatServiceSlug, ServiceSlug>> = {
   "residential-cleaning": "residential-cleaning",
   "commercial-cleaning": "commercial-cleaning",
   "property-care": "property-maintenance",
+  "recurring-lawn-driveway": "recurring-lawn-driveway",
   "mobile-detailing": "auto-detailing",
 };
 
 const RELATED_BY_SLUG: Partial<Record<FlatServiceSlug, FlatServiceSlug[]>> = {
   "window-cleaning": ["pressure-washing", "residential-cleaning", "commercial-cleaning"],
-  "pressure-washing": ["window-cleaning", "property-care", "residential-cleaning"],
+  "pressure-washing": ["recurring-lawn-driveway", "window-cleaning", "property-care"],
+  "recurring-lawn-driveway": ["pressure-washing", "property-care", "residential-cleaning"],
   "residential-cleaning": ["commercial-cleaning", "property-care", "window-cleaning"],
   "commercial-cleaning": ["residential-cleaning", "window-cleaning", "property-care"],
   "property-care": ["vacation-home-checks", "residential-cleaning", "pressure-washing"],
@@ -47,6 +50,7 @@ const RELATED_LABELS: Record<FlatServiceSlug, string> = {
   "commercial-cleaning": "Commercial Cleaning",
   "property-care": "Property & Estate Care",
   "vacation-home-checks": "Vacation Home Checks",
+  "recurring-lawn-driveway": "Recurring Lawn & Driveway Maintenance",
   "mobile-detailing": "Mobile Detailing",
 };
 
@@ -209,6 +213,20 @@ const CUSTOM_PAGES: Record<FlatServiceSlug, ServicePageContent> = {
       "Vacation-home checks are quoted by visit frequency and scope. Share your property details for a clear estimate.",
     locationParagraphs: serviceLocationSeoParagraphs("vacation home checks"),
   }),
+  "recurring-lawn-driveway": toServicePageContent("recurring-lawn-driveway", {
+    slug: "recurring-lawn-driveway",
+    name: "Recurring Lawn & Driveway Maintenance",
+    headline: "Recurring Lawn & Driveway Maintenance in Palm Beach County",
+    intro:
+      "Our proven recurring program keeps lawns edged, driveways clear, and exterior approaches presentable on a dependable schedule—typically around $300 per visit for properties within agreed scope.",
+    benefits: [
+      "Proven recurring program with steady monthly or biweekly visits",
+      "One crew for lawn edging, blow-down, and driveway maintenance",
+      "Clear scope and pricing before the first cycle",
+      "Easy to pair with pressure washing or property care",
+    ],
+    relatedLinks: relatedLinksFor("recurring-lawn-driveway"),
+  }),
   "mobile-detailing": toServicePageContent("mobile-detailing", {
     slug: "mobile-detailing",
     name: "Mobile Detailing",
@@ -253,7 +271,7 @@ const CUSTOM_PAGES: Record<FlatServiceSlug, ServicePageContent> = {
       },
     ],
     startingPriceLabel:
-      "Mobile detailing packages often start around $150 for interior–exterior service. Full details are quoted based on vehicle size and condition.",
+      "Most mobile details range from $200–$400 depending on vehicle size, condition, and selected services.",
     locationParagraphs: serviceLocationSeoParagraphs("mobile detailing"),
   }),
 };
@@ -274,6 +292,7 @@ export function getLegacyServiceRedirect(slug: string): string | undefined {
     "residential-cleaning": "residential-cleaning",
     "commercial-cleaning": "commercial-cleaning",
     "property-maintenance": "property-care",
+    "recurring-lawn-driveway": "recurring-lawn-driveway",
     "auto-detailing": "mobile-detailing",
     "airbnb-services": "vacation-home-checks",
   };

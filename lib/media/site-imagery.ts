@@ -341,6 +341,7 @@ export function getSiteImageAsset(id: string): MediaAsset | undefined {
 export const SERVICE_STOCK_IMAGE_IDS: Record<string, string> = {
   "window-cleaning": "service-window-cleaning",
   "pressure-washing": "service-pressure-washing",
+  "recurring-lawn-driveway": "service-pressure-washing",
   "residential-cleaning": "service-residential-cleaning",
   "commercial-cleaning": "service-commercial-cleaning",
   "property-care": "service-property-care",

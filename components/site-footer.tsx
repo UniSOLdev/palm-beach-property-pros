@@ -9,6 +9,7 @@ import { PHONE_DISPLAY, PHONE_TEL, QUOTE_PATH, SITE_NAME } from "@/lib/site";
 const primaryServices = [
   "window-cleaning",
   "pressure-washing",
+  "recurring-lawn-driveway",
   "residential-cleaning",
   "commercial-cleaning",
   "property-maintenance",

@@ -65,7 +65,7 @@ export function LuxuryImage({
 
   return (
     <div
-      className={`image-reveal-root relative overflow-hidden ${fill ? "absolute inset-0" : ""} ${hoverScale ? "group/image" : ""} ${loaded ? "is-loaded" : ""}`}
+      className={`image-reveal-root overflow-hidden ${fill ? "absolute inset-0 h-full w-full" : "relative"} ${hoverScale ? "group/image" : ""} ${loaded ? "is-loaded" : ""}`}
     >
       {!loaded && <div className="image-skeleton absolute inset-0 z-[1]" aria-hidden />}
       {useNative ? (

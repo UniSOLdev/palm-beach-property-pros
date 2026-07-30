@@ -12,16 +12,27 @@ const services = [
   "Residential Cleaning",
   "Commercial Cleaning",
   "Pressure Washing / Exterior",
+  "Recurring Lawn & Driveway Maintenance",
   "Property & Estate Care",
   "Vacation Home Checks",
   "Mobile Detailing",
-  "Auto Detailing",
   "Carpet & Steam Cleaning",
-  "Trash Can Cleaning",
   "Property Maintenance",
-  "Airbnb / Co-host Services",
   "Multiple / Not sure",
 ] as const;
+
+/** Services that typically need on-site water and standard electrical power. */
+const SERVICES_NEEDING_UTILITIES = new Set<string>([
+  "Window Cleaning",
+  "Residential Cleaning",
+  "Commercial Cleaning",
+  "Pressure Washing / Exterior",
+  "Recurring Lawn & Driveway Maintenance",
+  "Property & Estate Care",
+  "Mobile Detailing",
+  "Carpet & Steam Cleaning",
+  "Property Maintenance",
+]);
 
 type QuoteFormProps = {
   defaultService?: string;
@@ -32,10 +43,20 @@ export function QuoteForm({ defaultService }: QuoteFormProps) {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [photoNotice, setPhotoNotice] = useState<string | null>(null);
   const [referrer, setReferrer] = useState("");
+  const matchedService = services.find((s) => s === defaultService) ?? "";
+  const [selectedService, setSelectedService] = useState(matchedService);
+  const needsUtilities = SERVICES_NEEDING_UTILITIES.has(selectedService);
 
   useEffect(() => {
     setReferrer(document.referrer || "");
   }, []);
+
+  useEffect(() => {
+    if (defaultService) {
+      const match = services.find((s) => s === defaultService) ?? "";
+      setSelectedService(match);
+    }
+  }, [defaultService]);
 
   async function onSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -57,6 +78,7 @@ export function QuoteForm({ defaultService }: QuoteFormProps) {
       }
       setStatus("success");
       e.currentTarget.reset();
+      setSelectedService("");
       return;
     }
 
@@ -102,8 +124,6 @@ export function QuoteForm({ defaultService }: QuoteFormProps) {
     );
   }
 
-  const matchedService = services.find((s) => s === defaultService) ?? "";
-
   return (
     <form
       onSubmit={onSubmit}
@@ -113,12 +133,15 @@ export function QuoteForm({ defaultService }: QuoteFormProps) {
     >
       <input type="hidden" name="source" value="website" />
       <input type="hidden" name="referrer" value={referrer} />
-      {/* Honeypot — hidden from users */}
-      <div className="absolute -left-[9999px] h-0 w-0 overflow-hidden" aria-hidden>
-        <label>
-          Do not fill this out
-          <input type="text" name="_gotcha" tabIndex={-1} autoComplete="off" />
-        </label>
+      {/* Honeypot — visually hidden; excluded from assistive tech and tab order */}
+      <div className="pointer-events-none absolute left-[-10000px] h-px w-px overflow-hidden" aria-hidden="true">
+        <input
+          type="text"
+          name="_gotcha"
+          tabIndex={-1}
+          autoComplete="off"
+          aria-hidden="true"
+        />
       </div>
 
       <p className="text-sm text-charcoal/85">
@@ -149,13 +172,11 @@ export function QuoteForm({ defaultService }: QuoteFormProps) {
         </label>
       </div>
       <label className="block text-sm font-medium text-navy">
-        Email <span className="text-red-600">*</span>
+        Email <span className="font-normal text-charcoal/60">(optional)</span>
         <input
-          required
           name="email"
           type="email"
           autoComplete="email"
-          aria-required="true"
           className="mt-1 w-full rounded-xl border border-navy/15 bg-cream px-3 py-2.5 text-charcoal outline-none ring-ocean/30 focus:ring-2"
         />
       </label>
@@ -164,7 +185,8 @@ export function QuoteForm({ defaultService }: QuoteFormProps) {
         <select
           required
           name="service"
-          defaultValue={matchedService}
+          value={selectedService}
+          onChange={(e) => setSelectedService(e.target.value)}
           aria-required="true"
           className="mt-1 w-full rounded-xl border border-navy/15 bg-cream px-3 py-2.5 text-charcoal outline-none ring-ocean/30 focus:ring-2"
         >
@@ -176,6 +198,29 @@ export function QuoteForm({ defaultService }: QuoteFormProps) {
           ))}
         </select>
       </label>
+      {needsUtilities ? (
+        <label className="block text-sm font-medium text-navy">
+          Water &amp; electrical access <span className="text-red-600">*</span>
+          <select
+            required
+            name="utilitiesAccess"
+            aria-required="true"
+            className="mt-1 w-full rounded-xl border border-navy/15 bg-cream px-3 py-2.5 text-charcoal outline-none ring-ocean/30 focus:ring-2"
+          >
+            <option value="">Select…</option>
+            <option value="Yes — water and standard electrical outlet available">
+              Yes — water and standard electrical outlet available
+            </option>
+            <option value="Water available only">Water available only</option>
+            <option value="Not available on site">Not available on site</option>
+            <option value="Not sure — need to confirm">Not sure — need to confirm</option>
+          </select>
+          <span className="mt-1 block text-xs font-normal text-charcoal/65">
+            We bring equipment and supplies; most on-site services need customer water and a standard
+            outlet.
+          </span>
+        </label>
+      ) : null}
       <label className="block text-sm font-medium text-navy">
         City or ZIP code <span className="text-red-600">*</span>
         <input

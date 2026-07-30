@@ -182,7 +182,7 @@ BEGIN
       "imageUrl": "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=2000&q=80",
       "chips": ["Licensed & insured", "Residential & commercial", "Airbnb & turnover specialists", "Palm Beach County based"],
       "primaryCta": {"label": "Get a quote", "href": "/quote"},
-      "secondaryCta": {"label": "Call us", "href": "tel:15616292617"}
+      "secondaryCta": {"label": "Call us", "href": "tel:15617647818"}
     }'::jsonb),
     (v_page_id, 'services', 'Service Lines', 1, true, '{
       "headline": "Complete property care",
@@ -211,7 +211,7 @@ BEGIN
       "headline": "One team for everything your property needs",
       "body": "Call or request a quote — we respond quickly with clear scope and pricing.",
       "primaryCta": {"label": "Get a quote", "href": "/quote"},
-      "phone": "561-629-2617"
+      "phone": "561-764-7818"
     }'::jsonb);
   END IF;
 END $$;

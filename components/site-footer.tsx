@@ -26,9 +26,7 @@ export function SiteFooter() {
       <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6 md:px-6 md:py-12">
         <div className="grid gap-10 lg:grid-cols-12">
           <div className="lg:col-span-4">
-            <div className="inline-block rounded-xl bg-white p-3 shadow-md">
-              <BrandLogo variant="footer" />
-            </div>
+            <BrandLogo variant="footer" />
             <p className="mt-4 text-sm leading-relaxed text-cream/85">
               {SITE_NAME} provides residential and commercial cleaning, window cleaning, pressure
               washing, property care, and mobile detailing across Palm Beach County.

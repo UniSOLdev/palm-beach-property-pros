@@ -8,6 +8,7 @@ const nextConfig: NextConfig = {
       { pathname: "/media/**" },
       { pathname: "/brand/**" },
       { pathname: "/logo.png" },
+      { pathname: "/brand/**" },
     ],
     remotePatterns: [
       {

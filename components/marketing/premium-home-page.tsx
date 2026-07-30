@@ -11,6 +11,7 @@ import { RecurringPropertyCareSection } from "@/components/marketing/recurring-p
 import { ReviewsSection } from "@/components/marketing/reviews-section";
 import { ScrollReveal } from "@/components/marketing/scroll-reveal";
 import { ServiceAreaSection } from "@/components/marketing/service-area-section";
+import { TeamSection } from "@/components/marketing/team-section";
 import { TrustBar } from "@/components/marketing/trust-bar";
 import { getPublishedCaseStudies } from "@/lib/case-studies";
 import { CTA } from "@/lib/cta";
@@ -97,6 +98,14 @@ export function PremiumHomePage({ media }: { media: HomepageMediaBundle }) {
 
       <ReviewsSection />
 
+      <ScrollReveal delay={30}>
+        <section className="py-16 md:py-24">
+          <div className="mx-auto max-w-6xl">
+            <TeamSection />
+          </div>
+        </section>
+      </ScrollReveal>
+
       {featuredTransformation ? (
         <ScrollReveal delay={20}>
           <section className="section-band-light relative overflow-hidden py-16 md:py-24">
@@ -155,7 +164,7 @@ export function PremiumHomePage({ media }: { media: HomepageMediaBundle }) {
         </section>
       </ScrollReveal>
 
-      {featuredCaseStudy ? (
+      {featuredCaseStudy && !featuredTransformation ? (
         <ScrollReveal delay={80}>
           <section className="py-16 md:py-24">
             <div className="mx-auto max-w-2xl text-center">

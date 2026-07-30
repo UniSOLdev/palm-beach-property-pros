@@ -43,6 +43,11 @@ export function SiteFooter() {
               <p className="text-xs font-semibold uppercase tracking-wider text-sky/90">Services</p>
               <ul className="mt-3 space-y-2 text-sm">
                 <li>
+                  <Link href="/about" className="text-cream/90 no-underline hover:text-white">
+                    About us
+                  </Link>
+                </li>
+                <li>
                   <Link href="/services" className="text-cream/90 no-underline hover:text-white">
                     All services
                   </Link>

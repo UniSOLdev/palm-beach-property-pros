@@ -61,6 +61,27 @@ export const CASE_STUDIES: CaseStudy[] = [
     afterAlt: "After — cleared estate pathways in Palm Beach Gardens",
     published: true,
   },
+  /*
+  Template for your next project — set published: true when photos and copy are ready:
+  {
+    slug: "window-cleaning-jupiter-waterfront",
+    title: "Waterfront Window Cleaning",
+    city: "Jupiter",
+    serviceType: "Window cleaning",
+    summary: "One-sentence summary of the project outcome.",
+    initialCondition: "What the property looked like before.",
+    scopeOfWork: ["Item 1", "Item 2"],
+    challenges: ["Challenge 1"],
+    workCompleted: ["What your crew did"],
+    results: "Outcome in plain language.",
+    completionTimeline: "Optional — e.g. Same-day service",
+    beforeImage: "/media/curated/your-slug/images/before.webp",
+    afterImage: "/media/curated/your-slug/images/after.webp",
+    beforeAlt: "Before — describe the scene accurately",
+    afterAlt: "After — describe the scene accurately",
+    published: false,
+  },
+  */
 ];
 
 export function getPublishedCaseStudies(): CaseStudy[] {

@@ -3,6 +3,7 @@ import "./globals.css";
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import { Plus_Jakarta_Sans } from "next/font/google";
+import { GoogleAnalytics } from "@/components/analytics/google-analytics";
 import { SITE_NAME, SITE_URL } from "@/lib/site";
 
 const SITE_DESCRIPTION =
@@ -29,12 +30,20 @@ export const metadata: Metadata = {
     locale: "en_US",
     type: "website",
   },
+  twitter: {
+    card: "summary_large_image",
+    title: SITE_NAME,
+    description: SITE_DESCRIPTION,
+  },
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en" className={sans.variable}>
-      <body className={`${sans.className} min-h-screen antialiased`}>{children}</body>
+      <body className={`${sans.className} min-h-screen antialiased`}>
+        <GoogleAnalytics />
+        {children}
+      </body>
     </html>
   );
 }

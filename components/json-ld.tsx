@@ -1,8 +1,23 @@
 import { PHONE_DISPLAY, SITE_NAME, SITE_URL } from "@/lib/site";
+import { getPublishedReviews } from "@/lib/reviews";
 
 type BreadcrumbItem = { name: string; href: string };
 
 export function LocalBusinessJsonLd() {
+  const reviews = getPublishedReviews();
+  const rating =
+    reviews.length > 0
+      ? {
+          aggregateRating: {
+            "@type": "AggregateRating",
+            ratingValue: (
+              reviews.reduce((sum, r) => sum + r.starRating, 0) / reviews.length
+            ).toFixed(1),
+            reviewCount: reviews.length,
+          },
+        }
+      : {};
+
   const data = {
     "@context": "https://schema.org",
     "@type": "LocalBusiness",
@@ -15,6 +30,7 @@ export function LocalBusinessJsonLd() {
     },
     description:
       "Palm Beach County property cleaning and care: window cleaning, pressure washing, residential and commercial cleaning, property care, and mobile detailing.",
+    ...rating,
   };
 
   return (

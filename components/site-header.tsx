@@ -8,6 +8,7 @@ import { PHONE_TEL, QUOTE_PATH } from "@/lib/site";
 
 const nav = [
   { href: "/services", label: "Services" },
+  { href: "/about", label: "About" },
   { href: "/service-area", label: "Service Area" },
 ] as const;
 

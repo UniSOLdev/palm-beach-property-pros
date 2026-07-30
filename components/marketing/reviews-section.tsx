@@ -1,25 +1,30 @@
-import { hasPublishedReviews } from "@/lib/reviews";
+import { ReviewCards } from "@/components/marketing/review-cards";
+import { getPublishedReviews, hasPublishedReviews } from "@/lib/reviews";
 
 /**
- * Reviews section — hidden until real Google reviews are supplied.
- * Set `showComingSoon` to true to display a neutral placeholder.
+ * Reviews section — hidden until real Google reviews are added in lib/reviews.ts.
  */
-export function ReviewsSection({ showComingSoon = false }: { showComingSoon?: boolean }) {
-  if (!hasPublishedReviews() && !showComingSoon) {
+export function ReviewsSection() {
+  const reviews = getPublishedReviews();
+
+  if (!hasPublishedReviews()) {
     return null;
   }
 
-  if (!hasPublishedReviews()) {
-    return (
-      <section className="py-12 md:py-16" aria-label="Customer reviews">
-        <div className="mx-auto max-w-2xl rounded-2xl border border-navy/[0.08] bg-sand/30 px-6 py-10 text-center">
-          <p className="section-eyebrow text-ocean">Customer reviews</p>
-          <p className="mt-3 text-base text-charcoal/75">Customer reviews coming soon.</p>
-        </div>
-      </section>
-    );
-  }
-
-  // Future: render review cards from getPublishedReviews()
-  return null;
+  return (
+    <section className="py-16 md:py-24" aria-labelledby="reviews-heading">
+      <div className="mx-auto max-w-2xl text-center">
+        <p className="section-eyebrow text-ocean">Customer reviews</p>
+        <h2 id="reviews-heading" className="section-title mt-4">
+          What Palm Beach County clients say
+        </h2>
+        <p className="section-lead">
+          Real feedback from homeowners, property managers, and local businesses we have served.
+        </p>
+      </div>
+      <div className="mx-auto mt-12 max-w-6xl">
+        <ReviewCards reviews={reviews} />
+      </div>
+    </section>
+  );
 }

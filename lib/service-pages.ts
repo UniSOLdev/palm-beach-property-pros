@@ -80,7 +80,8 @@ function toServicePageContent(
     faq: overrides.faq ?? base?.faq ?? [],
     startingPriceLabel: overrides.startingPriceLabel ?? base?.startingPriceLabel,
     locationParagraphs:
-      overrides.locationParagraphs ?? (base ? serviceLocationSeoParagraphs(overrides.name) : undefined),
+      overrides.locationParagraphs ??
+      serviceLocationSeoParagraphs(overrides.name, overrides.slug),
     relatedLinks: overrides.relatedLinks ?? relatedLinksFor(slug),
   };
 }

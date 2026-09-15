@@ -388,7 +388,7 @@ export function EmployeeHub({ crewMembers }: { crewMembers: HubCrewMember[] }) {
               <div>
                 <h2 className="font-bold text-navy">Refer a job</h2>
                 <p className="mt-1 text-sm text-charcoal/75">
-                  Know someone who needs yard work, cleaning, or detailing? Submit their info — if it
+                  Know someone who needs yard work or property cleaning? Submit their info — if it
                   books, you earn the referral bonus.
                 </p>
               </div>

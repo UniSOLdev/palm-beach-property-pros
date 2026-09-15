@@ -4,7 +4,7 @@ import { QUOTE_PATH, SITE_NAME } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: "Service Pricing",
-  description: `${SITE_NAME} starting prices for window cleaning, pressure washing, detailing, residential cleaning, and more in Palm Beach County. Scope-based quotes through our online form.`,
+  description: `${SITE_NAME} guide pricing for property restoration, cleaning, and maintenance — residential and commercial, Palm Beach County.`,
 };
 
 const overview = [
@@ -12,12 +12,10 @@ const overview = [
   { service: "Window Cleaning", price: "Starting at $99" },
   { service: "Move-Out & Turnover Cleaning", price: "Starting at $200" },
   { service: "Trash & Debris Removal", price: "Custom quote by volume" },
-  { service: "Auto Detailing", price: "Starting at $150" },
   { service: "Residential Cleaning", price: "Starting at $120" },
   { service: "Deep Cleaning", price: "Starting at $200" },
   { service: "Commercial Cleaning", price: "Custom quote" },
   { service: "Pressure Washing / Exterior", price: "Starting at $129" },
-  { service: "Full Detail", price: "Starting at $250" },
   { service: "Carpet & Steam Cleaning", price: "Starting at $99" },
   { service: "Trash Can Cleaning", price: "Starting at $25" },
   { service: "Property Maintenance", price: "Custom quote" },

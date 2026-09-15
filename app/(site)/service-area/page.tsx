@@ -4,51 +4,35 @@ import { QUOTE_PATH, SERVICE_CITIES, SITE_NAME } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: "Service Area – Palm Beach County",
-  description: `${SITE_NAME} serves West Palm Beach, Palm Beach Gardens, Jupiter, Delray Beach, and communities countywide. Request scheduling via our quote form.`,
+  description: `${SITE_NAME} serves West Palm Beach, Palm Beach Gardens, Jupiter, Delray Beach, and communities countywide.`,
 };
 
-const bullets = SERVICE_CITIES.filter((c) => !c.toLowerCase().startsWith("and nearby"));
+const cities = SERVICE_CITIES.filter((c) => !c.toLowerCase().startsWith("and nearby"));
 
 export default function ServiceAreaPage() {
   return (
     <div className="bg-cream">
-      <section className="mx-auto max-w-6xl px-6 py-16">
-        <p className="text-sm font-semibold uppercase tracking-wide text-ocean">Service area</p>
-        <h1 className="mt-2 text-3xl font-bold tracking-tight text-navy sm:text-4xl">
-          Service Area – Palm Beach County
-        </h1>
-        <p className="mt-4 text-lg text-charcoal/85">
-          {SITE_NAME} dispatches licensed crews across the county for homes, rentals, retail,
-          offices, dealerships, and HOA-supported properties.
+      <section className="mx-auto max-w-2xl px-6 py-16 text-center md:py-24">
+        <p className="section-eyebrow text-ocean">Service area</p>
+        <h1 className="section-title mt-3">Palm Beach County</h1>
+        <p className="section-lead mt-4">
+          {SITE_NAME} dispatches licensed crews for homes, rentals, retail, and HOA properties
+          across the county.
         </p>
-
-        <h2 className="mt-10 text-lg font-bold text-navy">Cities and communities</h2>
-        <ul className="mt-4 grid gap-2 sm:grid-cols-2">
-          {bullets.map((city) => (
+        <ul className="mt-8 flex flex-wrap justify-center gap-2">
+          {cities.map((city) => (
             <li
               key={city}
-              className="rounded-xl border border-navy/10 bg-white px-4 py-3 text-sm font-medium text-navy shadow-md"
+              className="rounded-full border border-navy/10 bg-white px-3.5 py-1.5 text-sm font-medium text-navy shadow-sm"
             >
               {city}
             </li>
           ))}
         </ul>
-        <p className="mt-3 text-sm text-charcoal/75">
-          {SERVICE_CITIES[SERVICE_CITIES.length - 1]}
-        </p>
-
-        <h2 className="mt-10 text-lg font-bold text-navy">Scheduling</h2>
-        <p className="mt-3 text-charcoal/90">
-          We coordinate arrival windows around traffic patterns, HOA access rules, and your onsite
-          contacts. Same-week service is offered when capacity allows; photo-based requests receive
-          faster turnaround on pricing.
-        </p>
-
-        <div className="mt-10">
-          <Link href={QUOTE_PATH} className="btn-primary w-full sm:w-auto">
-            Request service or a quote
-          </Link>
-        </div>
+        <p className="mt-4 text-sm text-charcoal/60">{SERVICE_CITIES[SERVICE_CITIES.length - 1]}</p>
+        <Link href={QUOTE_PATH} className="btn-primary mt-10 inline-flex min-h-[48px] px-8">
+          Request a quote
+        </Link>
       </section>
     </div>
   );

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { BrandLogo } from "@/components/brand-logo";
-import { SERVICES } from "@/lib/services";
+import { PUBLIC_SERVICES } from "@/lib/services";
 import { PHONE_DISPLAY, PHONE_TEL, QUOTE_PATH, SERVICE_CITIES, SITE_NAME } from "@/lib/site";
 
 const coreCities = SERVICE_CITIES.filter((c) => !c.toLowerCase().startsWith("and nearby"));
@@ -15,8 +15,8 @@ export function SiteFooter() {
               <BrandLogo variant="footer" />
             </div>
             <p className="mt-4 text-sm leading-relaxed text-cream/85">
-              {SITE_NAME} provides residential and commercial cleaning, window cleaning, pressure
-              washing, detailing, carpet care, and property maintenance across Palm Beach County.
+              {SITE_NAME} provides property restoration, cleaning, and maintenance for residential
+              and commercial properties across Palm Beach County — no carpentry.
             </p>
           </div>
 
@@ -31,7 +31,7 @@ export function SiteFooter() {
                     All services
                   </Link>
                 </li>
-                {SERVICES.map((s) => (
+                {PUBLIC_SERVICES.map((s) => (
                   <li key={s.slug}>
                     <Link
                       href={`/services/${s.slug}`}

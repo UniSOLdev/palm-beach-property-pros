@@ -1,16 +1,12 @@
 "use client";
 
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, useEffect, useRef, useState } from "react";
+import { CORE_SERVICES } from "@/lib/marketing/core-services";
 import { submitQuoteRequest } from "@/lib/site/actions/submit-quote-request";
 import { QUOTE_ERRORS } from "@/lib/site/quote-submit-types";
 import { PHONE_DISPLAY, PHONE_TEL, SITE_NAME } from "@/lib/site";
 
-const services = [
-  "Yard & Landscape Maintenance",
-  "Window Cleaning",
-  "Move-Out & Turnover Cleaning",
-  "Trash & Debris Removal",
-  "Auto Detailing",
+const MORE_SERVICES = [
   "Residential Cleaning",
   "Commercial Cleaning",
   "Pressure Washing / Exterior",
@@ -21,46 +17,97 @@ const services = [
   "Multiple / Not sure",
 ] as const;
 
+const CORE_FORM_VALUES = {
+  "yard-landscape": "Yard & Landscape Maintenance",
+  "window-cleaning": "Window Cleaning",
+  "move-out-cleaning": "Move-Out & Turnover Cleaning",
+  "trash-debris-removal": "Trash & Debris Removal",
+} as const;
+
+const services = [
+  ...Object.values(CORE_FORM_VALUES),
+  ...MORE_SERVICES,
+] as const;
+
+const STEPS = ["Contact", "Property", "Details"] as const;
+
 type QuoteFormProps = {
   defaultService?: string;
 };
 
+const inputClass =
+  "mt-1.5 w-full min-h-[48px] rounded-xl border border-navy/12 bg-white px-4 py-3 text-base text-charcoal outline-none transition focus:border-ocean focus:ring-2 focus:ring-sky/80";
+
 export function QuoteForm({ defaultService }: QuoteFormProps) {
+  const formRef = useRef<HTMLFormElement>(null);
+  const [step, setStep] = useState(0);
   const [status, setStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [photoNotice, setPhotoNotice] = useState<string | null>(null);
   const [referrer, setReferrer] = useState("");
+  const [selectedService, setSelectedService] = useState("");
 
   useEffect(() => {
     setReferrer(document.referrer || "");
-  }, []);
+    const match = services.find((s) => s === defaultService) ?? "";
+    setSelectedService(match);
+  }, [defaultService]);
+
+  function validateStep(current: number): boolean {
+    const form = formRef.current;
+    if (!form) return false;
+    if (current === 0) {
+      const name = (form.elements.namedItem("name") as HTMLInputElement)?.value.trim();
+      const phone = (form.elements.namedItem("phone") as HTMLInputElement)?.value.trim();
+      if (!name || !phone) {
+        form.reportValidity();
+        return false;
+      }
+      return true;
+    }
+    if (current === 1) {
+      const service = (form.elements.namedItem("service") as HTMLSelectElement)?.value;
+      const address = (form.elements.namedItem("address") as HTMLInputElement)?.value.trim();
+      if (!service || !address) {
+        form.reportValidity();
+        return false;
+      }
+      return true;
+    }
+    return true;
+  }
+
+  function goNext() {
+    if (validateStep(step)) setStep((s) => Math.min(s + 1, STEPS.length - 1));
+  }
+
+  function goBack() {
+    setStep((s) => Math.max(s - 1, 0));
+  }
 
   async function onSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    if (step < STEPS.length - 1) {
+      goNext();
+      return;
+    }
+
     setStatus("submitting");
     setErrorMessage(null);
     setPhotoNotice(null);
 
-    const formData = new FormData(e.currentTarget);
-    const result = await submitQuoteRequest(formData);
+    const result = await submitQuoteRequest(new FormData(e.currentTarget));
 
     if (result.ok) {
       if (result.photoWarnings?.length) {
-        console.warn("[PBPP Quote] submitted with photo warnings:", result.photoWarnings);
         setPhotoNotice(QUOTE_ERRORS.photosSaved);
       }
       setStatus("success");
       e.currentTarget.reset();
+      setStep(0);
+      setSelectedService("");
       return;
     }
-
-    console.error("[PBPP Quote] submit failed:", {
-      code: result.code,
-      error: result.error,
-      ...(process.env.NODE_ENV === "development" && "debug" in result
-        ? { debug: result.debug }
-        : {}),
-    });
 
     setStatus("error");
     setErrorMessage(result.error);
@@ -68,26 +115,25 @@ export function QuoteForm({ defaultService }: QuoteFormProps) {
 
   if (status === "success") {
     return (
-      <div className="space-y-4 rounded-xl border border-leaf/30 bg-white p-6 shadow-md sm:p-8">
-        <h2 className="text-xl font-bold text-navy">Request received</h2>
-        <p className="text-sm leading-relaxed text-charcoal/85">
-          Thank you for reaching out to {SITE_NAME}. We will review your details and follow up using
-          your preferred contact method. For urgent scheduling, call{" "}
+      <div className="rounded-3xl border border-leaf/25 bg-white p-8 shadow-luxury">
+        <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-leaf/15 text-xl text-leaf">
+          ✓
+        </div>
+        <h2 className="mt-5 text-xl font-semibold text-navy">You&apos;re all set</h2>
+        <p className="mt-3 text-sm leading-relaxed text-charcoal/75">
+          We received your request and will follow up shortly. Urgent? Call{" "}
           <a href={PHONE_TEL} className="font-semibold text-ocean no-underline hover:underline">
             {PHONE_DISPLAY}
           </a>
           .
         </p>
-        <p className="text-xs text-charcoal/60">
-          Your request is in our system and will appear in our leads queue immediately.
-        </p>
         {photoNotice ? (
-          <p className="rounded-xl bg-sky/50 px-4 py-3 text-sm text-navy">{photoNotice}</p>
+          <p className="mt-4 rounded-xl bg-sky/40 px-4 py-3 text-sm text-navy">{photoNotice}</p>
         ) : null}
         <button
           type="button"
           onClick={() => setStatus("idle")}
-          className="btn-secondary px-5 py-2.5 text-sm"
+          className="btn-secondary mt-6 w-full sm:w-auto"
         >
           Submit another request
         </button>
@@ -95,196 +141,227 @@ export function QuoteForm({ defaultService }: QuoteFormProps) {
     );
   }
 
-  const matchedService = services.find((s) => s === defaultService) ?? "";
-
   return (
     <form
+      ref={formRef}
       onSubmit={onSubmit}
       encType="multipart/form-data"
-      className="space-y-5 rounded-xl border border-navy/10 bg-white p-6 shadow-md sm:p-8"
+      className="overflow-hidden rounded-3xl border border-navy/[0.08] bg-white shadow-luxury"
     >
       <input type="hidden" name="source" value="website" />
       <input type="hidden" name="referrer" value={referrer} />
 
-      <p className="text-sm text-charcoal/85">
-        Share your property details below. Our team uses this information to prepare scope-based
-        pricing—photos, scheduling, invoices, and approvals all stay on {SITE_NAME}.
-      </p>
-      <div className="grid gap-4 sm:grid-cols-2">
-        <label className="block text-sm font-medium text-navy">
-          Name
-          <input
-            required
-            name="name"
-            autoComplete="name"
-            className="mt-1 w-full rounded-xl border border-navy/15 bg-cream px-3 py-2.5 text-charcoal outline-none ring-ocean/30 focus:ring-2"
-          />
-        </label>
-        <label className="block text-sm font-medium text-navy">
-          Phone
-          <input
-            required
-            name="phone"
-            type="tel"
-            autoComplete="tel"
-            className="mt-1 w-full rounded-xl border border-navy/15 bg-cream px-3 py-2.5 text-charcoal outline-none ring-ocean/30 focus:ring-2"
-          />
-        </label>
-      </div>
-      <label className="block text-sm font-medium text-navy">
-        Email <span className="font-normal text-charcoal/60">(optional)</span>
-        <input
-          name="email"
-          type="email"
-          autoComplete="email"
-          className="mt-1 w-full rounded-xl border border-navy/15 bg-cream px-3 py-2.5 text-charcoal outline-none ring-ocean/30 focus:ring-2"
-        />
-      </label>
-      <label className="block text-sm font-medium text-navy">
-        Service needed
-        <select
-          required
-          name="service"
-          defaultValue={matchedService}
-          className="mt-1 w-full rounded-xl border border-navy/15 bg-cream px-3 py-2.5 text-charcoal outline-none ring-ocean/30 focus:ring-2"
-        >
-          <option value="">Select…</option>
-          {services.map((s) => (
-            <option key={s} value={s}>
-              {s}
-            </option>
+      <div className="border-b border-navy/[0.06] bg-cream/50 px-6 py-5 sm:px-8">
+        <div className="flex gap-2">
+          {STEPS.map((label, i) => (
+            <div key={label} className="flex flex-1 flex-col gap-2">
+              <div
+                className={`h-1 rounded-full transition-colors duration-300 ${
+                  i <= step ? "bg-ocean" : "bg-navy/10"
+                }`}
+              />
+              <span
+                className={`text-[10px] font-semibold uppercase tracking-wider ${
+                  i === step ? "text-ocean" : "text-charcoal/40"
+                }`}
+              >
+                {label}
+              </span>
+            </div>
           ))}
-        </select>
-      </label>
-      <label className="block text-sm font-medium text-navy">
-        Property address
-        <input
-          required
-          name="address"
-          autoComplete="street-address"
-          placeholder="Street address or property location"
-          className="mt-1 w-full rounded-xl border border-navy/15 bg-cream px-3 py-2.5 text-charcoal outline-none ring-ocean/30 focus:ring-2"
-        />
-      </label>
-      <div className="grid gap-4 sm:grid-cols-2">
-        <label className="block text-sm font-medium text-navy">
-          City
-          <input
-            name="city"
-            className="mt-1 w-full rounded-xl border border-navy/15 bg-cream px-3 py-2.5 text-charcoal outline-none ring-ocean/30 focus:ring-2"
-          />
-        </label>
-        <label className="block text-sm font-medium text-navy">
-          Property type
-          <select
-            name="propertyType"
-            className="mt-1 w-full rounded-xl border border-navy/15 bg-cream px-3 py-2.5 text-charcoal outline-none ring-ocean/30 focus:ring-2"
-          >
-            <option value="">Select…</option>
-            <option value="Single-family home">Single-family home</option>
-            <option value="Condo / Townhome">Condo / Townhome</option>
-            <option value="Airbnb / Short-term rental">Airbnb / Short-term rental</option>
-            <option value="Commercial / Retail">Commercial / Retail</option>
-            <option value="Office">Office</option>
-            <option value="HOA / Common areas">HOA / Common areas</option>
-            <option value="Other">Other</option>
-          </select>
-        </label>
-      </div>
-      <label className="block text-sm font-medium text-navy">
-        Details / message
-        <textarea
-          name="message"
-          rows={4}
-          className="mt-1 w-full rounded-xl border border-navy/15 bg-cream px-3 py-2.5 text-charcoal outline-none ring-ocean/30 focus:ring-2"
-          placeholder="Square footage, number of windows, timing constraints, access instructions…"
-        />
-      </label>
-      <div className="grid gap-4 sm:grid-cols-2">
-        <label className="block text-sm font-medium text-navy">
-          Preferred date <span className="font-normal text-charcoal/60">(optional)</span>
-          <input
-            name="preferredDate"
-            type="date"
-            className="mt-1 w-full rounded-xl border border-navy/15 bg-cream px-3 py-2.5 text-charcoal outline-none ring-ocean/30 focus:ring-2"
-          />
-        </label>
-        <label className="block text-sm font-medium text-navy">
-          Preferred time <span className="font-normal text-charcoal/60">(optional)</span>
-          <input
-            name="preferredTime"
-            placeholder="Morning, afternoon, after 2pm…"
-            className="mt-1 w-full rounded-xl border border-navy/15 bg-cream px-3 py-2.5 text-charcoal outline-none ring-ocean/30 focus:ring-2"
-          />
-        </label>
-      </div>
-      <label className="block text-sm font-medium text-navy">
-        Photos <span className="font-normal text-charcoal/60">(optional, up to 5)</span>
-        <input
-          name="photos"
-          type="file"
-          accept="image/jpeg,image/png,image/webp,image/heic,image/heif"
-          multiple
-          className="mt-1 w-full rounded-xl border border-navy/15 bg-cream px-3 py-2.5 text-sm text-charcoal file:mr-3 file:rounded-lg file:border-0 file:bg-sky/60 file:px-3 file:py-2 file:text-sm file:font-semibold file:text-navy"
-        />
-      </label>
-      <fieldset>
-        <legend className="text-sm font-medium text-navy">Preferred contact method</legend>
-        <div className="mt-2 flex flex-wrap gap-4 text-sm text-charcoal">
-          <label className="inline-flex items-center gap-2">
-            <input type="radio" name="contact" value="Call" defaultChecked />
-            Call
-          </label>
-          <label className="inline-flex items-center gap-2">
-            <input type="radio" name="contact" value="Text" />
-            Text
-          </label>
-          <label className="inline-flex items-center gap-2">
-            <input type="radio" name="contact" value="Email" />
-            Email
-          </label>
         </div>
-      </fieldset>
-      {errorMessage ? (
-        <div className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-800" role="alert">
-          <p>{errorMessage}</p>
-          <p className="mt-2 text-red-700">
-            Need help now? Call{" "}
-            <a href={PHONE_TEL} className="font-semibold underline">
-              {PHONE_DISPLAY}
-            </a>
-            .
-          </p>
-        </div>
-      ) : null}
-      <button
-        type="submit"
-        disabled={status === "submitting"}
-        className="btn-primary-lg w-full disabled:opacity-70"
-        aria-busy={status === "submitting"}
-      >
-        {status === "submitting" ? (
-          <span className="inline-flex items-center justify-center gap-2">
-            <span className="h-4 w-4 animate-spin rounded-full border-2 border-cream/30 border-t-cream" />
-            Submitting…
-          </span>
+      </div>
+
+      <div className="space-y-5 px-6 py-6 sm:px-8 sm:py-8">
+        {step === 0 ? (
+          <>
+            <div>
+              <h2 className="text-lg font-semibold text-navy">How should we reach you?</h2>
+              <p className="mt-1 text-sm text-charcoal/60">We typically reply same day.</p>
+            </div>
+            <label className="block text-sm font-medium text-navy">
+              Name
+              <input required name="name" autoComplete="name" className={inputClass} />
+            </label>
+            <label className="block text-sm font-medium text-navy">
+              Phone
+              <input required name="phone" type="tel" autoComplete="tel" className={inputClass} />
+            </label>
+            <label className="block text-sm font-medium text-navy">
+              Email <span className="font-normal text-charcoal/50">(optional)</span>
+              <input name="email" type="email" autoComplete="email" className={inputClass} />
+            </label>
+            <fieldset>
+              <legend className="text-sm font-medium text-navy">Preferred contact</legend>
+              <div className="mt-3 flex flex-wrap gap-2">
+                {(["Call", "Text", "Email"] as const).map((method) => (
+                  <label
+                    key={method}
+                    className="inline-flex cursor-pointer items-center gap-2 rounded-full border border-navy/12 px-4 py-2 text-sm has-[:checked]:border-ocean has-[:checked]:bg-sky/30"
+                  >
+                    <input
+                      type="radio"
+                      name="contact"
+                      value={method}
+                      defaultChecked={method === "Call"}
+                      className="sr-only"
+                    />
+                    {method}
+                  </label>
+                ))}
+              </div>
+            </fieldset>
+          </>
+        ) : null}
+
+        {step === 1 ? (
+          <>
+            <div>
+              <h2 className="text-lg font-semibold text-navy">What do you need?</h2>
+              <p className="mt-1 text-sm text-charcoal/60">Pick a service and where the work is.</p>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {CORE_SERVICES.map((core) => {
+                const serviceName = CORE_FORM_VALUES[core.slug as keyof typeof CORE_FORM_VALUES];
+                const active = selectedService === serviceName;
+                return (
+                  <button
+                    key={core.slug}
+                    type="button"
+                    onClick={() => setSelectedService(serviceName)}
+                    className={`rounded-full border px-3.5 py-2 text-xs font-semibold transition ${
+                      active
+                        ? "border-ocean bg-sky/40 text-navy"
+                        : "border-navy/12 bg-white text-charcoal/70 hover:border-ocean/40"
+                    }`}
+                  >
+                    {core.name}
+                  </button>
+                );
+              })}
+            </div>
+            <label className="block text-sm font-medium text-navy">
+              Service
+              <select
+                required
+                name="service"
+                value={selectedService}
+                onChange={(e) => setSelectedService(e.target.value)}
+                className={inputClass}
+              >
+                <option value="">Select…</option>
+                {services.map((s) => (
+                  <option key={s} value={s}>
+                    {s}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="block text-sm font-medium text-navy">
+              Property address
+              <input
+                required
+                name="address"
+                autoComplete="street-address"
+                placeholder="Street address"
+                className={inputClass}
+              />
+            </label>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <label className="block text-sm font-medium text-navy">
+                City
+                <input name="city" placeholder="West Palm Beach" className={inputClass} />
+              </label>
+              <label className="block text-sm font-medium text-navy">
+                Property type
+                <select name="propertyType" className={inputClass}>
+                  <option value="">Select…</option>
+                  <option value="Single-family home">Single-family home</option>
+                  <option value="Condo / Townhome">Condo / Townhome</option>
+                  <option value="Airbnb / Short-term rental">Airbnb / STR</option>
+                  <option value="Commercial / Retail">Commercial</option>
+                  <option value="HOA / Common areas">HOA</option>
+                  <option value="Other">Other</option>
+                </select>
+              </label>
+            </div>
+          </>
+        ) : null}
+
+        {step === 2 ? (
+          <>
+            <div>
+              <h2 className="text-lg font-semibold text-navy">Anything else?</h2>
+              <p className="mt-1 text-sm text-charcoal/60">Photos help us quote faster and accurately.</p>
+            </div>
+            <label className="block text-sm font-medium text-navy">
+              Details
+              <textarea
+                name="message"
+                rows={3}
+                placeholder="Timing, access notes, size of job…"
+                className={`${inputClass} min-h-[96px] resize-y`}
+              />
+            </label>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <label className="block text-sm font-medium text-navy">
+                Preferred date
+                <input name="preferredDate" type="date" className={inputClass} />
+              </label>
+              <label className="block text-sm font-medium text-navy">
+                Preferred time
+                <input name="preferredTime" placeholder="Morning, after 2pm…" className={inputClass} />
+              </label>
+            </div>
+            <label className="block">
+              <span className="text-sm font-medium text-navy">Photos</span>
+              <span className="ml-1 text-sm font-normal text-charcoal/50">(up to 5)</span>
+              <div className="mt-2 rounded-2xl border-2 border-dashed border-navy/15 bg-cream/40 px-4 py-6 text-center">
+                <input
+                  name="photos"
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp,image/heic,image/heif"
+                  multiple
+                  className="mx-auto w-full max-w-xs text-sm text-charcoal file:mr-3 file:rounded-lg file:border-0 file:bg-ocean file:px-4 file:py-2 file:text-sm file:font-semibold file:text-cream"
+                />
+              </div>
+            </label>
+          </>
+        ) : null}
+
+        {errorMessage ? (
+          <div className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-800" role="alert">
+            {errorMessage}
+          </div>
+        ) : null}
+      </div>
+
+      <div className="flex flex-col-reverse gap-3 border-t border-navy/[0.06] px-6 py-5 sm:flex-row sm:justify-between sm:px-8">
+        {step > 0 ? (
+          <button type="button" onClick={goBack} className="btn-secondary min-h-[48px] sm:min-w-[120px]">
+            Back
+          </button>
         ) : (
-          "Submit quote request"
+          <span />
         )}
-      </button>
-      <p className="text-center text-xs text-charcoal/70">
-        We do not sell your information. Details you enter here stay with {SITE_NAME} for scheduling
-        and estimating only.
-      </p>
-      <div className="rounded-2xl bg-sky/80 p-4 text-center text-sm text-navy">
-        Prefer voice?{" "}
-        <a
-          href={PHONE_TEL}
-          className="font-semibold text-ocean no-underline underline-offset-2 hover:underline"
+        <button
+          type="submit"
+          disabled={status === "submitting"}
+          className="btn-primary-lg min-h-[52px] w-full sm:w-auto sm:min-w-[160px] disabled:opacity-70"
         >
-          Call {PHONE_DISPLAY}
-        </a>
+          {status === "submitting" ? (
+            "Sending…"
+          ) : step < STEPS.length - 1 ? (
+            "Continue"
+          ) : (
+            "Submit request"
+          )}
+        </button>
       </div>
+
+      <p className="border-t border-navy/[0.04] px-6 py-4 text-center text-xs text-charcoal/55 sm:px-8">
+        Your info stays with {SITE_NAME} for quoting and scheduling only.
+      </p>
     </form>
   );
 }

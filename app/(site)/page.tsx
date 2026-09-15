@@ -4,8 +4,8 @@ import { getHomepageMediaBundle } from "@/lib/media/homepage-media";
 import { SITE_NAME } from "@/lib/site";
 
 export const metadata: Metadata = {
-  title: "Premium Property Operations & Care in Palm Beach County",
-  description: `${SITE_NAME} — Residential, commercial, and coastal property services delivered with professional crews, modern systems, and detail-focused execution. Licensed & insured. Palm Beach County based.`,
+  title: "Property Restoration, Cleaning & Maintenance",
+  description: `${SITE_NAME} — Property restoration, cleaning, and maintenance for residential and commercial properties in Palm Beach County. No carpentry. Licensed & insured.`,
 };
 
 /** Production homepage — locked premium layout (not CMS-overridden). */

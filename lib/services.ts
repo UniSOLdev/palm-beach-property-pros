@@ -527,14 +527,33 @@ export const SERVICES: ServiceDefinition[] = [
   },
 ];
 
+/**
+ * Same LLC, separate DBA — offered off PBPP marketing (see VEHICLE_DBA_NAME in lib/site.ts).
+ * Keep in admin/CRM for internal quotes; hidden from palmbeachpropertypros.com.
+ */
+export const OFF_SITE_ONLY_SLUGS: readonly ServiceSlug[] = ["auto-detailing"];
+
+export function isPublicService(slug: ServiceSlug): boolean {
+  return !OFF_SITE_ONLY_SLUGS.includes(slug);
+}
+
+export const PUBLIC_SERVICES = SERVICES.filter((s) => isPublicService(s.slug));
+
 export function getServiceBySlug(slug: string): ServiceDefinition | undefined {
   return SERVICES.find((s) => s.slug === slug);
 }
 
+export function getPublicServiceBySlug(slug: string): ServiceDefinition | undefined {
+  const s = getServiceBySlug(slug);
+  if (!s || !isPublicService(s.slug)) return undefined;
+  return s;
+}
+
 export function getRelatedServices(slug: ServiceSlug, limit = 3): ServiceDefinition[] {
-  const idx = SERVICES.findIndex((s) => s.slug === slug);
+  const pool = PUBLIC_SERVICES;
+  const idx = pool.findIndex((s) => s.slug === slug);
   if (idx === -1) return [];
-  const after = SERVICES.slice(idx + 1).filter((s) => s.slug !== slug);
-  const before = SERVICES.slice(0, idx);
+  const after = pool.slice(idx + 1).filter((s) => s.slug !== slug);
+  const before = pool.slice(0, idx);
   return [...after, ...before].slice(0, limit);
 }

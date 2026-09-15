@@ -6,7 +6,7 @@ import { Plus_Jakarta_Sans } from "next/font/google";
 import { SITE_NAME, SITE_URL } from "@/lib/site";
 
 const SITE_DESCRIPTION =
-  "Licensed Palm Beach County property cleaning and maintenance: window cleaning, pressure washing, residential and commercial cleaning, auto detailing, carpet care, and coordinated turnovers.";
+  "Property restoration, cleaning, and maintenance for residential and commercial properties in Palm Beach County. No carpentry. Licensed & insured.";
 
 const sans = Plus_Jakarta_Sans({
   subsets: ["latin"],

@@ -1,6 +1,6 @@
 import type { ServiceSlug } from "@/lib/services";
 
-/** Customer-facing lineup — use on homepage, quote form, and marketing decks. */
+/** Public restoration / cleaning / maintenance lineup. */
 export type CoreService = {
   slug: ServiceSlug;
   name: string;
@@ -11,32 +11,30 @@ export type CoreService = {
 export const CORE_SERVICES: CoreService[] = [
   {
     slug: "yard-landscape",
-    name: "Yard & landscape",
-    tagline: "Hedge, edge, mow, blow — properties that look maintained from the street.",
-    examples: ["Weekly maintenance", "Estate cleanups", "Seasonal resets"],
+    name: "Yard restoration & maintenance",
+    tagline:
+      "Overgrown resets, hedge, edge, mow, and blow — residential estates and commercial grounds.",
+    examples: ["Estate cleanups", "Weekly maintenance", "Seasonal restoration"],
   },
   {
     slug: "window-cleaning",
     name: "Window cleaning",
-    tagline: "Interior and exterior glass, frames, and coastal residue handled with care.",
-    examples: ["Residential glass", "Storefronts", "Water-view homes"],
+    tagline:
+      "Interior and exterior glass for homes, storefronts, and managed portfolios — coastal residue handled.",
+    examples: ["Residential glass", "Storefronts", "Commercial facades"],
   },
   {
     slug: "move-out-cleaning",
-    name: "Move-out cleaning",
-    tagline: "Turnover-ready interiors for rentals, sales, and seasonal close-outs.",
-    examples: ["Rental turnovers", "Move-out prep", "Deep resets"],
+    name: "Interior cleaning & turnovers",
+    tagline:
+      "Move-out, move-in, and rental turnovers — inspection-ready interiors for residential and STR.",
+    examples: ["Move-out prep", "Rental turnovers", "Deep resets"],
   },
   {
     slug: "trash-debris-removal",
-    name: "Trash & debris removal",
-    tagline: "Cleanouts, haul-offs, and property debris cleared with photo documentation.",
-    examples: ["Estate debris", "Cleanout haul-offs", "Yard waste"],
-  },
-  {
-    slug: "auto-detailing",
-    name: "Interior & exterior detailing",
-    tagline: "Mobile detailing for daily drivers, fleets, and show-ready finishes.",
-    examples: ["Interior refresh", "Exterior polish", "Full detail"],
+    name: "Cleanouts & debris removal",
+    tagline:
+      "Property cleanouts, haul-offs, and yard debris — documented before and after for owners and PMs.",
+    examples: ["Estate cleanouts", "Commercial debris", "Yard waste haul-offs"],
   },
 ];

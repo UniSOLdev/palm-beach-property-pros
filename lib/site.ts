@@ -3,7 +3,12 @@ export const SITE_URL =
   "https://www.palmbeachpropertypros.com";
 export const SITE_NAME = "Palm Beach Property Pros";
 export const TAGLINE =
-  "One reliable local team for everything your property needs.";
+  "Property restoration, cleaning, and maintenance — residential & commercial, no carpentry.";
+
+/** Same LLC — vehicle detailing is a separate DBA, not marketed on this site. */
+export const VEHICLE_DBA_NAME = "Stellar Customs";
+export const VEHICLE_DBA_NOTE =
+  "Mobile auto detailing under a separate DBA (same LLC). Quote and invoice off PBPP marketing.";
 
 export const PHONE_DISPLAY = "561-629-2617";
 export const PHONE_TEL = "tel:15616292617";

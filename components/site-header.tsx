@@ -8,7 +8,6 @@ import { PHONE_TEL } from "@/lib/site";
 const nav = [
   { href: "/services", label: "Services" },
   { href: "/pricing", label: "Pricing" },
-  { href: "/service-area", label: "Service Area" },
   { href: "/quote", label: "Quote" },
 ] as const;
 

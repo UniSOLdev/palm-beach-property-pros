@@ -1,99 +1,82 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { CORE_SERVICES } from "@/lib/marketing/core-services";
-import { SERVICES } from "@/lib/services";
+import { PUBLIC_SERVICES } from "@/lib/services";
 import { QUOTE_PATH, SITE_NAME } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: "Yard, Cleaning & Property Services",
-  description: `${SITE_NAME} — yard care, window cleaning, move-out cleans, debris removal, detailing, and property services in Palm Beach County. Licensed & insured.`,
+  description: `${SITE_NAME} — Property restoration, cleaning, and maintenance for residential and commercial clients in Palm Beach County. No carpentry.`,
 };
+
+const CORE_SLUGS = new Set(CORE_SERVICES.map((c) => c.slug));
+const MORE_SERVICES = PUBLIC_SERVICES.filter((s) => !CORE_SLUGS.has(s.slug));
 
 export default function ServicesPage() {
   return (
     <div className="bg-cream">
-      <section className="py-16">
-        <div className="mx-auto max-w-6xl px-6">
-          <p className="text-xs font-semibold uppercase tracking-widest text-ocean">Services</p>
-          <h1 className="mt-3 max-w-3xl text-3xl font-bold tracking-tight text-navy md:text-4xl">
-            Yard care, cleaning, detailing & property support
-          </h1>
-          <p className="mt-4 max-w-2xl text-lg leading-relaxed text-charcoal/85">
-            Five core service lines plus expanded property care — request pricing, book work, and
-            manage invoices through Palm Beach Property Pros.
-          </p>
-          <div className="mt-8 flex flex-wrap gap-3">
-            <Link href={QUOTE_PATH} className="btn-primary">
-              Get a free quote
-            </Link>
-            <Link href={QUOTE_PATH} className="btn-secondary border-ocean/40">
-              Book service
-            </Link>
-          </div>
+      <section className="mx-auto max-w-3xl px-6 py-14 text-center md:py-20">
+        <p className="section-eyebrow text-ocean">Services</p>
+        <h1 className="section-title mt-3">Restoration, cleaning & maintenance</h1>
+        <p className="section-lead mt-4">
+          Residential and commercial field work — yards, glass, turnovers, and cleanouts. No
+          carpentry. Request a quote and we confirm scope before crews dispatch.
+        </p>
+        <Link href={QUOTE_PATH} className="btn-primary mt-8 inline-flex min-h-[48px] px-8">
+          Get a free quote
+        </Link>
+      </section>
 
-          <div className="mt-14">
-            <p className="text-xs font-semibold uppercase tracking-widest text-ocean">Core services</p>
-            <div className="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-              {CORE_SERVICES.map((core) => {
-                const s = SERVICES.find((item) => item.slug === core.slug);
-                if (!s) return null;
-                return (
-                  <article
-                    key={s.slug}
-                    className="scroll-mt-28 rounded-xl border-2 border-ocean/20 bg-white p-6 shadow-md transition duration-200 hover:shadow-lg"
-                  >
-                    <h2 className="text-xl font-bold text-navy">{s.name}</h2>
-                    <p className="mt-2 text-sm leading-relaxed text-charcoal/90">{core.tagline}</p>
-                    <div className="mt-6 flex flex-wrap gap-3">
-                      <Link
-                        href={`/services/${s.slug}`}
-                        className="btn-primary px-4 py-2 text-xs sm:text-sm"
-                      >
-                        Learn more
-                      </Link>
-                      <Link
-                        href={`${QUOTE_PATH}?service=${encodeURIComponent(s.name)}`}
-                        className="btn-secondary px-4 py-2 text-xs sm:text-sm"
-                      >
-                        Request pricing
-                      </Link>
-                    </div>
-                  </article>
-                );
-              })}
-            </div>
-          </div>
-
-          <div className="mt-16 grid gap-6 sm:grid-cols-2">
-            {SERVICES.map((s) => (
+      <section className="mx-auto max-w-5xl px-6 pb-10">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {CORE_SERVICES.map((core) => {
+            const s = PUBLIC_SERVICES.find((item) => item.slug === core.slug);
+            if (!s) return null;
+            return (
               <article
                 key={s.slug}
-                id={s.anchor}
-                className="scroll-mt-28 rounded-xl border border-navy/10 bg-white p-6 shadow-md transition duration-200 hover:shadow-lg"
+                className="flex flex-col rounded-2xl border border-navy/[0.08] bg-white p-6 shadow-sm"
               >
-                <h2 className="text-xl font-bold text-navy">{s.name}</h2>
-                <p className="mt-2 text-sm leading-relaxed text-charcoal/90">{s.shortDescription}</p>
-                <p className="mt-3 text-sm font-medium text-ocean">Best for</p>
-                <p className="text-sm text-charcoal/85">{s.bestFor}</p>
-                <div className="mt-6 flex flex-wrap gap-3">
-                  <Link
-                    href={`/services/${s.slug}`}
-                    className="btn-primary px-4 py-2 text-xs sm:text-sm"
-                  >
+                <h2 className="text-lg font-semibold text-navy">{core.name}</h2>
+                <p className="mt-2 flex-1 text-sm leading-relaxed text-charcoal/75">{core.tagline}</p>
+                <div className="mt-5 flex flex-wrap gap-2">
+                  <Link href={`/services/${s.slug}`} className="text-sm font-semibold text-ocean no-underline hover:underline">
                     Learn more
                   </Link>
+                  <span className="text-charcoal/30">·</span>
                   <Link
                     href={`${QUOTE_PATH}?service=${encodeURIComponent(s.name)}`}
-                    className="btn-secondary px-4 py-2 text-xs sm:text-sm"
+                    className="text-sm font-semibold text-ocean no-underline hover:underline"
                   >
-                    Request pricing
+                    Get quote
                   </Link>
                 </div>
               </article>
-            ))}
-          </div>
+            );
+          })}
         </div>
       </section>
+
+      {MORE_SERVICES.length > 0 ? (
+        <section className="mx-auto max-w-3xl px-6 pb-16 md:pb-20">
+          <h2 className="text-center text-sm font-semibold uppercase tracking-[0.2em] text-charcoal/50">
+            Also available
+          </h2>
+          <ul className="mt-6 divide-y divide-navy/[0.08] rounded-2xl border border-navy/[0.08] bg-white">
+            {MORE_SERVICES.map((s) => (
+              <li key={s.slug}>
+                <Link
+                  href={`/services/${s.slug}`}
+                  className="flex items-center justify-between gap-4 px-5 py-4 text-sm no-underline transition hover:bg-cream/80"
+                >
+                  <span className="font-medium text-navy">{s.name}</span>
+                  <span className="shrink-0 text-ocean">→</span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
     </div>
   );
 }

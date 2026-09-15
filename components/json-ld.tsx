@@ -12,7 +12,7 @@ export function LocalBusinessJsonLd() {
       name: "Palm Beach County, Florida",
     },
     description:
-      "Palm Beach County property cleaning and maintenance: windows, pressure washing, residential and commercial cleaning, detailing, carpet cleaning, and more.",
+      "Property restoration, cleaning, and maintenance for residential and commercial properties in Palm Beach County. Exterior and interior field work — no carpentry.",
   };
 
   return (

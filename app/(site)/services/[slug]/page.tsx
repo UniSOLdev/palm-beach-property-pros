@@ -3,9 +3,9 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { serviceLocationSeoParagraphs } from "@/lib/location-seo";
 import {
+  getPublicServiceBySlug,
   getRelatedServices,
-  getServiceBySlug,
-  SERVICES,
+  PUBLIC_SERVICES,
   type ServiceSlug,
 } from "@/lib/services";
 import { DEFAULT_SERVICE_PROCESS, SERVICE_TRUST_BULLETS } from "@/lib/service-trust";
@@ -14,12 +14,12 @@ import { QUOTE_PATH, SITE_NAME } from "@/lib/site";
 type Props = { params: Promise<{ slug: string }> };
 
 export function generateStaticParams() {
-  return SERVICES.map((s) => ({ slug: s.slug }));
+  return PUBLIC_SERVICES.map((s) => ({ slug: s.slug }));
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
-  const s = getServiceBySlug(slug);
+  const s = getPublicServiceBySlug(slug);
   if (!s) return {};
   return {
     title: `${s.name} | Palm Beach County`,
@@ -29,7 +29,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function ServiceDetailPage({ params }: Props) {
   const { slug } = await params;
-  const s = getServiceBySlug(slug);
+  const s = getPublicServiceBySlug(slug);
   if (!s) notFound();
 
   const processSteps = s.process ?? DEFAULT_SERVICE_PROCESS;

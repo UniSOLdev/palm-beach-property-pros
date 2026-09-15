@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { BeforeAfterCompare } from "@/components/media/before-after-compare";
-import { PropertyScrollExplorer } from "@/components/marketing/property-scroll-explorer";
+import { CoreServicesShowcase } from "@/components/marketing/core-services-showcase";
 import { CuratedHeroMedia, FallbackHeroMedia } from "@/components/marketing/curated-hero-media";
+import { HowItWorksStrip } from "@/components/marketing/how-it-works-strip";
 import {
   HeroScrollFade,
   ScrollReveal,
@@ -72,7 +73,9 @@ export function PremiumHomePage({ media }: { media: HomepageMediaBundle }) {
         </HeroScrollFade>
       </section>
 
-      <PropertyScrollExplorer />
+      <CoreServicesShowcase />
+
+      <HowItWorksStrip />
 
       {showProof ? (
         <ScrollReveal>

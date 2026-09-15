@@ -13,7 +13,8 @@
     "media:import": "node scripts/import-desktop-project.mjs",
     "media:curate": "tsx scripts/curate-media.ts",
     "media:health": "node scripts/media-health-report.mjs",
-    "verify:media-deploy": "node scripts/verify-media-deploy.mjs"
+    "verify:media-deploy": "node scripts/verify-media-deploy.mjs",
+    "cron:setup": "node scripts/setup-cron-jobs.mjs"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",

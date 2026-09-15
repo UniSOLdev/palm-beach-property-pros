@@ -12,6 +12,7 @@ import {
   QUOTE_ERRORS,
   quoteSubmitError,
 } from "@/lib/site/quote-submit-types";
+import { sendLeadAcknowledgment } from "@/lib/autopilot/hooks/lead-comms";
 import {
   checkSupabaseEnv,
   createServerAnonClient,
@@ -290,6 +291,21 @@ export async function submitQuoteRequest(formData: FormData): Promise<QuoteReque
 
     revalidatePath("/admin/leads");
     revalidatePath(`/admin/leads/${leadId}`);
+
+    try {
+      await sendLeadAcknowledgment({
+        id: leadId,
+        name: payload.name,
+        email: payload.email || null,
+        phone: payload.phone,
+        service_requested: payload.service,
+      });
+    } catch (ackError) {
+      logPipelineError("lead ack failed (lead saved)", ackError, {
+        step: "submitQuoteRequest",
+        leadId,
+      });
+    }
 
     return {
       ok: true,

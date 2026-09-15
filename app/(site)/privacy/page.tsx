@@ -1,5 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { MarketingPageHero } from "@/components/marketing/marketing-page-hero";
+import { getSiteHeroFallback } from "@/lib/marketing/service-images";
+import { QUOTE_PATH } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: "Privacy Policy",
@@ -10,44 +13,59 @@ export const metadata: Metadata = {
 export default function PrivacyPage() {
   return (
     <div className="bg-cream">
-      <article className="mx-auto max-w-6xl px-6 py-16">
-        <p className="text-sm font-semibold uppercase tracking-wide text-ocean">Legal</p>
-        <h1 className="mt-2 text-3xl font-bold tracking-tight text-navy">Privacy policy</h1>
-        <div className="prose prose-sm mt-8 max-w-none text-charcoal/90 sm:prose-base">
-          <p>
-            {new Date().getFullYear()} — Palm Beach Property Pros (“we,” “us”) respects your
-            privacy. This policy describes how information you provide through this website may be
-            used to respond to service requests.
+      <MarketingPageHero
+        eyebrow="Legal"
+        title="Privacy policy"
+        lead="How we handle information you submit through our website and quote forms."
+        image={getSiteHeroFallback()}
+      />
+
+      <article className="mx-auto max-w-3xl px-2 pb-16 md:pb-24">
+        <div className="space-y-8 rounded-2xl border border-navy/[0.08] bg-white p-6 shadow-sm md:p-8">
+          <p className="text-sm leading-relaxed text-charcoal/90 sm:text-base">
+            {new Date().getFullYear()} — Palm Beach Property Pros (&ldquo;we,&rdquo; &ldquo;us&rdquo;)
+            respects your privacy. This policy describes how information you provide through this
+            website may be used to respond to service requests.
           </p>
-          <h2 className="mt-8 text-lg font-bold text-navy">Information you submit</h2>
-          <p>
-            When you contact us—through site pages or our quote forms—you may
-            provide your name, phone number, email address, property address or city, service
-            interests, and photos. We use that information solely to estimate scope, schedule work,
-            and communicate about your project.
-          </p>
-          <h2 className="mt-8 text-lg font-bold text-navy">Sharing</h2>
-          <p>
-            We do not sell your personal information. We may share details with payment processors,
-            scheduling tools, or insurers only as needed to complete services you request.
-          </p>
-          <h2 className="mt-8 text-lg font-bold text-navy">Retention</h2>
-          <p>
-            We retain communications for a period necessary to deliver service, maintain business
-            records, and meet legal requirements. You may request deletion of non-essential contact
-            data where law allows.
-          </p>
-          <h2 className="mt-8 text-lg font-bold text-navy">Contact</h2>
-          <p>
-            Questions about this policy may be directed to our office line listed in the site
-            footer.
-          </p>
+
+          <section>
+            <h2 className="text-lg font-bold text-navy">Information you submit</h2>
+            <p className="mt-3 text-sm leading-relaxed text-charcoal/90 sm:text-base">
+              When you contact us—through site pages or our quote forms—you may provide your name,
+              phone number, email address, property address or city, service interests, and photos.
+              We use that information solely to estimate scope, schedule work, and communicate about
+              your project.
+            </p>
+          </section>
+
+          <section>
+            <h2 className="text-lg font-bold text-navy">Sharing</h2>
+            <p className="mt-3 text-sm leading-relaxed text-charcoal/90 sm:text-base">
+              We do not sell your personal information. We may share details with crew members or
+              subcontractors only as needed to perform requested services. We may use email or SMS
+              providers to send confirmations and updates related to your request.
+            </p>
+          </section>
+
+          <section>
+            <h2 className="text-lg font-bold text-navy">Retention</h2>
+            <p className="mt-3 text-sm leading-relaxed text-charcoal/90 sm:text-base">
+              We retain quote and job records as needed for scheduling, billing, and legal
+              compliance. You may request deletion of marketing contact data by emailing us.
+            </p>
+          </section>
+
+          <section>
+            <h2 className="text-lg font-bold text-navy">Contact</h2>
+            <p className="mt-3 text-sm leading-relaxed text-charcoal/90 sm:text-base">
+              Questions about this policy? Use our{" "}
+              <Link href={QUOTE_PATH} className="font-semibold text-ocean no-underline hover:underline">
+                quote form
+              </Link>{" "}
+              or call the number listed on our website.
+            </p>
+          </section>
         </div>
-        <p className="mt-10">
-          <Link href="/" className="text-sm font-semibold text-ocean hover:underline">
-            ← Back to home
-          </Link>
-        </p>
       </article>
     </div>
   );

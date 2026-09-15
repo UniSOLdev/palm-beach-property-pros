@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { PageHeroImage } from "@/components/marketing/page-hero-image";
+import { getSiteHeroFallback } from "@/lib/marketing/service-images";
 import { QuoteForm } from "./quote-form";
 import { PHONE_DISPLAY, PHONE_TEL, SITE_NAME } from "@/lib/site";
 
@@ -22,7 +24,10 @@ export default async function QuotePage({ searchParams }: Props) {
 
   return (
     <div className="min-h-[calc(100vh-5rem)] bg-gradient-to-b from-cream via-cream to-cream-warm/50">
-      <div className="mx-auto grid max-w-6xl gap-10 px-4 py-10 sm:px-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)] lg:items-start lg:gap-14 lg:py-16">
+      <div className="mx-auto mb-6 max-w-6xl px-2 md:hidden">
+        <PageHeroImage asset={getSiteHeroFallback()} className="shadow-luxury" />
+      </div>
+      <div className="mx-auto grid max-w-6xl gap-10 px-2 py-6 sm:px-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)] lg:items-start lg:gap-14 lg:py-12">
         <aside className="lg:sticky lg:top-24">
           <p className="section-eyebrow text-ocean">Quote</p>
           <h1 className="mt-3 text-3xl font-semibold tracking-tight text-navy sm:text-4xl">

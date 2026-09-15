@@ -208,51 +208,10 @@ export async function quickCompleteTask(id: string) {
 }
 
 export async function spawnRecurringTasks() {
-  const supabase = await createClient();
-  const { data: parents } = await supabase
-    .from("tasks")
-    .select("*")
-    .not("recurring_rule", "is", null)
-    .eq("archived", false)
-    .eq("status", "done");
-
-  if (!parents?.length) return;
-
-  const today = new Date();
-  for (const parent of parents) {
-    const due = parent.due_date ? new Date(parent.due_date) : today;
-    const nextDue = new Date(due);
-    if (parent.recurring_rule === "daily") nextDue.setDate(nextDue.getDate() + 1);
-    if (parent.recurring_rule === "weekly") nextDue.setDate(nextDue.getDate() + 7);
-    if (parent.recurring_rule === "monthly") nextDue.setMonth(nextDue.getMonth() + 1);
-
-    const dueIso = nextDue.toISOString().slice(0, 10);
-    const { data: existing } = await supabase
-      .from("tasks")
-      .select("id")
-      .eq("recurring_parent_id", parent.id)
-      .eq("due_date", dueIso)
-      .maybeSingle();
-
-    if (existing) continue;
-
-    await supabase.from("tasks").insert({
-      title: parent.title,
-      description: parent.description,
-      priority: parent.priority,
-      category: parent.category,
-      due_date: dueIso,
-      job_id: parent.job_id,
-      client_id: parent.client_id,
-      invoice_id: parent.invoice_id,
-      expense_id: parent.expense_id,
-      assigned_crew_ids: parent.assigned_crew_ids,
-      assigned_crew_member_id: parent.assigned_crew_member_id,
-      recurring_parent_id: parent.id,
-      recurring_rule: parent.recurring_rule,
-      status: "todo",
-      sort_order: await nextSortOrder(supabase),
-    });
-  }
+  const { spawnRecurringTasks: spawnFromEngine } = await import(
+    "@/lib/autopilot/engines/task-engine"
+  );
+  await spawnFromEngine();
+  revalidatePath("/admin");
   revalidatePath("/admin/tasks");
 }

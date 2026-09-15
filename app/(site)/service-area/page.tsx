@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { MarketingPageHero } from "@/components/marketing/marketing-page-hero";
+import { getServiceAreaImage } from "@/lib/marketing/service-images";
 import { QUOTE_PATH, SERVICE_CITIES, SITE_NAME } from "@/lib/site";
 
 export const metadata: Metadata = {
@@ -12,14 +14,16 @@ const cities = SERVICE_CITIES.filter((c) => !c.toLowerCase().startsWith("and nea
 export default function ServiceAreaPage() {
   return (
     <div className="bg-cream">
-      <section className="mx-auto max-w-2xl px-6 py-16 text-center md:py-24">
-        <p className="section-eyebrow text-ocean">Service area</p>
-        <h1 className="section-title mt-3">Palm Beach County</h1>
-        <p className="section-lead mt-4">
-          {SITE_NAME} dispatches licensed crews for homes, rentals, retail, and HOA properties
-          across the county.
-        </p>
-        <ul className="mt-8 flex flex-wrap justify-center gap-2">
+      <MarketingPageHero
+        eyebrow="Service area"
+        title="Palm Beach County"
+        lead={`${SITE_NAME} dispatches licensed crews for homes, rentals, retail, and HOA properties across the county.`}
+        image={getServiceAreaImage()}
+        cta={{ href: QUOTE_PATH, label: "Request a quote" }}
+      />
+
+      <section className="mx-auto max-w-3xl px-2 pb-16 text-center md:pb-24">
+        <ul className="flex flex-wrap justify-center gap-2">
           {cities.map((city) => (
             <li
               key={city}
@@ -30,9 +34,6 @@ export default function ServiceAreaPage() {
           ))}
         </ul>
         <p className="mt-4 text-sm text-charcoal/60">{SERVICE_CITIES[SERVICE_CITIES.length - 1]}</p>
-        <Link href={QUOTE_PATH} className="btn-primary mt-10 inline-flex min-h-[48px] px-8">
-          Request a quote
-        </Link>
       </section>
     </div>
   );

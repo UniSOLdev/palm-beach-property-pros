@@ -5,39 +5,46 @@ import type { ServiceSlug } from "@/lib/services";
 /** PBPP field photos — swap individual entries when you upload new projects. */
 const CURATED_BASE = "/media/curated/estate-cleanup-001/images";
 
+const GENERIC_BLUR =
+  "data:image/webp;base64,UklGRkwAAABXRUJQVlA4IEAAAACQAQCdASoQAAkAA4BaJZAC7AClNcAA+9N4jNAPOFK18SzPmm7Jlo4+cxyw2p8Cc1XCTi3Z3OimF2mHlOyvXgAA";
+
 const CURATED = {
   hero: {
     src: `${CURATED_BASE}/hero-3d32be01-d35f-4ecf-800e-6d0219e656f6.webp`,
-    blur: "data:image/webp;base64,UklGRkwAAABXRUJQVlA4IEAAAACQAQCdASoQAAkAA4BaJZAC7AClNcAA+9N4jNAPOFK18SzPmm7Jlo4+cxyw2p8Cc1XCTi3Z3OimF2mHlOyvXgAA",
     alt: "Restored Palm Beach Gardens estate exterior after vegetation cleanup",
   },
   yardRestored: {
     src: `${CURATED_BASE}/gallery-img-7912.webp`,
-    blur: "data:image/webp;base64,UklGRnYAAABXRUJQVlA4IGoAAAAQBACdASoQABUAPu1iqU2ppaOiMAgBMB2JYgCdAB7AZjkVO80P7Jz2AAD+ZZZajl2PL5h8ZzONnYX4O3TvaT6Dww5TN9FceFCfLyNOOcwTKgnIlgJdauRWT4S+YEui+anCOgyzL/DvQAAA",
     alt: "Restored yard and landscape lines after estate cleanup, Palm Beach Gardens",
   },
   debrisWork: {
     src: `${CURATED_BASE}/gallery-img-7890.webp`,
-    blur: "data:image/webp;base64,UklGRlgAAABXRUJQVlA4IEwAAAAQAgCdASoQAAwAA4BaJYwAAn+HebEIiO8gAP7AQQaAmygE2eytiPTmiu5skT4RIMV2PkKVG57xcwvt/VEAP/lxmjDRtF91e97kAAAA",
     alt: "Crew clearing debris and restoring exterior pathways, Palm Beach Gardens",
   },
   exteriorWide: {
     src: `${CURATED_BASE}/gallery-3d32be01-d35f-4ecf-800e-6d0219e656f6.webp`,
-    blur: "data:image/webp;base64,UklGRkwAAABXRUJQVlA4IEAAAACQAQCdASoQAAkAA4BaJZAC7AClNcAA+9N4jNAPOFK18SzPmm7Jlo4+cxyw2p8Cc1XCTi3Z3OimF2mHlOytUAAA",
     alt: "Wide estate exterior after property restoration, Palm Beach Gardens",
   },
-} as const;
-
-/** Editorial stock — premium South Florida / property-care aesthetic until PBPP media replaces. */
-const STOCK = {
-  window: "https://images.unsplash.com/photo-1600585154340-be6162a97a0a",
-  interior: "https://images.unsplash.com/photo-1600210492492-0946911122ea",
-  kitchen: "https://images.unsplash.com/photo-1600566752355-35778368630a",
-  auto: "https://images.unsplash.com/photo-1601362840469-51e4f7847786",
-  pressure: "https://images.unsplash.com/photo-1600047509807-ba8f99d2cdde",
-  carpet: "https://images.unsplash.com/photo-1600566753086-00f18fb6b3ea",
-  commercial: "https://images.unsplash.com/photo-1600607687929-7526a8a2ee4d",
-  turnover: "https://images.unsplash.com/photo-1600607687644-c7171b42498f",
+  afterClean: {
+    src: `${CURATED_BASE}/after-img-7910.webp`,
+    alt: "Property exterior after professional cleanup, Palm Beach Gardens",
+  },
+  afterYard: {
+    src: `${CURATED_BASE}/after-img-7879.webp`,
+    alt: "Restored landscape and clean exterior lines, Palm Beach County",
+  },
+  pressureWash: {
+    src: `${CURATED_BASE}/action-img-7890.webp`,
+    alt: "Exterior refresh and surface cleaning on a Palm Beach County property",
+  },
+  detailWork: {
+    src: `${CURATED_BASE}/detail-img-7873.webp`,
+    alt: "Detailed exterior property care, Palm Beach Gardens",
+  },
+  turnoverReady: {
+    src: `${CURATED_BASE}/after-img-7912.webp`,
+    alt: "Arrival-ready property after turnover cleaning, Palm Beach County",
+  },
 } as const;
 
 function authentic(
@@ -52,7 +59,7 @@ function authentic(
     src: item.src,
     alt: item.alt,
     source: "authentic",
-    blurDataURL: item.blur,
+    blurDataURL: GENERIC_BLUR,
     focal: "object-[center_38%]",
     aspect,
     overlay: "card",
@@ -60,79 +67,19 @@ function authentic(
   };
 }
 
-function stock(
-  id: string,
-  category: MediaAsset["category"],
-  src: string,
-  alt: string,
-  aspect: MediaAsset["aspect"] = "landscape",
-): MediaAsset {
-  return {
-    id,
-    category,
-    src,
-    alt,
-    source: "scaffold",
-    focal: "object-center",
-    aspect,
-    overlay: "card",
-    location: "Palm Beach County",
-  };
-}
-
 const SERVICE_IMAGES: Record<ServiceSlug, MediaAsset> = {
   "yard-landscape": authentic("service.yard", "exterior", CURATED.yardRestored),
   "trash-debris-removal": authentic("service.debris", "exterior", CURATED.debrisWork),
-  "window-cleaning": stock(
-    "service.window",
-    "exterior",
-    STOCK.window,
-    "Luxury home with clean glass lines and coastal light, Palm Beach County",
-  ),
-  "move-out-cleaning": stock(
-    "service.move-out",
-    "interior",
-    STOCK.kitchen,
-    "Bright kitchen and interior ready for turnover, Palm Beach County",
-  ),
-  "auto-detailing": stock(
-    "service.auto",
-    "exterior",
-    STOCK.auto,
-    "Premium vehicle exterior finish after professional detailing",
-  ),
-  "residential-cleaning": stock(
-    "service.residential",
-    "interior",
-    STOCK.interior,
-    "Refined residential interior with natural light",
-  ),
-  "commercial-cleaning": stock(
-    "service.commercial",
-    "interior",
-    STOCK.commercial,
-    "Clean commercial interior with polished finishes",
-  ),
-  "pressure-washing": stock(
-    "service.pressure",
-    "exterior",
-    STOCK.pressure,
-    "South Florida luxury home exterior and hardscape",
-  ),
-  "carpet-steam-cleaning": stock(
-    "service.carpet",
-    "interior",
-    STOCK.carpet,
-    "Fresh carpet and interior surfaces after deep cleaning",
-  ),
+  "window-cleaning": authentic("service.window", "exterior", CURATED.detailWork),
+  "move-out-cleaning": authentic("service.move-out", "interior", CURATED.afterClean),
+  "auto-detailing": authentic("service.auto", "exterior", CURATED.exteriorWide),
+  "residential-cleaning": authentic("service.residential", "interior", CURATED.afterYard),
+  "commercial-cleaning": authentic("service.commercial", "interior", CURATED.exteriorWide),
+  "pressure-washing": authentic("service.pressure", "exterior", CURATED.pressureWash),
+  "carpet-steam-cleaning": authentic("service.carpet", "interior", CURATED.detailWork),
   "trash-can-cleaning": authentic("service.trash-can", "exterior", CURATED.exteriorWide),
   "property-maintenance": authentic("service.maintenance", "property-support", CURATED.hero, "hero"),
-  "airbnb-services": stock(
-    "service.airbnb",
-    "interior",
-    STOCK.turnover,
-    "Arrival-ready property entrance for short-term rental turnover",
-  ),
+  "airbnb-services": authentic("service.airbnb", "interior", CURATED.turnoverReady),
 };
 
 export function getServiceImageAsset(slug: ServiceSlug): MediaAsset {
@@ -144,5 +91,5 @@ export function getSiteHeroFallback(): MediaAsset {
 }
 
 export function getServiceAreaImage(): MediaAsset {
-  return MEDIA_REGISTRY.local.waterfront;
+  return authentic("service.area", "hero", CURATED.exteriorWide, "hero");
 }

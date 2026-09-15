@@ -17,6 +17,8 @@ export const ADMIN_NAV = [
 ] as const;
 
 export const ADMIN_MORE_NAV = [
+  { href: "/admin/autopilot", label: "Autopilot" },
+  { href: "/admin/autopilot/content", label: "Content queue" },
   { href: "/admin/hub", label: "Employee Hub" },
   { href: "/admin/leads", label: "Leads" },
   { href: "/admin/leads/partners", label: "Landlord & STR" },

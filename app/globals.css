@@ -325,15 +325,6 @@
     @apply opacity-0 transition-opacity duration-700;
   }
 
-  .property-scene {
-    perspective: 1100px;
-    perspective-origin: 50% 42%;
-  }
-
-  .property-house {
-    transform-style: preserve-3d;
-  }
-
   .link-luxury {
     @apply text-sm font-semibold text-ocean no-underline transition duration-300 hover:text-aqua-muted;
   }

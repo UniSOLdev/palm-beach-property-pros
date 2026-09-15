@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { PageHeroImage } from "@/components/marketing/page-hero-image";
 import { serviceLocationSeoParagraphs } from "@/lib/location-seo";
+import { getServiceImageAsset } from "@/lib/marketing/service-images";
 import {
   getPublicServiceBySlug,
   getRelatedServices,
@@ -36,48 +38,69 @@ export default async function ServiceDetailPage({ params }: Props) {
   const locationParagraphs = serviceLocationSeoParagraphs(s.name);
   const related = getRelatedServices(s.slug as ServiceSlug, 3);
   const quoteHref = `${QUOTE_PATH}?service=${encodeURIComponent(s.name)}`;
+  const heroAsset = getServiceImageAsset(s.slug as ServiceSlug);
 
   return (
     <div className="bg-cream">
-      <article className="mx-auto w-full max-w-6xl px-6 py-16">
+      <article className="mx-auto w-full max-w-6xl px-2 py-8 md:py-12">
         <Link href="/services" className="text-sm font-semibold text-ocean hover:underline">
           ← All services
         </Link>
-        <h1 className="mt-4 max-w-3xl text-3xl font-bold tracking-tight text-navy sm:text-4xl">
-          {s.headline}
-        </h1>
-        <p className="mt-4 max-w-3xl text-lg leading-relaxed text-charcoal/90">{s.authorityIntro}</p>
 
-        <section className="mt-10 max-w-3xl rounded-xl border border-navy/10 bg-white p-6 shadow-md">
-          <h2 className="text-lg font-bold text-navy">What&apos;s included</h2>
-          <ul className="mt-3 list-inside list-disc space-y-2 text-charcoal/90">
-            {s.included.map((line) => (
-              <li key={line}>{line}</li>
-            ))}
-          </ul>
-        </section>
+        <div className="mt-6 grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)] lg:items-start lg:gap-10">
+          <div>
+            <p className="section-eyebrow text-ocean">{s.name}</p>
+            <h1 className="mt-3 text-3xl font-bold tracking-tight text-navy sm:text-4xl">
+              {s.headline}
+            </h1>
+            <p className="mt-4 text-lg leading-relaxed text-charcoal/90">{s.authorityIntro}</p>
+            <Link href={quoteHref} className="btn-primary mt-8 inline-flex min-h-[48px]">
+              Get a free quote
+            </Link>
+          </div>
+          <PageHeroImage asset={heroAsset} className="shadow-luxury" />
+        </div>
 
-        <section className="mt-8 max-w-3xl rounded-xl border border-navy/10 bg-sky/40 p-6 shadow-md">
-          <h2 className="text-lg font-bold text-navy">Who it&apos;s for</h2>
-          <ul className="mt-3 list-inside list-disc space-y-2 text-charcoal/90">
-            {s.whoItsFor.map((line) => (
-              <li key={line}>{line}</li>
-            ))}
-          </ul>
-        </section>
+        <div className="mt-12 grid gap-6 lg:grid-cols-2">
+          <section className="rounded-2xl border border-navy/10 bg-white p-6 shadow-sm">
+            <h2 className="text-lg font-bold text-navy">What&apos;s included</h2>
+            <ul className="mt-3 list-inside list-disc space-y-2 text-charcoal/90">
+              {s.included.map((line) => (
+                <li key={line}>{line}</li>
+              ))}
+            </ul>
+          </section>
 
-        <section className="mt-8 max-w-3xl rounded-xl border border-navy/10 bg-white p-6 shadow-md">
+          <section className="rounded-2xl border border-navy/10 bg-sky/40 p-6 shadow-sm">
+            <h2 className="text-lg font-bold text-navy">Who it&apos;s for</h2>
+            <ul className="mt-3 list-inside list-disc space-y-2 text-charcoal/90">
+              {s.whoItsFor.map((line) => (
+                <li key={line}>{line}</li>
+              ))}
+            </ul>
+          </section>
+        </div>
+
+        <section className="mt-6 rounded-2xl border border-navy/10 bg-white p-6 shadow-sm">
           <h2 className="text-lg font-bold text-navy">Our process</h2>
-          <ol className="mt-3 list-decimal space-y-2 pl-5 text-charcoal/90">
-            {processSteps.map((line) => (
-              <li key={line}>{line}</li>
+          <ol className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            {processSteps.map((line, i) => (
+              <li
+                key={line}
+                className="rounded-xl border border-navy/[0.06] bg-cream/50 p-4 text-sm text-charcoal/90"
+              >
+                <span className="text-[10px] font-bold tracking-[0.25em] text-aqua-muted">
+                  STEP {i + 1}
+                </span>
+                <p className="mt-2 leading-relaxed">{line}</p>
+              </li>
             ))}
           </ol>
         </section>
 
         <section
           id="pricing"
-          className="mt-8 max-w-3xl scroll-mt-28 rounded-xl border border-navy/10 bg-sand/40 p-6 shadow-md"
+          className="mt-6 scroll-mt-28 rounded-2xl border border-navy/10 bg-sand/40 p-6 shadow-sm"
         >
           <h2 className="text-lg font-bold text-navy">Starting pricing</h2>
           <p className="mt-3 text-charcoal/90">{s.startingPriceLabel}</p>
@@ -90,7 +113,7 @@ export default async function ServiceDetailPage({ params }: Props) {
           </Link>
         </section>
 
-        <section className="mt-10 max-w-3xl">
+        <section className="mt-10">
           <h2 className="text-xl font-bold text-navy">Local service area</h2>
           <div className="mt-4 space-y-4 text-sm leading-relaxed text-charcoal/90 sm:text-base">
             {locationParagraphs.map((p) => (
@@ -99,25 +122,28 @@ export default async function ServiceDetailPage({ params }: Props) {
           </div>
         </section>
 
-        <section className="mt-10 max-w-3xl">
+        <section className="mt-10">
           <h2 className="text-xl font-bold text-navy">FAQ</h2>
-          <dl className="mt-4 space-y-5">
+          <dl className="mt-4 grid gap-4 sm:grid-cols-2">
             {s.faq.map((item) => (
-              <div key={item.q}>
+              <div
+                key={item.q}
+                className="rounded-xl border border-navy/[0.08] bg-white p-5 shadow-sm"
+              >
                 <dt className="font-semibold text-charcoal">{item.q}</dt>
-                <dd className="mt-1 text-charcoal/90">{item.a}</dd>
+                <dd className="mt-2 text-sm text-charcoal/90">{item.a}</dd>
               </div>
             ))}
           </dl>
         </section>
 
-        <section className="mt-10 max-w-3xl rounded-xl border border-leaf/30 bg-white p-6 shadow-md">
+        <section className="mt-10 rounded-2xl border border-leaf/30 bg-white p-6 shadow-sm">
           <h2 className="text-lg font-bold text-navy">Why choose {SITE_NAME}</h2>
-          <ul className="mt-3 space-y-2 text-charcoal/90">
+          <ul className="mt-4 grid gap-2 sm:grid-cols-2">
             {SERVICE_TRUST_BULLETS.map((b) => (
-              <li key={b}>
-                <span className="mr-2 font-bold text-leaf" aria-hidden>
-                  •
+              <li key={b} className="flex gap-2 text-sm text-charcoal/90">
+                <span className="font-bold text-leaf" aria-hidden>
+                  ✓
                 </span>
                 {b}
               </li>
@@ -126,9 +152,9 @@ export default async function ServiceDetailPage({ params }: Props) {
         </section>
 
         {related.length ? (
-          <section className="mt-10 max-w-3xl">
+          <section className="mt-10">
             <h2 className="text-lg font-bold text-navy">Related services</h2>
-            <ul className="mt-3 flex flex-wrap gap-3">
+            <ul className="mt-4 flex flex-wrap gap-3">
               {related.map((r) => (
                 <li key={r.slug}>
                   <Link
@@ -143,12 +169,13 @@ export default async function ServiceDetailPage({ params }: Props) {
           </section>
         ) : null}
 
-        <div className="mt-12 max-w-3xl rounded-xl bg-navy p-8 text-center text-cream shadow-md">
-          <p className="text-lg font-semibold">Book service or request pricing</p>
-          <p className="mt-2 text-sm text-cream/85">
+        <div className="relative mt-12 overflow-hidden rounded-2xl bg-gradient-to-b from-charcoal to-navy-deep p-8 text-center text-cream shadow-luxury md:rounded-3xl md:p-10">
+          <div className="hero-grain pointer-events-none absolute inset-0 opacity-10" aria-hidden />
+          <p className="relative text-lg font-semibold">Book service or request pricing</p>
+          <p className="relative mt-2 text-sm text-silver/90">
             Quotes, scheduling, invoices, and approvals are handled on Palm Beach Property Pros.
           </p>
-          <Link href={quoteHref} className="btn-inverse-lg mt-6 w-full text-base sm:w-auto">
+          <Link href={quoteHref} className="btn-hero-primary relative mt-6 min-h-[48px] sm:w-auto">
             Request a quote
           </Link>
         </div>

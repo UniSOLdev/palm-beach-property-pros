@@ -1,7 +1,9 @@
 import Link from "next/link";
+import { OutreachAutopilotPanel } from "@/components/admin/outreach-autopilot-panel";
 import { PartnerProspectsBoard } from "@/components/admin/partner-prospects-board";
 import { AdminPageHeader } from "@/components/admin/entity-list";
 import { listOutreachProspects } from "@/lib/admin/actions/outreach";
+import { getPendingOutreachDraftsAction } from "@/lib/autopilot/actions/outreach-autopilot";
 import {
   PROSPECT_STATUSES,
   PROSPECT_TYPES,
@@ -29,10 +31,14 @@ export default async function PartnerProspectsPage({ searchParams }: Props) {
   const search = q?.trim() ?? "";
 
   let prospects: Awaited<ReturnType<typeof listOutreachProspects>> = [];
+  let pendingDrafts: Awaited<ReturnType<typeof getPendingOutreachDraftsAction>> = [];
   let loadError = "";
 
   try {
-    prospects = await listOutreachProspects({ type, status, search });
+    [prospects, pendingDrafts] = await Promise.all([
+      listOutreachProspects({ type, status, search }),
+      getPendingOutreachDraftsAction().catch(() => []),
+    ]);
   } catch (e) {
     loadError = e instanceof Error ? e.message : "Could not load prospects";
   }
@@ -72,6 +78,8 @@ export default async function PartnerProspectsPage({ searchParams }: Props) {
           Search
         </button>
       </form>
+
+      <OutreachAutopilotPanel initial={pendingDrafts} />
 
       <PartnerProspectsBoard
         initial={prospects}

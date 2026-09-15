@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { MarketingPageHero } from "@/components/marketing/marketing-page-hero";
+import { ServiceMediaCard } from "@/components/marketing/service-media-card";
 import { CORE_SERVICES } from "@/lib/marketing/core-services";
+import { getSiteHeroFallback, getServiceImageAsset } from "@/lib/marketing/service-images";
 import { PUBLIC_SERVICES } from "@/lib/services";
 import { QUOTE_PATH, SITE_NAME } from "@/lib/site";
 
@@ -15,54 +18,38 @@ const MORE_SERVICES = PUBLIC_SERVICES.filter((s) => !CORE_SLUGS.has(s.slug));
 export default function ServicesPage() {
   return (
     <div className="bg-cream">
-      <section className="mx-auto max-w-3xl px-6 py-14 text-center md:py-20">
-        <p className="section-eyebrow text-ocean">Services</p>
-        <h1 className="section-title mt-3">Restoration, cleaning & maintenance</h1>
-        <p className="section-lead mt-4">
-          Residential and commercial field work — yards, glass, turnovers, and cleanouts. No
-          carpentry. Request a quote and we confirm scope before crews dispatch.
-        </p>
-        <Link href={QUOTE_PATH} className="btn-primary mt-8 inline-flex min-h-[48px] px-8">
-          Get a free quote
-        </Link>
-      </section>
+      <MarketingPageHero
+        eyebrow="Services"
+        title="Restoration, cleaning & maintenance"
+        lead="Residential and commercial field work — yards, glass, turnovers, and cleanouts. No carpentry. Request a quote and we confirm scope before crews dispatch."
+        image={getSiteHeroFallback()}
+        cta={{ href: QUOTE_PATH, label: "Get a free quote" }}
+      />
 
-      <section className="mx-auto max-w-5xl px-6 pb-10">
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <section className="mx-auto max-w-6xl px-2 pb-12 md:pb-16">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-2 lg:gap-6">
           {CORE_SERVICES.map((core) => {
             const s = PUBLIC_SERVICES.find((item) => item.slug === core.slug);
             if (!s) return null;
             return (
-              <article
+              <ServiceMediaCard
                 key={s.slug}
-                className="flex flex-col rounded-2xl border border-navy/[0.08] bg-white p-6 shadow-sm"
-              >
-                <h2 className="text-lg font-semibold text-navy">{core.name}</h2>
-                <p className="mt-2 flex-1 text-sm leading-relaxed text-charcoal/75">{core.tagline}</p>
-                <div className="mt-5 flex flex-wrap gap-2">
-                  <Link href={`/services/${s.slug}`} className="text-sm font-semibold text-ocean no-underline hover:underline">
-                    Learn more
-                  </Link>
-                  <span className="text-charcoal/30">·</span>
-                  <Link
-                    href={`${QUOTE_PATH}?service=${encodeURIComponent(s.name)}`}
-                    className="text-sm font-semibold text-ocean no-underline hover:underline"
-                  >
-                    Get quote
-                  </Link>
-                </div>
-              </article>
+                href={`/services/${s.slug}`}
+                title={core.name}
+                description={core.tagline}
+                asset={getServiceImageAsset(s.slug)}
+              />
             );
           })}
         </div>
       </section>
 
       {MORE_SERVICES.length > 0 ? (
-        <section className="mx-auto max-w-3xl px-6 pb-16 md:pb-20">
+        <section className="section-band-light mx-auto max-w-3xl px-2 pb-16 md:pb-20">
           <h2 className="text-center text-sm font-semibold uppercase tracking-[0.2em] text-charcoal/50">
             Also available
           </h2>
-          <ul className="mt-6 divide-y divide-navy/[0.08] rounded-2xl border border-navy/[0.08] bg-white">
+          <ul className="mt-6 divide-y divide-navy/[0.08] overflow-hidden rounded-2xl border border-navy/[0.08] bg-white shadow-sm">
             {MORE_SERVICES.map((s) => (
               <li key={s.slug}>
                 <Link

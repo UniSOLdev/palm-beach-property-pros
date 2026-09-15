@@ -1,0 +1,37 @@
+---
+description: Always apply Supabase migrations to production when schema changes land
+alwaysApply: true
+---
+
+# Supabase migrations — apply when needed
+
+Production project: `pfojtrfkeoeymmtkvijo` (see `supabase/config.toml`).
+
+## When to apply
+
+After **any** of these, apply pending migrations before considering the task done:
+
+- New or changed files in `supabase/migrations/`
+- Code that queries new tables/columns (admin hub, outreach, lifecycle, site builder, etc.)
+- Updates to `lib/supabase/database.types.ts` driven by schema changes
+- User asks to push, deploy, or promote to production with migration files in the diff
+
+## How to apply (in order)
+
+1. **Supabase MCP** — `list_migrations` then `apply_migration` for each pending file (preferred in agent sessions).
+2. **CLI** — `npm run db:push` (requires `supabase login` + linked project).
+3. **Fallback** — run the SQL file in Supabase Dashboard → SQL Editor.
+
+Migration name for MCP: snake_case from the filename (e.g. `20260531140000_employee_hub.sql` → `employee_hub`).
+
+## After applying
+
+- Confirm tables/columns exist (`list_tables` or a smoke `execute_sql`).
+- Keep `lib/supabase/database.types.ts` aligned with the migration.
+- Tell the user which migrations were applied or if auth blocked apply (CLI login / MCP).
+
+## Do not
+
+- Re-run `20260524160000_quote_intake_production_repair.sql` on production with existing lead data (DROPs tables).
+- Skip migration apply when pushing admin or database-dependent features.
+- Assume `git push` alone activates new DB features.

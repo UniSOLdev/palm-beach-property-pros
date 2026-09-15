@@ -11,7 +11,14 @@ import { StoryArcShowcase } from "@/components/media/story-arc-showcase";
 import { TransformationShowcase } from "@/components/media/transformation-showcase";
 import { CoreServicesShowcase } from "@/components/marketing/core-services-showcase";
 import { CuratedHeroMedia, FallbackHeroMedia } from "@/components/marketing/curated-hero-media";
-import { ScrollReveal } from "@/components/marketing/scroll-reveal";
+import {
+  HeroScrollFade,
+  ScrollParallax,
+  ScrollReveal,
+  ScrollRevealItem,
+  ScrollRevealStagger,
+  ScrollScaleIn,
+} from "@/components/marketing/scroll-reveal";
 import { FAQ_ITEMS } from "@/lib/faq";
 import {
   FIELD_EXECUTION_STEPS,
@@ -229,6 +236,7 @@ export function PremiumHomePage({ media }: { media: HomepageMediaBundle }) {
           <FallbackHeroMedia src={fallbackHeroSrc} alt={FALLBACK_HERO.alt} />
         )}
 
+        <HeroScrollFade>
         <div className="relative z-10 px-4 py-20 sm:px-6 sm:py-24 md:px-10 md:py-32 lg:py-36">
           <div className="max-w-xl md:max-w-3xl">
             <p className="section-eyebrow text-aqua/90 md:tracking-[0.32em]">
@@ -260,11 +268,10 @@ export function PremiumHomePage({ media }: { media: HomepageMediaBundle }) {
             </a>
           </div>
         </div>
+        </HeroScrollFade>
       </section>
 
-      <ScrollReveal>
-        <CoreServicesShowcase />
-      </ScrollReveal>
+      <CoreServicesShowcase />
 
       <TransformationShowcase projects={media.transformations} isAuthentic={media.hasAuthenticMedia} />
 
@@ -337,9 +344,9 @@ export function PremiumHomePage({ media }: { media: HomepageMediaBundle }) {
         </ScrollReveal>
       ) : null}
 
-      <ScrollReveal delay={60}>
-        <section className="relative py-16 md:py-24">
-          <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-aqua/15 to-transparent" aria-hidden />
+      <section className="relative py-16 md:py-24">
+        <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-aqua/15 to-transparent" aria-hidden />
+        <ScrollReveal delay={60}>
           <div className="mx-auto max-w-2xl text-center">
             <p className="section-eyebrow text-ocean">Recurring programs</p>
             <h2 className="section-title mt-4">Estate maintenance cadence</h2>
@@ -348,9 +355,11 @@ export function PremiumHomePage({ media }: { media: HomepageMediaBundle }) {
               runs—concierge-level coordination, not generic recurring visits.
             </p>
           </div>
-          <div className="mt-12 grid gap-5 md:mt-16 md:grid-cols-2 md:gap-6 lg:grid-cols-3">
-            {CARE_PLANS.map((plan) => (
-              <article key={plan.title} className="care-plan-card group flex flex-col">
+        </ScrollReveal>
+        <ScrollRevealStagger className="mt-12 grid gap-5 md:mt-16 md:grid-cols-2 md:gap-6 lg:grid-cols-3">
+          {CARE_PLANS.map((plan) => (
+            <ScrollRevealItem key={plan.title}>
+              <article className="care-plan-card group flex h-full flex-col">
                 <div className="care-plan-icon-wrap">
                   <PlanIcon type={plan.icon} />
                 </div>
@@ -363,14 +372,14 @@ export function PremiumHomePage({ media }: { media: HomepageMediaBundle }) {
                   Discuss a program
                 </Link>
               </article>
-            ))}
-          </div>
-        </section>
-      </ScrollReveal>
+            </ScrollRevealItem>
+          ))}
+        </ScrollRevealStagger>
+      </section>
 
-      <ScrollReveal delay={120}>
-        <section className="section-band-warm relative overflow-hidden">
-          <div className="absolute -right-24 top-0 h-64 w-64 rounded-full bg-aqua/[0.04] blur-3xl" aria-hidden />
+      <section className="section-band-warm relative overflow-hidden">
+        <div className="absolute -right-24 top-0 h-64 w-64 rounded-full bg-aqua/[0.04] blur-3xl" aria-hidden />
+        <ScrollReveal delay={120}>
           <div className="relative mx-auto max-w-2xl text-center">
             <p className="section-eyebrow text-ocean">Service divisions</p>
             <h2 className="section-title mt-4">Operational service lines</h2>
@@ -379,17 +388,21 @@ export function PremiumHomePage({ media }: { media: HomepageMediaBundle }) {
               county-wide programs.
             </p>
           </div>
-          <div className="relative mt-14 grid gap-10 md:gap-12 lg:grid-cols-3">
-            {serviceLines.map((line) => (
-              <div key={line.title} className="service-division group flex flex-col">
-                <MediaFrame aspect="landscape" className="service-division-image image-frame mb-8 rounded-2xl md:rounded-3xl">
-                  <MediaAssetImage asset={line.asset} width={900} hoverScale={!media.hasAuthenticMedia} />
-                  <div className="absolute bottom-0 left-0 right-0 z-[3] p-5">
-                    <span className="inline-flex rounded-full border border-white/20 bg-navy-deep/50 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.22em] text-cream/90 backdrop-blur-md">
-                      {line.title}
-                    </span>
-                  </div>
-                </MediaFrame>
+        </ScrollReveal>
+        <ScrollRevealStagger className="relative mt-14 grid gap-10 md:gap-12 lg:grid-cols-3">
+          {serviceLines.map((line) => (
+            <ScrollRevealItem key={line.title}>
+              <div className="service-division group flex flex-col">
+                <ScrollParallax speed={0.08}>
+                  <MediaFrame aspect="landscape" className="service-division-image image-frame mb-8 rounded-2xl md:rounded-3xl">
+                    <MediaAssetImage asset={line.asset} width={900} hoverScale={!media.hasAuthenticMedia} />
+                    <div className="absolute bottom-0 left-0 right-0 z-[3] p-5">
+                      <span className="inline-flex rounded-full border border-white/20 bg-navy-deep/50 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.22em] text-cream/90 backdrop-blur-md">
+                        {line.title}
+                      </span>
+                    </div>
+                  </MediaFrame>
+                </ScrollParallax>
                 <p className="max-w-sm text-sm leading-relaxed text-charcoal/70">{line.body}</p>
                 <ul className="mt-4 flex flex-wrap gap-2">
                   {line.examples.map((example) => (
@@ -414,19 +427,20 @@ export function PremiumHomePage({ media }: { media: HomepageMediaBundle }) {
                   ))}
                 </ul>
               </div>
-            ))}
-          </div>
-        </section>
-      </ScrollReveal>
+            </ScrollRevealItem>
+          ))}
+        </ScrollRevealStagger>
+      </section>
 
       <FeaturedProjectsSection projects={media.recaps} />
 
-      <ScrollReveal>
-        <section className="py-16 md:py-24">
-          <div className="grid min-w-0 gap-10 md:gap-14 lg:grid-cols-2 lg:items-center">
-            <MediaFrame aspect="landscape" className="image-frame min-h-[220px] sm:min-h-[280px] md:min-h-0">
-              <MediaAssetImage asset={audienceAsset} width={1200} hoverScale={!media.hasAuthenticMedia} />
-            </MediaFrame>
+      <section className="py-16 md:py-24">
+        <ScrollScaleIn className="grid min-w-0 gap-10 md:gap-14 lg:grid-cols-2 lg:items-center">
+            <ScrollParallax speed={0.1}>
+              <MediaFrame aspect="landscape" className="image-frame min-h-[220px] sm:min-h-[280px] md:min-h-0">
+                <MediaAssetImage asset={audienceAsset} width={1200} hoverScale={!media.hasAuthenticMedia} />
+              </MediaFrame>
+            </ScrollParallax>
             <div className="lg:pl-4">
               <p className="section-eyebrow text-ocean">Who we serve</p>
               <h2 className="section-title mt-3">Built for Palm Beach stakeholders</h2>
@@ -442,9 +456,8 @@ export function PremiumHomePage({ media }: { media: HomepageMediaBundle }) {
                 ))}
               </ul>
             </div>
-          </div>
-        </section>
-      </ScrollReveal>
+        </ScrollScaleIn>
+      </section>
 
       <ScrollReveal delay={80}>
         <section className="trust-band relative overflow-hidden rounded-2xl border border-white/[0.06] bg-gradient-to-br from-navy via-navy to-navy-deep py-14 text-cream shadow-luxury md:rounded-3xl md:py-16">
@@ -459,14 +472,16 @@ export function PremiumHomePage({ media }: { media: HomepageMediaBundle }) {
                 county-embedded property operations partner.
               </p>
             </div>
-            <ul className="mx-auto mt-10 grid max-w-4xl gap-5 px-2 md:grid-cols-3">
+            <ScrollRevealStagger className="mx-auto mt-10 grid max-w-4xl gap-5 px-2 md:grid-cols-3">
               {CREDIBILITY_PILLARS.map((pillar) => (
-                <li key={pillar.title} className="credibility-pillar">
-                  <h3 className="text-sm font-semibold text-cream">{pillar.title}</h3>
-                  <p className="mt-3 text-sm leading-relaxed text-silver/80">{pillar.body}</p>
-                </li>
+                <ScrollRevealItem key={pillar.title}>
+                  <div className="credibility-pillar">
+                    <h3 className="text-sm font-semibold text-cream">{pillar.title}</h3>
+                    <p className="mt-3 text-sm leading-relaxed text-silver/80">{pillar.body}</p>
+                  </div>
+                </ScrollRevealItem>
               ))}
-            </ul>
+            </ScrollRevealStagger>
           </div>
         </section>
       </ScrollReveal>

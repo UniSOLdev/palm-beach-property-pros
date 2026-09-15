@@ -32,11 +32,18 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
   .section-soft-in,
   .animate-fade-up,
   .animate-ken-burns,
-  .hero-glow {
+  .hero-glow,
+  .will-change-transform {
     animation: none;
+    transform: none !important;
+    opacity: 1 !important;
   }
 
   .image-reveal-root:not(.is-loaded) .image-skeleton {

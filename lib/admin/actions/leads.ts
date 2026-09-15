@@ -5,6 +5,8 @@ import type { LeadStatus } from "@/lib/admin/lead-constants";
 import type { QuoteRequestActivityRow, QuoteRequestRow } from "@/lib/admin/types-leads";
 import { logAdminError } from "@/lib/admin/logger";
 import { logPipelineError, logPipelineInfo } from "@/lib/pipeline/logger";
+import { applyLifecycleFilters } from "@/lib/admin/lifecycle/list-query";
+import { archiveEntity } from "@/lib/admin/lifecycle/mutations";
 import { createClient } from "@/lib/supabase/server";
 import { createServiceClient } from "@/lib/supabase/service";
 
@@ -82,13 +84,11 @@ async function logActivity(
 export async function listLeads(options?: {
   status?: LeadStatus | "all";
   search?: string;
+  showArchived?: boolean;
 }): Promise<QuoteRequestRow[]> {
   const supabase = await createClient();
-  let query = supabase
-    .from("quote_requests")
-    .select("*")
-    .eq("archived", false)
-    .order("created_at", { ascending: false });
+  let query = supabase.from("quote_requests").select("*").order("created_at", { ascending: false });
+  query = applyLifecycleFilters(query, { showArchived: options?.showArchived });
 
   if (options?.status && options.status !== "all") {
     query = query.eq("status", options.status);
@@ -493,13 +493,7 @@ export async function convertLeadToInvoice(id: string): Promise<ConvertLeadToInv
 
 export async function archiveLead(id: string) {
   const supabase = await createClient();
-  const { error } = await supabase
-    .from("quote_requests")
-    .update({ archived: true, updated_at: new Date().toISOString() })
-    .eq("id", id);
-
-  if (error) throw new Error(error.message);
-  revalidatePath("/admin/leads");
+  await archiveEntity(supabase, "lead", id);
 }
 
 export async function getLeadPhotoUrls(paths: string[]): Promise<{ path: string; url: string }[]> {

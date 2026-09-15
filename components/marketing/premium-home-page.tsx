@@ -9,6 +9,7 @@ import { MediaAssetImage } from "@/components/media/media-asset-image";
 import { MediaFrame } from "@/components/media/media-frame";
 import { StoryArcShowcase } from "@/components/media/story-arc-showcase";
 import { TransformationShowcase } from "@/components/media/transformation-showcase";
+import { CoreServicesShowcase } from "@/components/marketing/core-services-showcase";
 import { CuratedHeroMedia, FallbackHeroMedia } from "@/components/marketing/curated-hero-media";
 import { ScrollReveal } from "@/components/marketing/scroll-reveal";
 import { FAQ_ITEMS } from "@/lib/faq";
@@ -27,9 +28,9 @@ const FALLBACK_HERO = MEDIA_REGISTRY.hero.primary;
 
 const HERO_CHIPS = [
   "Licensed & insured",
-  "Palm Beach County operations",
-  "Documented field execution",
-  "Estate & turnover programs",
+  "Yard, cleaning & detailing",
+  "Before & after documentation",
+  "Palm Beach County local",
 ] as const;
 
 const CREDIBILITY_PILLARS = [
@@ -85,11 +86,11 @@ const SERVICE_LINES = [
     title: "Exterior care",
     body: "Curb presence, glass clarity, hardscape, and exterior surfaces maintained to coastal estate standards.",
     asset: MEDIA_REGISTRY.divisions.exterior,
-    examples: ["Pressure washing", "Window lines", "Driveway refresh", "Pool deck care"],
+    examples: ["Yard maintenance", "Window lines", "Pressure washing", "Pool deck care"],
     links: [
+      { href: "/services/yard-landscape", label: "Yard & landscape" },
       { href: "/services/window-cleaning", label: "Window cleaning" },
       { href: "/services/pressure-washing", label: "Pressure washing" },
-      { href: "/services/auto-detailing", label: "Exterior detailing" },
     ],
   },
   {
@@ -98,20 +99,20 @@ const SERVICE_LINES = [
     asset: MEDIA_REGISTRY.divisions.interior,
     examples: ["Estate resets", "Move-out prep", "Kitchen detail", "Carpet care"],
     links: [
+      { href: "/services/move-out-cleaning", label: "Move-out cleaning" },
       { href: "/services/residential-cleaning", label: "Residential cleaning" },
       { href: "/services/carpet-steam-cleaning", label: "Carpet cleaning" },
-      { href: "/services/residential-cleaning", label: "Move-out cleaning" },
     ],
   },
   {
     title: "Property support",
     body: "Turnovers, maintenance coordination, and onsite support aligned to operations calendars.",
     asset: MEDIA_REGISTRY.divisions.propertySupport,
-    examples: ["Airbnb turnovers", "Vendor oversight", "Seasonal checks", "Trash services"],
+    examples: ["Debris haul-offs", "Airbnb turnovers", "Seasonal checks", "Bin sanitizing"],
     links: [
+      { href: "/services/trash-debris-removal", label: "Trash & debris removal" },
       { href: "/services/airbnb-services", label: "Airbnb turnovers" },
-      { href: "/services/property-maintenance", label: "Property maintenance" },
-      { href: "/services/trash-can-cleaning", label: "Trash services" },
+      { href: "/services/auto-detailing", label: "Interior & exterior detailing" },
     ],
   },
 ] as const;
@@ -231,14 +232,14 @@ export function PremiumHomePage({ media }: { media: HomepageMediaBundle }) {
         <div className="relative z-10 px-4 py-20 sm:px-6 sm:py-24 md:px-10 md:py-32 lg:py-36">
           <div className="max-w-xl md:max-w-3xl">
             <p className="section-eyebrow text-aqua/90 md:tracking-[0.32em]">
-              Palm Beach Property Operations
+              Palm Beach Property Pros
             </p>
             <h1 className="mt-6 text-4xl font-semibold leading-[1.08] tracking-tight text-cream drop-shadow-[0_2px_24px_rgba(8,26,46,0.45)] sm:text-5xl md:mt-7 md:text-[3.25rem] md:leading-[1.06]">
-              Property operations for Palm Beach County estates
+              Yard care, cleaning & detailing for Palm Beach County
             </h1>
             <p className="mt-7 max-w-xl text-base leading-[1.75] text-silver/95 sm:text-lg md:mt-9 md:max-w-2xl md:text-xl md:leading-[1.7]">
-              Recurring estate support, turnovers, and field programs—coordinated with professional crews,
-              documented execution, and modern client systems.
+              Hedge, edge, mow, and blow. Window lines, move-out cleans, debris haul-offs, and mobile
+              detailing — one local crew with documented results you can show off.
             </p>
           </div>
 
@@ -260,6 +261,10 @@ export function PremiumHomePage({ media }: { media: HomepageMediaBundle }) {
           </div>
         </div>
       </section>
+
+      <ScrollReveal>
+        <CoreServicesShowcase />
+      </ScrollReveal>
 
       <TransformationShowcase projects={media.transformations} isAuthentic={media.hasAuthenticMedia} />
 

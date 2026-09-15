@@ -1,4 +1,7 @@
 export type ServiceSlug =
+  | "yard-landscape"
+  | "move-out-cleaning"
+  | "trash-debris-removal"
   | "window-cleaning"
   | "residential-cleaning"
   | "commercial-cleaning"
@@ -27,6 +30,132 @@ export type ServiceDefinition = {
 };
 
 export const SERVICES: ServiceDefinition[] = [
+  {
+    slug: "yard-landscape",
+    anchor: "yard-landscape",
+    name: "Yard & Landscape Maintenance",
+    shortDescription:
+      "Hedge trimming, edging, mowing, and blow-off for Palm Beach County homes—recurring yard care or one-time estate cleanups.",
+    bestFor: "Homeowners, HOAs, and property managers who want curb appeal without chasing multiple vendors.",
+    headline: "Yard & Landscape Maintenance in Palm Beach County",
+    authorityIntro:
+      "Well-kept turf and clean edges signal that a property is cared for. Our crews handle hedge, edge, mow, and blow with consistent field standards—whether you need weekly maintenance or a one-time reset after overgrowth.",
+    included: [
+      "Hedge trimming and bed line cleanup by scope",
+      "Edging along walks, drives, and beds",
+      "Mowing and blow-off of hard surfaces",
+      "Photo documentation available on request",
+    ],
+    whoItsFor: [
+      "Homeowners with weekly or bi-weekly yard needs",
+      "Estate and water-view properties with visible curb appeal",
+      "Property managers coordinating exterior standards",
+    ],
+    startingPriceLabel:
+      "Yard maintenance is quoted by lot size, frequency, and current condition. Many recurring visits start after a short scope review.",
+    faq: [
+      {
+        q: "Do you offer one-time cleanups or only recurring service?",
+        a: "Both. We handle weekly or bi-weekly maintenance and one-time estate or overgrowth cleanups—often with before-and-after photos.",
+      },
+      {
+        q: "What is included in a standard visit?",
+        a: "Typical scope covers hedge trim, edge, mow, and blow. Beds, debris haul-offs, and plant work are confirmed in advance.",
+      },
+      {
+        q: "Do you haul away yard debris?",
+        a: "Debris removal can be added when volume exceeds what fits routine service. See our trash and debris removal service for large cleanouts.",
+      },
+      {
+        q: "How do I get a quote?",
+        a: "Share your address, lot size if known, and photos of current conditions through our quote form. We reply with scope and pricing.",
+      },
+    ],
+  },
+  {
+    slug: "move-out-cleaning",
+    anchor: "move-out-cleaning",
+    name: "Move-Out & Turnover Cleaning",
+    shortDescription:
+      "Deep interior cleaning for move-outs, rental turnovers, and seasonal close-outs—kitchens, baths, floors, and touchpoints reset.",
+    bestFor: "Landlords, realtors, and homeowners preparing a property for the next occupant or listing photos.",
+    headline: "Move-Out & Turnover Cleaning in Palm Beach County",
+    authorityIntro:
+      "Turnover cleaning is about checklist discipline: kitchens and baths to standard, floors that photograph well, and touchpoints that pass a walkthrough. We scope square footage, appliances, and timeline up front so move-out day stays predictable.",
+    included: [
+      "Kitchen and bath deep clean to turnover standard",
+      "Floors, baseboards, and interior glass by scope",
+      "Interior wipe-down of cabinets, appliances, and fixtures when included",
+      "Photo documentation available for owners and managers",
+    ],
+    whoItsFor: [
+      "Landlords between tenants",
+      "Home sellers preparing for showings",
+      "Seasonal residents closing a residence",
+    ],
+    startingPriceLabel:
+      "Move-out cleaning typically starts higher than maintenance cleaning based on square footage, condition, and appliance scope.",
+    faq: [
+      {
+        q: "How is move-out cleaning different from regular residential cleaning?",
+        a: "Move-out visits target empty or mostly empty spaces with deeper focus on kitchens, baths, and built-up areas a maintenance visit may skip.",
+      },
+      {
+        q: "Do you clean inside appliances?",
+        a: "Appliance interiors can be included when confirmed in scope. Note oven, fridge, and laundry needs when you request a quote.",
+      },
+      {
+        q: "Can you align with a closing or check-in date?",
+        a: "Yes. Share your deadline and access window and we schedule accordingly, with communication if timing is tight.",
+      },
+      {
+        q: "Do you provide photos when finished?",
+        a: "Photo documentation is available on request—common for remote owners and property managers.",
+      },
+    ],
+  },
+  {
+    slug: "trash-debris-removal",
+    anchor: "trash-debris-removal",
+    name: "Trash & Debris Removal",
+    shortDescription:
+      "Property cleanouts, yard debris haul-offs, and bulk item removal—cleared areas documented before and after.",
+    bestFor: "Estate cleanups, renovation debris, move-out piles, and overgrown yard waste that needs hauling.",
+    headline: "Trash & Debris Removal in Palm Beach County",
+    authorityIntro:
+      "Debris removal is logistics plus finish work: assess volume, load safely, haul off-site, and leave driveways and walkways clear. We document results so owners, managers, and listing timelines stay aligned.",
+    included: [
+      "On-site assessment of volume and access",
+      "Loading and haul-off of agreed debris types",
+      "Sweep and clear of work areas after removal",
+      "Before-and-after photos when helpful for stakeholders",
+    ],
+    whoItsFor: [
+      "Homeowners after renovations or estate cleanups",
+      "Property managers clearing tenant move-out debris",
+      "Yard projects with branches, piles, or bulk items",
+    ],
+    startingPriceLabel:
+      "Debris removal is quoted by volume, item type, and access. Photos and short video clips speed accurate estimates.",
+    faq: [
+      {
+        q: "What types of debris do you remove?",
+        a: "Yard waste, bulk items, cleanout piles, and general property debris. Hazardous materials and certain appliances may require special handling—we confirm up front.",
+      },
+      {
+        q: "Do I need to bag yard waste first?",
+        a: "Not always. Share photos of the pile and access path and we confirm whether bagging or staging helps the haul.",
+      },
+      {
+        q: "Can this be combined with yard or cleaning services?",
+        a: "Yes. Many estate projects pair debris removal with yard maintenance or turnover cleaning in one coordinated visit plan.",
+      },
+      {
+        q: "How fast can you schedule a haul-off?",
+        a: "Timing depends on volume and route capacity. Send photos through our quote form for the fastest scope review.",
+      },
+    ],
+  },
   {
     slug: "window-cleaning",
     anchor: "window-cleaning",

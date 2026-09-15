@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Suspense } from "react";
+import { AdminListToolbar } from "@/components/admin/admin-list-toolbar";
 import { TaskQuickAdd } from "@/components/admin/task-quick-add";
 import { TaskWorkflowBar } from "@/components/admin/task-workflow-bar";
 import { AdminPageHeader } from "@/components/admin/entity-list";
@@ -10,34 +11,42 @@ import { LoadError } from "@/components/admin/load-error";
 import { listJobsForExpenseLink } from "@/lib/admin/actions/expenses";
 import { listCrewOptions } from "@/lib/admin/actions/tasks";
 import { fromSupabase } from "@/lib/admin/db-query";
+import { applyLifecycleFilters } from "@/lib/admin/lifecycle/list-query";
+import { lifecycleOptionsFromSearchParams } from "@/lib/admin/lifecycle/search-params";
 import { createClient } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Expenses" };
 
-export default async function AdminExpensesPage() {
+export default async function AdminExpensesPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ archived?: string }>;
+}) {
+  const { archived } = await searchParams;
+  const lifecycle = lifecycleOptionsFromSearchParams({ archived });
+
   const supabase = await createClient();
+  let listQuery = supabase.from("expenses").select("*").order("expense_date", { ascending: false });
+  listQuery = applyLifecycleFilters(listQuery, lifecycle);
+
   const [crew, jobsResult, expensesResult, analytics] = await Promise.all([
     listCrewOptions(),
     listJobsForExpenseLink(),
-    supabase
-      .from("expenses")
-      .select("*")
-      .eq("archived", false)
-      .order("expense_date", { ascending: false }),
+    listQuery,
     getExpenseAnalytics(),
   ]);
 
-  const expensesQuery = fromSupabase(expensesResult.data, expensesResult.error, {
+  const result = fromSupabase(expensesResult.data, expensesResult.error, {
     route: "/admin/expenses",
     query: "expenses list",
   });
 
-  if (!expensesQuery.ok) {
+  if (!result.ok) {
     return (
       <div className="space-y-4">
         <AdminPageHeader title="Expenses" subtitle="Receipts, categories, reimbursements" />
-        <LoadError title="Could not load expenses" message={expensesQuery.error} retryHref="/admin/expenses" />
+        <LoadError title="Could not load expenses" message={result.error} retryHref="/admin/expenses" />
       </div>
     );
   }
@@ -68,11 +77,12 @@ export default async function AdminExpensesPage() {
           Job linking unavailable: {jobsResult.error}
         </p>
       ) : null}
+      <AdminListToolbar />
       <ExpenseAnalyticsPanel analytics={analytics} />
       <TaskQuickAdd crew={crew} variant="primary" label="+ Add expense task" className="w-full" defaults={{ category: "Expense/Receipt" }} />
       <TaskWorkflowBar context="expense" defaults={{ category: "Expense/Receipt" }} />
       <Suspense fallback={<p className="text-sm text-charcoal/60">Loading expenses…</p>}>
-        <ExpenseManagerClient initial={expensesQuery.data ?? []} crew={crew} jobs={jobs} />
+        <ExpenseManagerClient initial={result.data ?? []} crew={crew} jobs={jobs} />
       </Suspense>
     </div>
   );

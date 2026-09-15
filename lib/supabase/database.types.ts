@@ -369,7 +369,10 @@ export type Database = {
           notes: string | null
           pay_rate_unit: string
           phone: string | null
+          referral_bonus_flat: number
+          referral_bonus_percent: number
           role: string | null
+          user_id: string | null
         }
         Insert: {
           archived?: boolean
@@ -380,7 +383,10 @@ export type Database = {
           notes?: string | null
           pay_rate_unit?: string
           phone?: string | null
+          referral_bonus_flat?: number
+          referral_bonus_percent?: number
           role?: string | null
+          user_id?: string | null
         }
         Update: {
           archived?: boolean
@@ -391,7 +397,58 @@ export type Database = {
           notes?: string | null
           pay_rate_unit?: string
           phone?: string | null
+          referral_bonus_flat?: number
+          referral_bonus_percent?: number
           role?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      crew_referrals: {
+        Row: {
+          contact_email: string | null
+          contact_name: string
+          contact_phone: string | null
+          created_at: string
+          crew_member_id: string
+          description: string | null
+          id: string
+          incentive_amount: number | null
+          job_id: string | null
+          lead_id: string | null
+          paid_at: string | null
+          service_requested: string | null
+          status: string
+        }
+        Insert: {
+          contact_email?: string | null
+          contact_name: string
+          contact_phone?: string | null
+          created_at?: string
+          crew_member_id: string
+          description?: string | null
+          id?: string
+          incentive_amount?: number | null
+          job_id?: string | null
+          lead_id?: string | null
+          paid_at?: string | null
+          service_requested?: string | null
+          status?: string
+        }
+        Update: {
+          contact_email?: string | null
+          contact_name?: string
+          contact_phone?: string | null
+          created_at?: string
+          crew_member_id?: string
+          description?: string | null
+          id?: string
+          incentive_amount?: number | null
+          job_id?: string | null
+          lead_id?: string | null
+          paid_at?: string | null
+          service_requested?: string | null
+          status?: string
         }
         Relationships: []
       }
@@ -1026,6 +1083,69 @@ export type Database = {
           },
         ]
       }
+      outreach_prospects: {
+        Row: {
+          archived: boolean
+          company_name: string
+          contact_name: string | null
+          created_at: string
+          email: string | null
+          follow_up_date: string | null
+          id: string
+          last_contacted_at: string | null
+          notes: string | null
+          phone: string | null
+          priority: number
+          prospect_type: string
+          seed_key: string | null
+          service_interest: string | null
+          source: string | null
+          status: string
+          updated_at: string
+          website: string | null
+        }
+        Insert: {
+          archived?: boolean
+          company_name: string
+          contact_name?: string | null
+          created_at?: string
+          email?: string | null
+          follow_up_date?: string | null
+          id?: string
+          last_contacted_at?: string | null
+          notes?: string | null
+          phone?: string | null
+          priority?: number
+          prospect_type?: string
+          seed_key?: string | null
+          service_interest?: string | null
+          source?: string | null
+          status?: string
+          updated_at?: string
+          website?: string | null
+        }
+        Update: {
+          archived?: boolean
+          company_name?: string
+          contact_name?: string | null
+          created_at?: string
+          email?: string | null
+          follow_up_date?: string | null
+          id?: string
+          last_contacted_at?: string | null
+          notes?: string | null
+          phone?: string | null
+          priority?: number
+          prospect_type?: string
+          seed_key?: string | null
+          service_interest?: string | null
+          source?: string | null
+          status?: string
+          updated_at?: string
+          website?: string | null
+        }
+        Relationships: []
+      }
       quote_request_activity: {
         Row: {
           activity_type: string
@@ -1443,6 +1563,36 @@ export type Database = {
           },
         ]
       }
+      supply_count_logs: {
+        Row: {
+          counted_qty: number
+          created_at: string
+          crew_member_id: string | null
+          id: string
+          notes: string | null
+          previous_qty: number
+          supply_id: string
+        }
+        Insert: {
+          counted_qty: number
+          created_at?: string
+          crew_member_id?: string | null
+          id?: string
+          notes?: string | null
+          previous_qty: number
+          supply_id: string
+        }
+        Update: {
+          counted_qty?: number
+          created_at?: string
+          crew_member_id?: string | null
+          id?: string
+          notes?: string | null
+          previous_qty?: number
+          supply_id?: string
+        }
+        Relationships: []
+      }
       supply_job_usage: {
         Row: {
           created_at: string
@@ -1484,6 +1634,36 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      time_entries: {
+        Row: {
+          clock_in: string
+          clock_out: string | null
+          created_at: string
+          crew_member_id: string
+          id: string
+          job_id: string | null
+          notes: string | null
+        }
+        Insert: {
+          clock_in?: string
+          clock_out?: string | null
+          created_at?: string
+          crew_member_id: string
+          id?: string
+          job_id?: string | null
+          notes?: string | null
+        }
+        Update: {
+          clock_in?: string
+          clock_out?: string | null
+          created_at?: string
+          crew_member_id?: string
+          id?: string
+          job_id?: string | null
+          notes?: string | null
+        }
+        Relationships: []
       }
       tasks: {
         Row: {

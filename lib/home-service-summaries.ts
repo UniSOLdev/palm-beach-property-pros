@@ -4,6 +4,12 @@ import type { ServiceSlug } from "@/lib/services";
  * Homepage card blurbs only — keeps full `shortDescription` on service detail pages for SEO.
  */
 export const HOME_SERVICE_SUMMARY: Record<ServiceSlug, string> = {
+  "yard-landscape":
+    "Hedge, edge, mow, and blow—recurring yard care or one-time estate cleanups.",
+  "move-out-cleaning":
+    "Turnover-ready interiors for rentals, sales, and seasonal close-outs.",
+  "trash-debris-removal":
+    "Cleanouts and haul-offs with cleared areas and photo documentation.",
   "window-cleaning":
     "Crystal-clear glass inside and out. Screens and frames handled with care.",
   "pressure-washing":

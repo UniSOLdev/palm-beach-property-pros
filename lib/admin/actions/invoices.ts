@@ -1,10 +1,32 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { logEntityActivity } from "@/lib/admin/lifecycle/activity";
 import { createClient } from "@/lib/supabase/server";
 
 function newPublicId() {
   return crypto.randomUUID().replace(/-/g, "").slice(0, 12);
+}
+
+/** Next invoice number — excludes soft-deleted rows; never reuses voided numbers. */
+export async function nextInvoiceNumber(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+): Promise<string> {
+  const { data, error } = await supabase
+    .from("invoices")
+    .select("invoice_number")
+    .is("deleted_at", null)
+    .order("created_at", { ascending: false });
+
+  if (error) throw new Error(error.message);
+
+  let max = 0;
+  for (const row of data ?? []) {
+    const match = /^PBPP-(\d+)$/i.exec(row.invoice_number ?? "");
+    if (match) max = Math.max(max, Number(match[1]));
+  }
+
+  return `PBPP-${String(max + 1).padStart(4, "0")}`;
 }
 
 export async function createInvoiceDraft(input: {
@@ -15,13 +37,17 @@ export async function createInvoiceDraft(input: {
   lines: { description: string; quantity: number; unit_price: number }[];
 }) {
   const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
   const { data: settings } = await supabase
     .from("business_settings")
     .select("default_invoice_terms")
     .limit(1)
     .maybeSingle();
-  const { count } = await supabase.from("invoices").select("id", { count: "exact", head: true });
-  const invoice_number = `PBPP-${String((count ?? 0) + 1).padStart(4, "0")}`;
+
+  const invoice_number = await nextInvoiceNumber(supabase);
 
   const { data: invoice, error } = await supabase
     .from("invoices")
@@ -50,21 +76,27 @@ export async function createInvoiceDraft(input: {
     })),
   );
 
+  await logEntityActivity(supabase, {
+    entityType: "invoice",
+    entityId: invoice.id,
+    action: "created",
+    summary: `Invoice ${invoice_number} created`,
+    userId: user?.id,
+  });
+
   revalidatePath("/admin/invoices");
   return invoice.id as string;
 }
 
-export async function duplicateInvoiceAction(id: string) {
-  await duplicateInvoice(id);
-}
-
-async function duplicateInvoice(id: string) {
+export async function duplicateInvoiceInternal(id: string) {
   const supabase = await createClient();
   const { data: inv } = await supabase.from("invoices").select("*").eq("id", id).single();
   const { data: items } = await supabase.from("invoice_items").select("*").eq("invoice_id", id);
   if (!inv) throw new Error("Invoice not found");
+
   return createInvoiceDraft({
     client_id: inv.client_id,
+    job_id: inv.job_id ?? undefined,
     due_date: inv.due_date ?? undefined,
     terms: inv.terms ?? undefined,
     lines: (items ?? []).map((l) => ({
@@ -73,4 +105,8 @@ async function duplicateInvoice(id: string) {
       unit_price: Number(l.unit_price),
     })),
   });
+}
+
+export async function duplicateInvoiceAction(id: string) {
+  await duplicateInvoiceInternal(id);
 }

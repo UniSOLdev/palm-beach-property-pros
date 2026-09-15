@@ -17,7 +17,9 @@ export const ADMIN_NAV = [
 ] as const;
 
 export const ADMIN_MORE_NAV = [
+  { href: "/admin/hub", label: "Employee Hub" },
   { href: "/admin/leads", label: "Leads" },
+  { href: "/admin/leads/partners", label: "Landlord & STR" },
   { href: "/admin/quotes", label: "Quotes" },
   { href: "/admin/change-orders", label: "Change Orders" },
   { href: "/admin/supplies", label: "Supplies" },
@@ -28,6 +30,7 @@ export const ADMIN_MORE_NAV = [
 ] as const;
 
 export const QUICK_ACTIONS = [
+  { href: "/admin/hub", label: "Employee Hub", icon: "👷" },
   { href: "/admin/leads", label: "New Leads", icon: "📥" },
   { href: "/admin/invoices/new", label: "New Invoice", icon: "📄" },
   { href: "/admin/expenses?focus=scan", label: "Scan Receipt", icon: "🧾" },

@@ -1,17 +1,20 @@
 import Link from "next/link";
+import { AdminListToolbar } from "@/components/admin/admin-list-toolbar";
+import { EntityLifecycleMenu } from "@/components/admin/entity-lifecycle-menu";
 import { AdminPageHeader, EmptyState } from "@/components/admin/entity-list";
 import { LoadError } from "@/components/admin/load-error";
 import { listLeads } from "@/lib/admin/actions/leads";
-import { LEAD_STATUSES, LEAD_STATUS_LABELS, leadStatusClass } from "@/lib/admin/lead-constants";
+import { LEAD_STATUSES, LEAD_STATUS_LABELS, leadStatusClass, type LeadStatus } from "@/lib/admin/lead-constants";
 import { logAdminError } from "@/lib/admin/logger";
 import { formatDate } from "@/lib/admin/format";
-import type { LeadStatus } from "@/lib/admin/lead-constants";
+import { lifecycleOptionsFromSearchParams } from "@/lib/admin/lifecycle/search-params";
+import { rowIsArchived, rowIsDeleted } from "@/lib/admin/lifecycle/list-query";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Leads" };
 
 type Props = {
-  searchParams: Promise<{ status?: string; q?: string }>;
+  searchParams: Promise<{ status?: string; q?: string; archived?: string }>;
 };
 
 function phoneTel(phone: string) {
@@ -20,7 +23,8 @@ function phoneTel(phone: string) {
 }
 
 export default async function AdminLeadsPage({ searchParams }: Props) {
-  const { status: statusParam, q } = await searchParams;
+  const { status: statusParam, q, archived } = await searchParams;
+  const lifecycle = lifecycleOptionsFromSearchParams({ archived });
   const status =
     statusParam && LEAD_STATUSES.includes(statusParam as LeadStatus)
       ? (statusParam as LeadStatus)
@@ -33,8 +37,8 @@ export default async function AdminLeadsPage({ searchParams }: Props) {
 
   try {
     [leads, allLeads] = await Promise.all([
-      listLeads({ status, search }),
-      listLeads({ status: "all" }),
+      listLeads({ status, search, showArchived: lifecycle.showArchived }),
+      listLeads({ status: "all", showArchived: lifecycle.showArchived }),
     ]);
   } catch (e) {
     loadError = e instanceof Error ? e.message : "Could not load leads";
@@ -67,6 +71,21 @@ export default async function AdminLeadsPage({ searchParams }: Props) {
         actionLabel="Quotes"
       />
 
+      <Link
+        href="/admin/leads/partners"
+        className="admin-card block no-underline transition hover:shadow-lg"
+      >
+        <p className="text-[10px] font-semibold uppercase tracking-[0.28em] text-ocean">
+          B2B outreach
+        </p>
+        <p className="mt-1 text-lg font-bold text-navy">Landlord & STR call list</p>
+        <p className="mt-1 text-sm text-charcoal/70">
+          Pre-loaded PMs and Airbnb managers near 33407 — tap to call, track follow-ups.
+        </p>
+      </Link>
+
+      <AdminListToolbar />
+
       <form method="get" className="flex gap-2">
         <input
           name="q"
@@ -75,6 +94,7 @@ export default async function AdminLeadsPage({ searchParams }: Props) {
           className="min-h-[48px] flex-1 rounded-xl border border-navy/15 px-4 text-base"
         />
         {status !== "all" ? <input type="hidden" name="status" value={status} /> : null}
+        {lifecycle.showArchived ? <input type="hidden" name="archived" value="1" /> : null}
         <button type="submit" className="admin-btn min-h-[48px] px-4">
           Search
         </button>
@@ -82,7 +102,7 @@ export default async function AdminLeadsPage({ searchParams }: Props) {
 
       <div className="flex flex-wrap gap-2">
         <Link
-          href={search ? `/admin/leads?q=${encodeURIComponent(search)}` : "/admin/leads"}
+          href={search ? `/admin/leads?q=${encodeURIComponent(search)}${lifecycle.showArchived ? "&archived=1" : ""}` : lifecycle.showArchived ? "/admin/leads?archived=1" : "/admin/leads"}
           className={`min-h-[44px] rounded-full px-3 py-2 text-xs font-semibold no-underline ${
             status === "all" ? "bg-navy text-cream" : "border border-navy/15 bg-white text-navy"
           }`}
@@ -90,7 +110,7 @@ export default async function AdminLeadsPage({ searchParams }: Props) {
           All ({allLeads.length})
         </Link>
         {LEAD_STATUSES.map((s) => {
-          const href = `/admin/leads?status=${s}${search ? `&q=${encodeURIComponent(search)}` : ""}`;
+          const href = `/admin/leads?status=${s}${search ? `&q=${encodeURIComponent(search)}` : ""}${lifecycle.showArchived ? "&archived=1" : ""}`;
           return (
             <Link
               key={s}
@@ -133,9 +153,18 @@ export default async function AdminLeadsPage({ searchParams }: Props) {
                     {lead.preferred_time ? ` ${lead.preferred_time}` : ""}
                   </p>
                 </div>
-                <span className={`admin-chip shrink-0 ${leadStatusClass(lead.status)}`}>
-                  {LEAD_STATUS_LABELS[lead.status as LeadStatus] ?? lead.status}
-                </span>
+                <div className="flex shrink-0 flex-col items-end gap-1">
+                  <EntityLifecycleMenu
+                    entityType="lead"
+                    entityId={lead.id}
+                    entityLabel={lead.name}
+                    isArchived={rowIsArchived(lead as { archived_at?: string | null; archived?: boolean })}
+                    isDeleted={rowIsDeleted(lead as { deleted_at?: string | null })}
+                  />
+                  <span className={`admin-chip shrink-0 ${leadStatusClass(lead.status)}`}>
+                    {LEAD_STATUS_LABELS[lead.status as LeadStatus] ?? lead.status}
+                  </span>
+                </div>
               </div>
               <div className="mt-3 flex flex-wrap items-center gap-2">
                 <a href={phoneTel(lead.phone)} className="admin-btn-secondary min-h-[44px] px-3 text-xs no-underline">

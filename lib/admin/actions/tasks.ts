@@ -1,6 +1,8 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { applyLifecycleFilters } from "@/lib/admin/lifecycle/list-query";
+import { archiveEntity } from "@/lib/admin/lifecycle/mutations";
 import { createClient } from "@/lib/supabase/server";
 import { JOB_CHECKLIST_ITEMS } from "@/lib/admin/task-constants";
 import { listCrewOptions as queryCrewOptions } from "@/lib/supabase/queries/crew";
@@ -23,14 +25,17 @@ async function nextSortOrder(supabase: Awaited<ReturnType<typeof createClient>>)
   return (data?.sort_order ?? 0) + 1;
 }
 
-export async function listTasks(): Promise<TaskRow[]> {
+export async function listTasks(options?: { showArchived?: boolean }): Promise<TaskRow[]> {
   const supabase = await createClient();
-  const { data, error } = await supabase
+  let query = supabase
     .from("tasks")
     .select("*")
-    .eq("archived", false)
     .order("sort_order", { ascending: true })
     .order("due_date", { ascending: true, nullsFirst: false });
+
+  query = applyLifecycleFilters(query, { showArchived: options?.showArchived });
+
+  const { data, error } = await query;
 
   if (error) throw new Error(error.message);
   return (data ?? []) as TaskRow[];
@@ -174,11 +179,7 @@ export async function updateTask(
 export async function archiveTask(id: string) {
   const supabase = await createClient();
   const { data: existing } = await supabase.from("tasks").select("job_id").eq("id", id).single();
-  const { error } = await supabase
-    .from("tasks")
-    .update({ archived: true, updated_at: new Date().toISOString() })
-    .eq("id", id);
-  if (error) throw new Error(error.message);
+  await archiveEntity(supabase, "task", id);
   revalidateTaskPaths(existing?.job_id);
 }
 

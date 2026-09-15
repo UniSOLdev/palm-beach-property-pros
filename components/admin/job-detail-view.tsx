@@ -3,15 +3,19 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useMemo, useState, useTransition } from "react";
+import { EntityActivityTimeline } from "@/components/admin/entity-activity-timeline";
+import { EntityLifecycleMenu } from "@/components/admin/entity-lifecycle-menu";
 import { PrintButton } from "@/components/admin/print-button";
 import {
   addJobExpense,
   addJobPhoto,
+  createCrewPayout,
   createInvoiceFromJob,
   removeJobPhoto,
 } from "@/lib/admin/actions/jobs";
 import { EXPENSE_CATEGORIES, PAYMENT_METHODS } from "@/lib/admin/constants";
 import { formatCurrency, formatDate, formatPercent } from "@/lib/admin/format";
+import { rowIsArchived, rowIsDeleted } from "@/lib/admin/lifecycle/list-query";
 import { calculateJobProfitDetail } from "@/lib/admin/job-profit";
 import { uploadAdminFile } from "@/lib/admin/upload-client";
 import { ChangeOrderJobPanel } from "@/components/admin/change-order-job-panel";
@@ -45,6 +49,12 @@ export function JobDetailView({
   const [error, setError] = useState("");
   const [showExpenseForm, setShowExpenseForm] = useState(false);
   const [showReceiptScanner, setShowReceiptScanner] = useState(false);
+  const [showPayoutForm, setShowPayoutForm] = useState(false);
+  const [payoutCrewIds, setPayoutCrewIds] = useState<string[]>([]);
+  const [payoutType, setPayoutType] = useState<"hourly" | "flat" | "percent">("flat");
+  const [payoutHours, setPayoutHours] = useState("");
+  const [payoutFlat, setPayoutFlat] = useState("");
+  const [payoutPercent, setPayoutPercent] = useState("");
 
   const { job, photos, expenses, crewPayouts, crewNames } = data;
   const client = job.clients;
@@ -92,7 +102,16 @@ export function JobDetailView({
           <h1 className="mt-2 text-2xl font-bold text-navy">{job.service_type}</h1>
           <p className="text-sm text-charcoal/70">{client?.name ?? "Client"}</p>
         </div>
-        <span className="admin-chip bg-sky/60 text-navy">{job.status}</span>
+        <div className="flex shrink-0 flex-col items-end gap-2">
+          <span className="admin-chip bg-sky/60 text-navy">{job.status}</span>
+          <EntityLifecycleMenu
+          entityType="job"
+          entityId={job.id}
+          entityLabel={job.service_type}
+          isArchived={rowIsArchived(job as { archived_at?: string | null; archived?: boolean })}
+          isDeleted={rowIsDeleted(job as { deleted_at?: string | null })}
+        />
+        </div>
       </div>
 
       {error ? <p className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">{error}</p> : null}
@@ -310,22 +329,139 @@ export function JobDetailView({
         </ul>
       </section>
 
-      {crewPayouts.length > 0 ? (
-        <section className="admin-card space-y-2">
+      <section className="admin-card space-y-3">
+        <div className="flex items-center justify-between gap-2">
           <h2 className="text-lg font-bold text-navy">Crew payouts</h2>
-          <p className="text-sm text-charcoal/70">
-            Total: <span className="font-bold">{formatCurrency(profit.crewPayouts)}</span>
-          </p>
-          <ul className="space-y-2 text-sm">
-            {crewPayouts.map((p) => (
-              <li key={p.id} className="flex justify-between rounded-xl bg-cream/40 px-3 py-2">
-                <span>{p.pay_type}</span>
-                <span className="font-semibold">{formatCurrency(Number(p.calculated_total))}</span>
-              </li>
-            ))}
-          </ul>
-        </section>
-      ) : null}
+          <button
+            type="button"
+            onClick={() => setShowPayoutForm((v) => !v)}
+            className="admin-btn-secondary px-3 py-1.5 text-xs"
+          >
+            {showPayoutForm ? "Cancel" : "+ Add payout"}
+          </button>
+        </div>
+        {crewPayouts.length > 0 ? (
+          <>
+            <p className="text-sm text-charcoal/70">
+              Total: <span className="font-bold">{formatCurrency(profit.crewPayouts)}</span>
+            </p>
+            <ul className="space-y-2 text-sm">
+              {crewPayouts.map((p) => (
+                <li key={p.id} className="flex justify-between rounded-xl bg-cream/40 px-3 py-2">
+                  <span>{p.pay_type}</span>
+                  <span className="font-semibold">{formatCurrency(Number(p.calculated_total))}</span>
+                </li>
+              ))}
+            </ul>
+          </>
+        ) : (
+          <p className="text-sm text-charcoal/60">No crew payouts logged yet.</p>
+        )}
+        {showPayoutForm ? (
+          <div className="space-y-3 rounded-xl border border-navy/10 bg-cream/30 p-3">
+            <p className="text-xs font-semibold uppercase tracking-wide text-charcoal/60">Crew on payout</p>
+            <ul className="space-y-1">
+              {crew.map((member) => (
+                <li key={member.id}>
+                  <label className="flex items-center gap-2 text-sm">
+                    <input
+                      type="checkbox"
+                      checked={payoutCrewIds.includes(member.id)}
+                      onChange={() =>
+                        setPayoutCrewIds((prev) =>
+                          prev.includes(member.id)
+                            ? prev.filter((id) => id !== member.id)
+                            : [...prev, member.id],
+                        )
+                      }
+                    />
+                    {member.name}
+                  </label>
+                </li>
+              ))}
+            </ul>
+            <label className="block text-sm font-semibold text-navy">
+              Pay type
+              <select
+                className="admin-input mt-1 w-full"
+                value={payoutType}
+                onChange={(e) => setPayoutType(e.target.value as "hourly" | "flat" | "percent")}
+              >
+                <option value="flat">Flat amount</option>
+                <option value="hourly">Hourly (uses crew pay rates)</option>
+                <option value="percent">Percent of job revenue</option>
+              </select>
+            </label>
+            {payoutType === "hourly" ? (
+              <label className="block text-sm font-semibold text-navy">
+                Hours
+                <input
+                  className="admin-input mt-1 w-full"
+                  type="number"
+                  min={0}
+                  step="0.25"
+                  value={payoutHours}
+                  onChange={(e) => setPayoutHours(e.target.value)}
+                />
+              </label>
+            ) : null}
+            {payoutType === "flat" ? (
+              <label className="block text-sm font-semibold text-navy">
+                Amount ($)
+                <input
+                  className="admin-input mt-1 w-full"
+                  type="number"
+                  min={0}
+                  step="0.01"
+                  value={payoutFlat}
+                  onChange={(e) => setPayoutFlat(e.target.value)}
+                />
+              </label>
+            ) : null}
+            {payoutType === "percent" ? (
+              <label className="block text-sm font-semibold text-navy">
+                Percent of revenue
+                <input
+                  className="admin-input mt-1 w-full"
+                  type="number"
+                  min={0}
+                  max={100}
+                  step="0.5"
+                  value={payoutPercent}
+                  onChange={(e) => setPayoutPercent(e.target.value)}
+                />
+              </label>
+            ) : null}
+            <button
+              type="button"
+              disabled={pending || payoutCrewIds.length === 0}
+              onClick={() =>
+                startTransition(async () => {
+                  try {
+                    setError("");
+                    await createCrewPayout({
+                      job_id: job.id,
+                      crew_member_ids: payoutCrewIds,
+                      pay_type: payoutType,
+                      hours: payoutHours ? Number(payoutHours) : null,
+                      flat_amount: payoutFlat ? Number(payoutFlat) : null,
+                      percent: payoutPercent ? Number(payoutPercent) : null,
+                    });
+                    setShowPayoutForm(false);
+                    setPayoutCrewIds([]);
+                    router.refresh();
+                  } catch (e) {
+                    setError(e instanceof Error ? e.message : "Payout failed");
+                  }
+                })
+              }
+              className="admin-btn w-full"
+            >
+              Save payout
+            </button>
+          </div>
+        ) : null}
+      </section>
 
       <section className="admin-card space-y-2 text-sm">
         <h2 className="text-lg font-bold text-navy">Cost breakdown</h2>
@@ -346,6 +482,13 @@ export function JobDetailView({
         <p>Revenue: {formatCurrency(profit.revenue)}</p>
         <p>Profit: {formatCurrency(profit.profit)}</p>
       </div>
+
+      <section className="admin-card">
+        <h2 className="text-lg font-bold text-navy">Lifecycle activity</h2>
+        <div className="mt-3">
+          <EntityActivityTimeline entityType="job" entityId={job.id} />
+        </div>
+      </section>
 
       <JobActionBar
         jobId={job.id}

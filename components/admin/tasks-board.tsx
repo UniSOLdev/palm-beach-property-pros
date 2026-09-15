@@ -14,7 +14,6 @@ import { useRouter } from "next/navigation";
 import { useMemo, useState, useTransition } from "react";
 import { TASK_VIEWS, type TaskView } from "@/lib/admin/task-constants";
 import {
-  archiveTask,
   moveTask,
   quickCompleteTask,
   reorderTasks,
@@ -26,6 +25,7 @@ import {
   statusLabel,
   normalizePriority,
 } from "@/lib/admin/task-utils";
+import { EntityLifecycleMenu } from "@/components/admin/entity-lifecycle-menu";
 import { TaskFormModal } from "@/components/admin/task-form-modal";
 import type { CrewOption, TaskRow } from "@/lib/admin/types";
 
@@ -33,7 +33,6 @@ function SortableTask({
   task,
   onComplete,
   onEdit,
-  onArchive,
   onMove,
   canMoveUp,
   canMoveDown,
@@ -42,7 +41,6 @@ function SortableTask({
   task: TaskRow;
   onComplete: (id: string) => void;
   onEdit: (task: TaskRow) => void;
-  onArchive: (id: string) => void;
   onMove: (id: string, dir: "up" | "down") => void;
   canMoveUp: boolean;
   canMoveDown: boolean;
@@ -108,14 +106,13 @@ function SortableTask({
         >
           ↓
         </button>
-        <button
-          type="button"
-          onClick={() => onArchive(task.id)}
-          disabled={pending}
-          className="admin-btn-secondary min-h-[44px] px-3 text-xs text-red-700"
-        >
-          Archive
-        </button>
+        <EntityLifecycleMenu
+          entityType="task"
+          entityId={task.id}
+          entityLabel={task.title}
+          isArchived={Boolean((task as TaskRow & { archived_at?: string | null }).archived_at) || Boolean(task.archived)}
+          isDeleted={Boolean((task as TaskRow & { deleted_at?: string | null }).deleted_at)}
+        />
       </div>
     </li>
   );
@@ -209,13 +206,6 @@ export function TasksBoard({
                     setEditing(t);
                     setModalOpen(true);
                   }}
-                  onArchive={(id) =>
-                    startTransition(async () => {
-                      await archiveTask(id);
-                      setTasks((prev) => prev.filter((t) => t.id !== id));
-                      router.refresh();
-                    })
-                  }
                   onMove={(id, dir) =>
                     startTransition(async () => {
                       await moveTask(id, dir, visibleIds);

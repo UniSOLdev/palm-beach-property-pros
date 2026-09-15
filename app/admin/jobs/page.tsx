@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { AdminListToolbar } from "@/components/admin/admin-list-toolbar";
+import { EntityLifecycleMenu } from "@/components/admin/entity-lifecycle-menu";
 import { TaskQuickAdd } from "@/components/admin/task-quick-add";
 import { AdminPageHeader, EmptyState } from "@/components/admin/entity-list";
 import { LoadError } from "@/components/admin/load-error";
@@ -6,17 +8,20 @@ import { getCrewPayoutTotalsByJob } from "@/lib/admin/crew-payout-totals";
 import { calculateJobProfit } from "@/lib/admin/job-costing";
 import { fromSupabase } from "@/lib/admin/db-query";
 import { formatCurrency, formatDate, formatPercent } from "@/lib/admin/format";
+import { applyLifecycleFilters, rowIsArchived, rowIsDeleted } from "@/lib/admin/lifecycle/list-query";
+import { lifecycleOptionsFromSearchParams } from "@/lib/admin/lifecycle/search-params";
 import { listCrewOptions } from "@/lib/admin/actions/tasks";
 import { createClient } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Jobs" };
 
-type Props = { searchParams: Promise<{ q?: string }> };
+type Props = { searchParams: Promise<{ q?: string; archived?: string }> };
 
 export default async function AdminJobsPage({ searchParams }: Props) {
-  const { q } = await searchParams;
+  const { q, archived } = await searchParams;
   const search = q?.trim().toLowerCase() ?? "";
+  const lifecycle = lifecycleOptionsFromSearchParams({ archived });
 
   let crew: Awaited<ReturnType<typeof listCrewOptions>> = [];
   try {
@@ -26,12 +31,14 @@ export default async function AdminJobsPage({ searchParams }: Props) {
   }
 
   const supabase = await createClient();
+  let jobsQuery = supabase
+    .from("jobs")
+    .select("*, clients(name)")
+    .order("job_date", { ascending: false });
+  jobsQuery = applyLifecycleFilters(jobsQuery, lifecycle);
+
   const [jobsResult, crewPayoutMap] = await Promise.all([
-    supabase
-      .from("jobs")
-      .select("*, clients(name)")
-      .eq("archived", false)
-      .order("job_date", { ascending: false }),
+    jobsQuery,
     getCrewPayoutTotalsByJob(supabase),
   ]);
 
@@ -71,6 +78,7 @@ export default async function AdminJobsPage({ searchParams }: Props) {
         actionHref="/admin/tasks"
         actionLabel="All tasks"
       />
+      <AdminListToolbar />
       <form method="get" className="flex gap-2">
         <input
           name="q"
@@ -78,6 +86,7 @@ export default async function AdminJobsPage({ searchParams }: Props) {
           placeholder="Search jobs, client, address…"
           className="min-h-[48px] flex-1 rounded-xl border border-navy/15 px-4 text-base"
         />
+        {lifecycle.showArchived ? <input type="hidden" name="archived" value="1" /> : null}
         <button type="submit" className="admin-btn min-h-[48px] px-4">
           Search
         </button>
@@ -114,7 +123,16 @@ export default async function AdminJobsPage({ searchParams }: Props) {
                       {clientName} · {formatDate(job.job_date)} · {job.status}
                     </p>
                   </div>
-                  <span className="admin-chip bg-sky/50 text-navy">{formatPercent(profit.margin)}</span>
+                  <div className="flex shrink-0 flex-col items-end gap-2">
+                    <span className="admin-chip bg-sky/50 text-navy">{formatPercent(profit.margin)}</span>
+                    <EntityLifecycleMenu
+                      entityType="job"
+                      entityId={job.id}
+                      entityLabel={job.service_type}
+                      isArchived={rowIsArchived(job as { archived_at?: string | null; archived?: boolean })}
+                      isDeleted={rowIsDeleted(job as { deleted_at?: string | null })}
+                    />
+                  </div>
                 </div>
                 <div className="mt-3 grid grid-cols-2 gap-2 text-sm">
                   <p>

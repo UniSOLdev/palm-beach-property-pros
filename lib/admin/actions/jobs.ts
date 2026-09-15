@@ -98,6 +98,7 @@ export async function updateJob(
     end_time?: string | null;
     job_notes?: string | null;
     internal_notes?: string | null;
+    assigned_crew_ids?: string[];
     revenue?: number;
     estimated_labor_cost?: number;
     estimated_materials_cost?: number;
@@ -111,6 +112,52 @@ export async function updateJob(
   const { error } = await supabase.from("jobs").update(patch).eq("id", jobId);
   if (error) throw new Error(error.message);
   revalidatePath(`/admin/jobs/${jobId}`);
+  revalidatePath("/admin/jobs");
+  revalidatePath("/admin/hub");
+}
+
+export async function createCrewPayout(input: {
+  job_id: string;
+  crew_member_ids: string[];
+  pay_type: "hourly" | "flat" | "percent";
+  hours?: number | null;
+  flat_amount?: number | null;
+  percent?: number | null;
+}) {
+  const supabase = await createClient();
+  if (!input.crew_member_ids.length) throw new Error("Select at least one crew member.");
+
+  const { data: job } = await supabase.from("jobs").select("revenue").eq("id", input.job_id).single();
+  const revenue = Number(job?.revenue ?? 0);
+
+  let calculatedTotal = 0;
+  if (input.pay_type === "flat") {
+    calculatedTotal = Math.max(0, Number(input.flat_amount ?? 0));
+  } else if (input.pay_type === "percent") {
+    calculatedTotal = Math.max(0, revenue * (Number(input.percent ?? 0) / 100));
+  } else {
+    const hours = Math.max(0, Number(input.hours ?? 0));
+    const { data: crew } = await supabase
+      .from("crew_members")
+      .select("default_pay_rate")
+      .in("id", input.crew_member_ids);
+    const rates = (crew ?? []).map((c) => Number(c.default_pay_rate) || 0).filter((r) => r > 0);
+    const rate = rates.length ? rates.reduce((a, b) => a + b, 0) / rates.length : 0;
+    calculatedTotal = hours * rate * input.crew_member_ids.length;
+  }
+
+  const { error } = await supabase.from("crew_payouts").insert({
+    job_id: input.job_id,
+    crew_member_ids: input.crew_member_ids,
+    pay_type: input.pay_type,
+    hours: input.hours ?? null,
+    flat_amount: input.flat_amount ?? null,
+    percent: input.percent ?? null,
+    calculated_total: calculatedTotal,
+  });
+
+  if (error) throw new Error(error.message);
+  revalidatePath(`/admin/jobs/${input.job_id}`);
   revalidatePath("/admin/jobs");
 }
 

@@ -8,12 +8,15 @@ export const metadata: Metadata = {
 };
 
 const overview = [
+  { service: "Yard & Landscape Maintenance", price: "Custom quote by lot & frequency" },
   { service: "Window Cleaning", price: "Starting at $99" },
+  { service: "Move-Out & Turnover Cleaning", price: "Starting at $200" },
+  { service: "Trash & Debris Removal", price: "Custom quote by volume" },
+  { service: "Auto Detailing", price: "Starting at $150" },
   { service: "Residential Cleaning", price: "Starting at $120" },
   { service: "Deep Cleaning", price: "Starting at $200" },
   { service: "Commercial Cleaning", price: "Custom quote" },
   { service: "Pressure Washing / Exterior", price: "Starting at $129" },
-  { service: "Auto Detailing", price: "Starting at $150" },
   { service: "Full Detail", price: "Starting at $250" },
   { service: "Carpet & Steam Cleaning", price: "Starting at $99" },
   { service: "Trash Can Cleaning", price: "Starting at $25" },

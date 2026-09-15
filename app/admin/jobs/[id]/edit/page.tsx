@@ -34,7 +34,7 @@ export default async function JobEditPage({ params }: { params: Promise<{ id: st
           />
         </div>
       </div>
-      <JobEditForm job={data.job} />
+      <JobEditForm job={data.job} crew={crew} />
     </div>
   );
 }

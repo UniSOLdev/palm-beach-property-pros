@@ -1,15 +1,21 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useTransition } from "react";
+import { useState, useTransition } from "react";
 import { updateJob } from "@/lib/admin/actions/jobs";
+import type { CrewOption } from "@/lib/admin/types";
 import type { JobRow } from "@/lib/admin/types-jobs";
 
 const STATUSES = ["Scheduled", "In Progress", "Completed", "Cancelled", "On Hold"];
 
-export function JobEditForm({ job }: { job: JobRow }) {
+export function JobEditForm({ job, crew }: { job: JobRow; crew: CrewOption[] }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
+  const [assignedCrewIds, setAssignedCrewIds] = useState<string[]>(job.assigned_crew_ids ?? []);
+
+  function toggleCrew(id: string) {
+    setAssignedCrewIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
+  }
 
   return (
     <form
@@ -25,6 +31,7 @@ export function JobEditForm({ job }: { job: JobRow }) {
             start_time: String(fd.get("start_time") || "") || null,
             end_time: String(fd.get("end_time") || "") || null,
             address: String(fd.get("address")),
+            assigned_crew_ids: assignedCrewIds,
             job_notes: String(fd.get("job_notes") || "") || null,
             internal_notes: String(fd.get("internal_notes") || "") || null,
             revenue: Number(fd.get("revenue")),
@@ -55,6 +62,26 @@ export function JobEditForm({ job }: { job: JobRow }) {
       <Field label="Start time" name="start_time" defaultValue={job.start_time ?? ""} placeholder="9:00 AM" />
       <Field label="End time" name="end_time" defaultValue={job.end_time ?? ""} placeholder="2:00 PM" />
       <Field label="Address" name="address" defaultValue={job.address} required />
+      {crew.length > 0 ? (
+        <fieldset className="space-y-2">
+          <legend className="text-sm font-medium text-navy">Assigned crew</legend>
+          <p className="text-xs text-charcoal/60">Shows on Employee Hub for today&apos;s jobs.</p>
+          <ul className="space-y-2">
+            {crew.map((member) => (
+              <li key={member.id}>
+                <label className="flex min-h-[44px] items-center gap-3 rounded-xl border border-navy/10 px-3 py-2 text-sm">
+                  <input
+                    type="checkbox"
+                    checked={assignedCrewIds.includes(member.id)}
+                    onChange={() => toggleCrew(member.id)}
+                  />
+                  {member.name}
+                </label>
+              </li>
+            ))}
+          </ul>
+        </fieldset>
+      ) : null}
       <label className="block text-sm font-medium text-navy">
         Scope of work
         <textarea name="job_notes" rows={4} className="admin-input" defaultValue={job.job_notes ?? ""} />

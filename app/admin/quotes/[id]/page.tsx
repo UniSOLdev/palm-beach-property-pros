@@ -1,10 +1,13 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { EntityActivityTimeline } from "@/components/admin/entity-activity-timeline";
+import { EntityLifecycleMenu } from "@/components/admin/entity-lifecycle-menu";
 import { AdminPageHeader } from "@/components/admin/entity-list";
 import { LoadError } from "@/components/admin/load-error";
 import { QuoteAdminActions } from "@/components/admin/quote-admin-actions";
 import { getQuoteById } from "@/lib/admin/actions/quotes";
 import { formatCurrency, formatDate } from "@/lib/admin/format";
+import { rowIsArchived, rowIsDeleted } from "@/lib/admin/lifecycle/list-query";
 import { logAdminError } from "@/lib/admin/logger";
 import {
   QUOTE_APPROVAL_LABELS,
@@ -67,6 +70,16 @@ export default async function AdminQuoteDetailPage({ params }: Props) {
         title={quote.quote_number}
         subtitle={`${client?.name ?? "Client"} · ${quote.service_type}`}
       />
+
+      <div className="flex flex-wrap items-center gap-2">
+        <EntityLifecycleMenu
+          entityType="quote"
+          entityId={quote.id}
+          entityLabel={quote.quote_number}
+          isArchived={rowIsArchived(quote as { archived_at?: string | null; archived?: boolean })}
+          isDeleted={rowIsDeleted(quote as { deleted_at?: string | null })}
+        />
+      </div>
 
       <div className="admin-card space-y-3">
         <div className="flex flex-wrap items-center gap-2">
@@ -175,7 +188,14 @@ export default async function AdminQuoteDetailPage({ params }: Props) {
       ) : null}
 
       <section className="admin-card">
-        <h2 className="text-sm font-semibold text-navy">Activity</h2>
+        <h2 className="text-sm font-semibold text-navy">Lifecycle activity</h2>
+        <div className="mt-3">
+          <EntityActivityTimeline entityType="quote" entityId={quote.id} />
+        </div>
+      </section>
+
+      <section className="admin-card">
+        <h2 className="text-sm font-semibold text-navy">Quote events</h2>
         {!events.length ? (
           <p className="mt-2 text-sm text-charcoal/60">No events yet.</p>
         ) : (

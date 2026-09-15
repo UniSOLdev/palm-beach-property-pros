@@ -2,7 +2,8 @@
 
 export const CLIENT_LIST = "id, name, phone, email, address, client_type, referral_source, notes, review_status, follow_up_date, archived, created_at" as const;
 
-export const CREW_LIST = "id, name, phone, role, default_pay_rate, pay_rate_unit, notes, archived, created_at" as const;
+export const CREW_LIST =
+  "id, name, phone, role, default_pay_rate, pay_rate_unit, referral_bonus_flat, referral_bonus_percent, notes, archived, created_at" as const;
 
 export const CREW_OPTIONS = "id, name" as const;
 

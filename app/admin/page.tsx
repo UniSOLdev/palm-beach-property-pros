@@ -26,6 +26,17 @@ export default async function AdminDashboardPage() {
         <p className="text-sm text-charcoal/70">Field command center · Palm Beach Property Pros</p>
       </div>
 
+      <a
+        href="/admin/hub"
+        className="admin-card block no-underline transition hover:shadow-lg"
+      >
+        <p className="text-[10px] font-semibold uppercase tracking-[0.28em] text-ocean">Field crew</p>
+        <p className="mt-1 text-lg font-bold text-navy">Employee Hub</p>
+        <p className="mt-1 text-sm text-charcoal/70">
+          Clock in, refer jobs, count inventory, track referral bonuses.
+        </p>
+      </a>
+
       <DashboardTasks tasks={tasks} crew={crew} />
       <DashboardAnalytics stats={stats} />
     </div>

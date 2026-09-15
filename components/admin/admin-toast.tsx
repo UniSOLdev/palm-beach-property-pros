@@ -15,10 +15,12 @@ type Toast = {
   id: string;
   kind: ToastKind;
   message: string;
+  undo?: () => Promise<void>;
 };
 
 type ToastContextValue = {
   toast: (message: string, kind?: ToastKind) => void;
+  toastWithUndo: (message: string, undo: () => Promise<void>) => void;
 };
 
 const ToastContext = createContext<ToastContextValue | null>(null);
@@ -36,7 +38,13 @@ export function AdminToastProvider({ children }: { children: ReactNode }) {
     window.setTimeout(() => dismiss(id), 4500);
   }, [dismiss]);
 
-  const value = useMemo(() => ({ toast }), [toast]);
+  const toastWithUndo = useCallback((message: string, undo: () => Promise<void>) => {
+    const id = crypto.randomUUID();
+    setToasts((prev) => [...prev.slice(-2), { id, kind: "success", message, undo }]);
+    window.setTimeout(() => dismiss(id), 8000);
+  }, [dismiss]);
+
+  const value = useMemo(() => ({ toast, toastWithUndo }), [toast, toastWithUndo]);
 
   const kindClass: Record<ToastKind, string> = {
     success: "bg-leaf/90 text-white",
@@ -54,9 +62,23 @@ export function AdminToastProvider({ children }: { children: ReactNode }) {
         {toasts.map((t) => (
           <div
             key={t.id}
-            className={`pointer-events-auto rounded-xl px-4 py-3 text-sm font-semibold shadow-lift ${kindClass[t.kind]}`}
+            className={`pointer-events-auto flex items-center justify-between gap-3 rounded-xl px-4 py-3 text-sm font-semibold shadow-lift ${kindClass[t.kind]}`}
           >
-            {t.message}
+            <span>{t.message}</span>
+            {t.undo ? (
+              <button
+                type="button"
+                className="shrink-0 rounded-lg bg-white/20 px-2 py-1 text-xs font-bold uppercase tracking-wide hover:bg-white/30"
+                onClick={() => {
+                  void t.undo?.().then(() => {
+                    dismiss(t.id);
+                    toast("Undone", "info");
+                  });
+                }}
+              >
+                Undo
+              </button>
+            ) : null}
           </div>
         ))}
       </div>
@@ -69,6 +91,9 @@ export function useAdminToast() {
   if (!ctx) {
     return {
       toast: (_message: string, _kind?: ToastKind) => {
+        /* no-op outside provider */
+      },
+      toastWithUndo: (_message: string, _undo: () => Promise<void>) => {
         /* no-op outside provider */
       },
     };

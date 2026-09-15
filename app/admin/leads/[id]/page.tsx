@@ -1,5 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { EntityActivityTimeline } from "@/components/admin/entity-activity-timeline";
+import { EntityLifecycleMenu } from "@/components/admin/entity-lifecycle-menu";
 import { AdminPageHeader } from "@/components/admin/entity-list";
 import { LeadDetailActions } from "@/components/admin/lead-detail-actions";
 import { LoadError } from "@/components/admin/load-error";
@@ -7,6 +9,7 @@ import { getLead, getLeadPhotoUrls } from "@/lib/admin/actions/leads";
 import { LEAD_STATUS_LABELS, leadStatusClass } from "@/lib/admin/lead-constants";
 import { logAdminError } from "@/lib/admin/logger";
 import { formatDate } from "@/lib/admin/format";
+import { rowIsArchived, rowIsDeleted } from "@/lib/admin/lifecycle/list-query";
 import type { LeadStatus } from "@/lib/admin/lead-constants";
 import {
   QUOTE_APPROVAL_LABELS,
@@ -68,6 +71,14 @@ export default async function AdminLeadDetailPage({ params }: Props) {
       <AdminPageHeader
         title={lead.name}
         subtitle={`${lead.service_requested} · ${formatDate(lead.created_at)}`}
+      />
+
+      <EntityLifecycleMenu
+        entityType="lead"
+        entityId={lead.id}
+        entityLabel={lead.name}
+        isArchived={rowIsArchived(lead as { archived_at?: string | null; archived?: boolean })}
+        isDeleted={rowIsDeleted(lead as { deleted_at?: string | null })}
       />
 
       <div className="admin-card space-y-3">
@@ -215,7 +226,7 @@ export default async function AdminLeadDetailPage({ params }: Props) {
       </section>
 
       <section className="admin-card">
-        <h2 className="text-sm font-semibold text-navy">Activity</h2>
+        <h2 className="text-sm font-semibold text-navy">Pipeline activity</h2>
         {!activity.length ? (
           <p className="mt-2 text-sm text-charcoal/60">No activity yet.</p>
         ) : (
@@ -230,6 +241,13 @@ export default async function AdminLeadDetailPage({ params }: Props) {
             ))}
           </ul>
         )}
+      </section>
+
+      <section className="admin-card">
+        <h2 className="text-sm font-semibold text-navy">Lifecycle activity</h2>
+        <div className="mt-3">
+          <EntityActivityTimeline entityType="lead" entityId={lead.id} />
+        </div>
       </section>
 
       <p className="text-center text-xs text-charcoal/50">

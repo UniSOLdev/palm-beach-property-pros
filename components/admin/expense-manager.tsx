@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, useTransition } from "react";
+import { EntityLifecycleMenu } from "@/components/admin/entity-lifecycle-menu";
 import { ReceiptScannerFlow } from "@/components/admin/receipt-scanner-flow";
 import { TaskQuickAdd } from "@/components/admin/task-quick-add";
 import { createExpense } from "@/lib/admin/actions/expenses";
@@ -264,7 +265,14 @@ export function ExpenseManager({
                     {e.reimbursable ? " · Reimbursable" : ""}
                   </p>
                 </div>
-                <p className="font-bold text-navy">{formatCurrency(Number(e.amount))}</p>
+                <div className="flex flex-col items-end gap-2">
+                  <p className="font-bold text-navy">{formatCurrency(Number(e.amount))}</p>
+                  <EntityLifecycleMenu
+                    entityType="expense"
+                    entityId={e.id}
+                    entityLabel={e.description}
+                  />
+                </div>
               </div>
               {e.receipt_url ? (
                 <a href={e.receipt_url} target="_blank" rel="noreferrer" className="mt-2 text-xs font-semibold text-ocean">

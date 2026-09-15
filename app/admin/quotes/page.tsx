@@ -1,8 +1,12 @@
 import Link from "next/link";
+import { AdminListToolbar } from "@/components/admin/admin-list-toolbar";
+import { EntityLifecycleMenu } from "@/components/admin/entity-lifecycle-menu";
 import { AdminPageHeader, EmptyState } from "@/components/admin/entity-list";
 import { LoadError } from "@/components/admin/load-error";
 import { fromSupabase } from "@/lib/admin/db-query";
 import { formatCurrency, formatDate } from "@/lib/admin/format";
+import { applyLifecycleFilters, rowIsArchived, rowIsDeleted } from "@/lib/admin/lifecycle/list-query";
+import { lifecycleOptionsFromSearchParams } from "@/lib/admin/lifecycle/search-params";
 import { logAdminError } from "@/lib/admin/logger";
 import {
   QUOTE_APPROVAL_LABELS,
@@ -15,36 +19,43 @@ import { SITE_URL } from "@/lib/site";
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Quotes" };
 
-export default async function AdminQuotesPage() {
+export default async function AdminQuotesPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ archived?: string }>;
+}) {
+  const { archived } = await searchParams;
+  const lifecycle = lifecycleOptionsFromSearchParams({ archived });
+
   const supabase = await createClient();
-  const { data, error } = await supabase
+  let listQuery = supabase
     .from("quotes")
     .select("*, clients(name)")
-    .eq("archived", false)
     .order("created_at", { ascending: false });
+  listQuery = applyLifecycleFilters(listQuery, lifecycle);
 
-  const query = fromSupabase(data, error, { route: "/admin/quotes", query: "quotes list" });
+  const { data, error } = await listQuery;
 
-  if (!query.ok) {
-    logAdminError("quotes list failed", new Error(query.error), { route: "/admin/quotes" });
+  const result = fromSupabase(data, error, { route: "/admin/quotes", query: "quotes list" });
+
+  if (!result.ok) {
+    logAdminError("quotes list failed", new Error(result.error), { route: "/admin/quotes" });
     return (
       <div className="space-y-4">
         <AdminPageHeader title="Quotes" subtitle="Estimates linked to leads and clients" />
-        <LoadError title="Could not load quotes" message={query.error} retryHref="/admin/quotes" />
+        <LoadError title="Could not load quotes" message={result.error} retryHref="/admin/quotes" />
       </div>
     );
   }
 
-  const quotes = query.data ?? [];
+  const quotes = result.data ?? [];
   const quoteIds = quotes.map((q) => q.id);
   const leadByQuoteId = new Map<string, string>();
 
   if (quoteIds.length) {
-    const { data: linkedLeads } = await supabase
-      .from("quote_requests")
-      .select("id, quote_id")
-      .in("quote_id", quoteIds)
-      .eq("archived", false);
+    let leadsQuery = supabase.from("quote_requests").select("id, quote_id").in("quote_id", quoteIds);
+    leadsQuery = applyLifecycleFilters(leadsQuery, lifecycle);
+    const { data: linkedLeads } = await leadsQuery;
 
     for (const row of linkedLeads ?? []) {
       if (row.quote_id) leadByQuoteId.set(row.quote_id, row.id);
@@ -60,9 +71,11 @@ export default async function AdminQuotesPage() {
         actionLabel="Leads"
       />
 
+      <AdminListToolbar />
+
       <ul className="space-y-3">
         {!quotes.length ? (
-          <EmptyState>No quotes yet. Convert a lead to create an estimate.</EmptyState>
+          <EmptyState>{lifecycle.showArchived ? "No archived quotes." : "No quotes yet. Convert a lead to create an estimate."}</EmptyState>
         ) : (
           quotes.map((quote) => {
             const client =
@@ -97,6 +110,13 @@ export default async function AdminQuotesPage() {
                     ) : null}
                   </div>
                   <div className="flex shrink-0 flex-col items-end gap-1">
+                    <EntityLifecycleMenu
+                      entityType="quote"
+                      entityId={quote.id}
+                      entityLabel={quote.quote_number}
+                      isArchived={rowIsArchived(quote as { archived_at?: string | null; archived?: boolean })}
+                      isDeleted={rowIsDeleted(quote as { deleted_at?: string | null })}
+                    />
                     <span className={`admin-chip ${quoteApprovalClass(approval)}`}>
                       {QUOTE_APPROVAL_LABELS[approval] ?? approval}
                     </span>

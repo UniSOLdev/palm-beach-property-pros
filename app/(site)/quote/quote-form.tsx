@@ -6,11 +6,14 @@ import { QUOTE_ERRORS } from "@/lib/site/quote-submit-types";
 import { PHONE_DISPLAY, PHONE_TEL, SITE_NAME } from "@/lib/site";
 
 const services = [
+  "Yard & Landscape Maintenance",
   "Window Cleaning",
+  "Move-Out & Turnover Cleaning",
+  "Trash & Debris Removal",
+  "Auto Detailing",
   "Residential Cleaning",
   "Commercial Cleaning",
   "Pressure Washing / Exterior",
-  "Auto Detailing",
   "Carpet & Steam Cleaning",
   "Trash Can Cleaning",
   "Property Maintenance",

@@ -30,9 +30,20 @@ export function QuoteForm({ defaultService }: QuoteFormProps) {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [photoNotice, setPhotoNotice] = useState<string | null>(null);
   const [referrer, setReferrer] = useState("");
+  const [source, setSource] = useState("website");
 
   useEffect(() => {
     setReferrer(document.referrer || "");
+    const params = new URLSearchParams(window.location.search);
+    const utmSource = params.get("utm_source")?.trim();
+    if (utmSource) {
+      const parts = ["website", utmSource];
+      const medium = params.get("utm_medium")?.trim();
+      const campaign = params.get("utm_campaign")?.trim();
+      if (medium) parts.push(medium);
+      if (campaign) parts.push(campaign);
+      setSource(parts.join(":"));
+    }
   }, []);
 
   async function onSubmit(e: FormEvent<HTMLFormElement>) {
@@ -103,7 +114,7 @@ export function QuoteForm({ defaultService }: QuoteFormProps) {
       encType="multipart/form-data"
       className="space-y-5 rounded-xl border border-navy/10 bg-white p-6 shadow-md sm:p-8"
     >
-      <input type="hidden" name="source" value="website" />
+      <input type="hidden" name="source" value={source} />
       <input type="hidden" name="referrer" value={referrer} />
 
       <p className="text-sm text-charcoal/85">

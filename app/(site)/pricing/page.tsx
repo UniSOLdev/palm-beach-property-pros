@@ -4,24 +4,24 @@ import { QUOTE_PATH, SITE_NAME } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: "Service Pricing",
-  description: `${SITE_NAME} starting prices for window cleaning, pressure washing, detailing, residential cleaning, and more in Palm Beach County. Scope-based quotes through our online form.`,
+  description: `${SITE_NAME} — every job quoted individually. Window cleaning, pressure washing, detailing, residential cleaning, and more in Palm Beach County. Request a quote through our online form.`,
 };
 
 const overview = [
-  { service: "Yard & Landscape Maintenance", price: "Custom quote by lot & frequency" },
-  { service: "Window Cleaning", price: "Starting at $99" },
-  { service: "Move-Out & Turnover Cleaning", price: "Starting at $200" },
-  { service: "Trash & Debris Removal", price: "Custom quote by volume" },
-  { service: "Auto Detailing", price: "Starting at $150" },
-  { service: "Residential Cleaning", price: "Starting at $120" },
-  { service: "Deep Cleaning", price: "Starting at $200" },
-  { service: "Commercial Cleaning", price: "Custom quote" },
-  { service: "Pressure Washing / Exterior", price: "Starting at $129" },
-  { service: "Full Detail", price: "Starting at $250" },
-  { service: "Carpet & Steam Cleaning", price: "Starting at $99" },
-  { service: "Trash Can Cleaning", price: "Starting at $25" },
-  { service: "Property Maintenance", price: "Custom quote" },
-  { service: "Airbnb Turnover Services", price: "Custom quote" },
+  { service: "Yard & Landscape Maintenance", price: "Contact for quote" },
+  { service: "Window Cleaning", price: "Contact for quote" },
+  { service: "Move-Out & Turnover Cleaning", price: "Contact for quote" },
+  { service: "Trash & Debris Removal", price: "Contact for quote" },
+  { service: "Auto Detailing", price: "Contact for quote" },
+  { service: "Residential Cleaning", price: "Contact for quote" },
+  { service: "Deep Cleaning", price: "Contact for quote" },
+  { service: "Commercial Cleaning", price: "Contact for quote" },
+  { service: "Pressure Washing / Exterior", price: "Contact for quote" },
+  { service: "Full Detail", price: "Contact for quote" },
+  { service: "Carpet & Steam Cleaning", price: "Contact for quote" },
+  { service: "Trash Can Cleaning", price: "Contact for quote" },
+  { service: "Property Maintenance", price: "Contact for quote" },
+  { service: "Airbnb Turnover Services", price: "Contact for quote" },
 ] as const;
 
 const bundles = [
@@ -56,17 +56,17 @@ export default function PricingPage() {
           Service Pricing – {SITE_NAME}
         </h1>
         <p className="mt-4 text-lg text-charcoal/85">
-          Starting points below help you budget. Final pricing reflects property size, soil level,
+          Every job is quoted individually. Final pricing reflects property size, soil level,
           access, and scope confirmed before work begins.
         </p>
 
-        <h2 className="mt-12 text-xl font-bold text-navy">Starting price overview</h2>
+        <h2 className="mt-12 text-xl font-bold text-navy">Services &amp; quotes</h2>
         <div className="mt-4 overflow-hidden rounded-xl border border-navy/10 bg-white shadow-md">
           <table className="w-full text-left text-sm">
             <thead className="bg-sky/60 text-navy">
               <tr>
                 <th className="px-5 py-3 font-semibold">Service</th>
-                <th className="px-5 py-3 font-semibold">Guide</th>
+                <th className="px-5 py-3 font-semibold">Pricing</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-navy/10">

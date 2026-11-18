@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { logPipelineError, logPipelineInfo } from "@/lib/pipeline/logger";
+import { notifyQuoteByEmail } from "@/lib/site/notify-quote";
 import {
   appendLeadPhotoPaths,
   tryUploadLeadPhotos,
@@ -241,29 +242,39 @@ export async function submitQuoteRequest(formData: FormData): Promise<QuoteReque
     return quoteSubmitError(QUOTE_ERRORS.validation, "Missing required field", "VALIDATION_ERROR");
   }
 
+  const photoCount = formData.getAll("photos").filter((f) => f instanceof File && f.size > 0).length;
+  const notice = (leadId: string | null, savedToLeads: boolean) =>
+    notifyQuoteByEmail({ ...payload, leadId, photoCount, savedToLeads });
+
+  /** Database unavailable: email the request so it is never lost. */
+  const emailFallback = async (failure: QuoteRequestResult): Promise<QuoteRequestResult> => {
+    const emailed = await notice(null, false);
+    if (emailed) {
+      logPipelineInfo("lead saved by email fallback", { step: "submitQuoteRequest" });
+      return { ok: true, leadId: "", ...(photoCount ? { photoWarnings: ["Photos could not be attached; please text them to us."] } : {}) };
+    }
+    return failure;
+  };
+
   if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
     logPipelineError("missing NEXT_PUBLIC_SUPABASE_URL", new Error("env"), {
       step: "submitQuoteRequest",
     });
-    return quoteSubmitError(
-      QUOTE_ERRORS.config,
-      "NEXT_PUBLIC_SUPABASE_URL is not set",
-      "MISSING_ENV",
+    return emailFallback(
+      quoteSubmitError(QUOTE_ERRORS.config, "NEXT_PUBLIC_SUPABASE_URL is not set", "MISSING_ENV"),
     );
   }
 
   if (!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY && !process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY) {
     logPipelineError("missing anon key", new Error("env"), { step: "submitQuoteRequest" });
-    return quoteSubmitError(
-      QUOTE_ERRORS.config,
-      "NEXT_PUBLIC_SUPABASE_ANON_KEY is not set",
-      "MISSING_ENV",
+    return emailFallback(
+      quoteSubmitError(QUOTE_ERRORS.config, "NEXT_PUBLIC_SUPABASE_ANON_KEY is not set", "MISSING_ENV"),
     );
   }
 
   try {
     const insertResult = await insertLead(payload);
-    if (isFailure(insertResult)) return insertResult;
+    if (isFailure(insertResult)) return emailFallback(insertResult);
 
     const { leadId } = insertResult;
     const photoWarnings: string[] = [];
@@ -290,6 +301,9 @@ export async function submitQuoteRequest(formData: FormData): Promise<QuoteReque
 
     revalidatePath("/admin/leads");
     revalidatePath(`/admin/leads/${leadId}`);
+
+    const emailed = await notice(leadId, true);
+    logPipelineInfo("owner email notification", { step: "submitQuoteRequest", leadId, details: { emailed } });
 
     return {
       ok: true,

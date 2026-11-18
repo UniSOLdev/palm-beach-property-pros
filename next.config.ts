@@ -2,11 +2,13 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
+  poweredByHeader: false,
   serverExternalPackages: ["sharp", "heic-convert", "pdfjs-dist", "@napi-rs/canvas"],
   images: {
     localPatterns: [
       { pathname: "/media/**" },
       { pathname: "/brand/**" },
+      { pathname: "/photos/**" },
       { pathname: "/logo.png" },
     ],
     remotePatterns: [
@@ -16,7 +18,7 @@ const nextConfig: NextConfig = {
         pathname: "/**",
       },
     ],
-    formats: ["image/webp", "image/avif"],
+    formats: ["image/avif", "image/webp"],
   },
   async rewrites() {
     return [
@@ -28,10 +30,34 @@ const nextConfig: NextConfig = {
   },
   async redirects() {
     return [
+      { source: "/contact", destination: "/quote", permanent: true },
+    ];
+  },
+  async headers() {
+    return [
       {
-        source: "/contact",
-        destination: "/quote",
-        permanent: true,
+        // Hero frames live under a versioned folder, so they can be cached forever.
+        source: "/hero/:path*",
+        headers: [{ key: "Cache-Control", value: "public, max-age=31536000, immutable" }],
+      },
+      {
+        source: "/photos/:path*",
+        headers: [{ key: "Cache-Control", value: "public, max-age=2592000, stale-while-revalidate=86400" }],
+      },
+      {
+        // Keep *.vercel.app copies (production alias + previews) out of Google:
+        // only www.palmbeachpropertypros.com should be indexed.
+        source: "/:path*",
+        has: [{ type: "host", value: "(?<host>.*\\.vercel\\.app)" }],
+        headers: [{ key: "X-Robots-Tag", value: "noindex, nofollow" }],
+      },
+      {
+        source: "/:path*",
+        headers: [
+          { key: "X-Content-Type-Options", value: "nosniff" },
+          { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+          { key: "X-Frame-Options", value: "SAMEORIGIN" },
+        ],
       },
     ];
   },

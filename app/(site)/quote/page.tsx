@@ -1,47 +1,31 @@
 import type { Metadata } from "next";
-import Link from "next/link";
-import { QuoteForm } from "./quote-form";
-import { PHONE_DISPLAY, PHONE_TEL, SITE_NAME } from "@/lib/site";
+import { QuoteForm } from "@/components/site/quote-form";
+import { PHONE_DISPLAY, PHONE_TEL } from "@/lib/site";
 
 export const metadata: Metadata = {
-  title: "Request Your Free Quote",
-  description: `Request a free quote from ${SITE_NAME}. Send photos, receive pricing quickly, and book through our secure online quote form—no obligation.`,
+  title: "Request a Private Quote",
+  description:
+    "Request a private, no-obligation quote for estate cleaning, exterior care, pressure washing, detailing, property maintenance, or home watch in Palm Beach County.",
+  alternates: { canonical: "/quote" },
 };
 
-type Props = {
-  searchParams: Promise<{ service?: string }>;
-};
-
-export default async function QuotePage({ searchParams }: Props) {
-  const { service } = await searchParams;
-
+export default function QuotePage() {
   return (
-    <div className="bg-cream">
-      <section className="mx-auto max-w-6xl px-6 py-16">
-        <p className="text-sm font-semibold uppercase tracking-wide text-ocean">Quote</p>
-        <h1 className="mt-2 text-3xl font-bold tracking-tight text-navy sm:text-4xl">
-          Request Your Free Quote
-        </h1>
-        <p className="mt-4 text-lg text-charcoal/85">
-          Send photos of the areas you want serviced, note your city and timing, and we return
-          scope-based pricing quickly. There is no obligation to book.
-        </p>
-        <p className="mt-3 text-sm text-charcoal/75">
-          We do not share your information. It is used only to estimate and schedule work you
-          approve in writing.
-        </p>
-        <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <Link href="/services" className="text-sm font-semibold text-ocean hover:underline">
-            View services
-          </Link>
-          <a href={PHONE_TEL} className="btn-primary px-5 py-2.5 text-sm sm:inline-flex">
-            Call {PHONE_DISPLAY}
-          </a>
+    <section className="-mt-[72px] bg-cream-warm pb-24 pt-[calc(72px+4rem)] sm:pt-[calc(72px+6rem)]">
+      <div className="site-container grid gap-14 lg:grid-cols-[1fr_1.35fr] lg:gap-20">
+        <div className="lg:sticky lg:top-28 lg:h-fit">
+          <p className="text-xs font-semibold uppercase tracking-[0.3em] text-brass-dark">Private quote</p>
+          <h1 className="font-display mt-4 text-5xl font-medium leading-[1.05] text-navy sm:text-6xl">Let&apos;s talk about your property.</h1>
+          <p className="mt-6 text-lg leading-relaxed text-charcoal/80 sm:text-xl">
+            Share a few details and we&apos;ll respond personally, typically within one business day, with a clear, written quote. No obligation.
+          </p>
+          <div className="mt-10 border-t border-navy/10 pt-8">
+            <p className="text-base text-charcoal/70">Prefer to speak with someone?</p>
+            <a href={PHONE_TEL} className="font-display mt-2 block text-4xl text-navy no-underline hover:text-brass-dark">{PHONE_DISPLAY}</a>
+          </div>
         </div>
-        <div className="mt-10">
-          <QuoteForm defaultService={service} />
-        </div>
-      </section>
-    </div>
+        <QuoteForm idPrefix="quote" />
+      </div>
+    </section>
   );
 }

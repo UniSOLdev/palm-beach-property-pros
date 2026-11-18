@@ -23,6 +23,9 @@ const config: Config = {
         silver: "#B8C4CE",
         cream: "#FAF8F4",
         "cream-warm": "#F5F1EA",
+        brass: "#C2A06A",
+        "brass-light": "#D3B582",
+        "brass-dark": "#7A5A28",
       },
       boxShadow: {
         card: "0 4px 28px rgba(8, 26, 46, 0.07), 0 1px 0 rgba(255,255,255,0.6) inset",

@@ -1,0 +1,7 @@
+{
+  "mode": "photo",
+  "frames": 0,
+  "base": "",
+  "desktop": { "width": 1600, "height": 900 },
+  "mobile": { "width": 608, "height": 1080 }
+}

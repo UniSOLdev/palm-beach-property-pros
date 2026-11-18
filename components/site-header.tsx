@@ -2,110 +2,93 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useState } from "react";
-import { PHONE_TEL } from "@/lib/site";
+import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
+import { PHONE_DISPLAY, PHONE_TEL } from "@/lib/site";
 
 const nav = [
   { href: "/services", label: "Services" },
-  { href: "/pricing", label: "Pricing" },
-  { href: "/service-area", label: "Service Area" },
-  { href: "/quote", label: "Quote" },
+  { href: "/#private-client", label: "Private client" },
+  { href: "/services/auto-detailing", label: "Detailing" },
+  { href: "/service-area", label: "Service area" },
+  { href: "/#faq", label: "FAQ" },
 ] as const;
 
 export function SiteHeader() {
+  const pathname = usePathname();
+  const overHero = pathname === "/";
   const [open, setOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 24);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
+  const solid = !overHero || scrolled || open;
 
   return (
-    <header className="sticky top-0 z-40 overflow-x-hidden border-b border-white/[0.08] bg-navy-deep/80 shadow-[0_8px_40px_rgba(8,26,46,0.35)] backdrop-blur-xl backdrop-saturate-150">
-      <nav
-        className="mx-auto flex w-full min-w-0 max-w-6xl items-center justify-between gap-2 px-4 py-3 sm:gap-3 sm:px-5 sm:py-4 md:gap-4 md:px-6 md:py-4"
-        aria-label="Primary"
+    <header
+      className={`sticky top-0 z-40 h-[72px] transition-[background-color,box-shadow,backdrop-filter] duration-500 ${
+        solid ? "bg-navy-deep/90 shadow-[0_1px_0_rgba(255,255,255,0.06)] backdrop-blur-xl" : "bg-transparent"
+      }`}
+    >
+      <a
+        href="#main"
+        className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-3 focus:z-50 focus:rounded-lg focus:bg-cream focus:px-4 focus:py-2 focus:text-navy"
       >
-        <Link
-          href="/"
-          className="min-w-0 shrink-0 no-underline pr-2"
-          aria-label="Palm Beach Property Pros home"
-        >
-          <Image
-            src="/brand/pbpp-wordmark-light.svg"
-            alt="Palm Beach Property Pros"
-            width={280}
-            height={42}
-            priority
-            className="h-8 w-auto max-w-[10.75rem] sm:h-9 sm:max-w-[13rem] md:h-10 md:max-w-[16rem]"
-          />
+        Skip to content
+      </a>
+      <nav className="site-container flex h-full items-center justify-between gap-4" aria-label="Primary">
+        <Link href="/" className="shrink-0" aria-label="Palm Beach Property Pros home">
+          <Image src="/brand/pbpp-wordmark-light.svg" alt="Palm Beach Property Pros" width={280} height={42} priority className="h-8 w-auto max-w-[12rem] sm:h-9 sm:max-w-[15rem]" />
         </Link>
 
-        <div className="hidden items-center gap-6 text-sm font-medium text-cream/90 md:flex">
+        <div className="hidden items-center gap-8 lg:flex">
           {nav.map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              className="text-cream/85 no-underline transition-colors duration-300 hover:text-aqua"
-            >
+            <Link key={item.href} href={item.href} className="text-[15px] font-medium tracking-wide text-cream/90 no-underline transition-colors hover:text-brass-light">
               {item.label}
             </Link>
           ))}
-          <a href={PHONE_TEL} className="btn-primary hidden sm:inline-flex">
-            Call Now
+          <a href={PHONE_TEL} className="text-[15px] font-semibold tracking-wide text-cream no-underline hover:text-brass-light">
+            {PHONE_DISPLAY}
           </a>
+          <Link href="/quote" className="inline-flex min-h-[44px] items-center rounded-full border border-brass/70 px-5 text-[15px] font-semibold text-cream no-underline transition hover:bg-brass hover:text-navy-deep">
+            Private quote
+          </Link>
         </div>
 
-        <div className="flex shrink-0 items-center md:hidden">
-          <button
-            type="button"
-            className="inline-flex h-11 w-11 min-h-[44px] min-w-[44px] items-center justify-center rounded-xl border border-white/15 text-cream transition duration-200 active:scale-95 active:bg-white/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-aqua"
-            aria-expanded={open}
-            aria-controls="mobile-nav"
-            onClick={() => setOpen((v) => !v)}
-          >
-            <span className="sr-only">Menu</span>
-            {open ? (
-              <span className="text-lg leading-none" aria-hidden>
-                ×
-              </span>
-            ) : (
-              <span className="flex flex-col gap-1.5" aria-hidden>
-                <span className="block h-0.5 w-5 bg-cream" />
-                <span className="block h-0.5 w-5 bg-cream" />
-                <span className="block h-0.5 w-5 bg-cream" />
-              </span>
-            )}
-          </button>
-        </div>
+        <button
+          type="button"
+          className="inline-flex h-12 w-12 items-center justify-center rounded-full border border-white/25 text-cream lg:hidden"
+          aria-expanded={open}
+          aria-controls="mobile-nav"
+          onClick={() => setOpen((v) => !v)}
+        >
+          <span className="sr-only">{open ? "Close menu" : "Open menu"}</span>
+          <span aria-hidden="true" className="relative block h-3 w-5">
+            <span className={`absolute left-0 block h-px w-5 bg-cream transition-transform duration-300 ${open ? "top-1.5 rotate-45" : "top-0"}`} />
+            <span className={`absolute left-0 block h-px w-5 bg-cream transition-transform duration-300 ${open ? "top-1.5 -rotate-45" : "top-3"}`} />
+          </span>
+        </button>
       </nav>
 
       {open ? (
-        <div
-          id="mobile-nav"
-          className="border-t border-white/10 bg-navy-deep/95 px-4 pb-4 pt-2 transition-[opacity,transform] duration-200 ease-out sm:px-5 md:hidden"
-        >
-          <div className="mx-auto flex max-w-6xl flex-col gap-1">
-            {nav.map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                className="rounded-lg px-3 py-3 text-base font-medium text-cream no-underline hover:bg-white/10"
-                onClick={() => setOpen(false)}
-              >
-                {item.label}
-              </Link>
+        <div id="mobile-nav" className="h-[calc(100svh-72px)] overflow-y-auto bg-navy-deep px-5 pb-10 pt-4 lg:hidden">
+          <ul>
+            {[{ href: "/", label: "Home" }, ...nav, { href: "/quote", label: "Request a quote" }].map((item) => (
+              <li key={item.href} className="border-b border-white/10">
+                <Link href={item.href} className="font-display block py-5 text-3xl text-cream no-underline" onClick={() => setOpen(false)}>
+                  {item.label}
+                </Link>
+              </li>
             ))}
-            <a
-              href={PHONE_TEL}
-              className="btn-primary mt-2 text-center"
-              onClick={() => setOpen(false)}
-            >
-              Call Now
-            </a>
-            <Link
-              href="/quote"
-              className="btn-secondary-lg mt-2 border-white/20 bg-transparent text-center text-cream hover:bg-white/10"
-              onClick={() => setOpen(false)}
-            >
-              Get Free Quote
-            </Link>
-          </div>
+          </ul>
+          <a href={PHONE_TEL} className="btn-gold mt-8 w-full">
+            Call {PHONE_DISPLAY}
+          </a>
         </div>
       ) : null}
     </header>

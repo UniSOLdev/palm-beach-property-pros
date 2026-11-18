@@ -5,6 +5,7 @@ export const metadata: Metadata = {
   title: "Privacy Policy",
   description:
     "How Palm Beach Property Pros handles information submitted through this website and our quote forms.",
+  alternates: { canonical: "/privacy" },
 };
 
 export default function PrivacyPage() {

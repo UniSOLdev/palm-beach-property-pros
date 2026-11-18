@@ -1,99 +1,57 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { CORE_SERVICES } from "@/lib/marketing/core-services";
-import { SERVICES } from "@/lib/services";
-import { QUOTE_PATH, SITE_NAME } from "@/lib/site";
+import { BreadcrumbJsonLd } from "@/components/json-ld";
+import { PageHero } from "@/components/site/page-hero";
+import { Reveal } from "@/components/site/reveal";
+import { ClosingCta, HowItWorksSection, SectionHeading, ServiceCard } from "@/components/site/sections";
+import { CATEGORIES, servicesIn } from "@/lib/site/catalog";
+import { PHONE_DISPLAY, PHONE_TEL } from "@/lib/site";
 
 export const metadata: Metadata = {
-  title: "Yard, Cleaning & Property Services",
-  description: `${SITE_NAME} — yard care, window cleaning, move-out cleans, debris removal, detailing, and property services in Palm Beach County. Licensed & insured.`,
+  title: "Services: Estate Cleaning, Exterior Care, Detailing & Home Watch",
+  description:
+    "Residential and estate cleaning, window cleaning, pressure washing, landscape maintenance, auto detailing, property maintenance, and private home watch across Palm Beach County. Private quotes only.",
+  alternates: { canonical: "/services" },
 };
+
+const ORDER = ["interiors", "exteriors", "automotive", "private-client"] as const;
 
 export default function ServicesPage() {
   return (
-    <div className="bg-cream">
-      <section className="py-16">
-        <div className="mx-auto max-w-6xl px-6">
-          <p className="text-xs font-semibold uppercase tracking-widest text-ocean">Services</p>
-          <h1 className="mt-3 max-w-3xl text-3xl font-bold tracking-tight text-navy md:text-4xl">
-            Yard care, cleaning, detailing & property support
-          </h1>
-          <p className="mt-4 max-w-2xl text-lg leading-relaxed text-charcoal/85">
-            Five core service lines plus expanded property care — request pricing, book work, and
-            manage invoices through Palm Beach Property Pros.
-          </p>
-          <div className="mt-8 flex flex-wrap gap-3">
-            <Link href={QUOTE_PATH} className="btn-primary">
-              Get a free quote
-            </Link>
-            <Link href={QUOTE_PATH} className="btn-secondary border-ocean/40">
-              Book service
-            </Link>
-          </div>
+    <>
+      <BreadcrumbJsonLd items={[{ name: "Home", path: "/" }, { name: "Services", path: "/services" }]} />
+      <PageHero
+        eyebrow="Services"
+        title="Every detail of your property, to one standard."
+        lead="Book a single service or combine several into one plan. Every engagement is scoped and quoted privately."
+        image="/photos/villa-pool-modern.jpg"
+        imageAlt="Contemporary white villa with a pool under a blue sky"
+      >
+        <Link href="/quote" className="btn-gold">Request a private quote</Link>
+        <a href={PHONE_TEL} className="btn-ghost-light">Call {PHONE_DISPLAY}</a>
+      </PageHero>
 
-          <div className="mt-14">
-            <p className="text-xs font-semibold uppercase tracking-widest text-ocean">Core services</p>
-            <div className="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-              {CORE_SERVICES.map((core) => {
-                const s = SERVICES.find((item) => item.slug === core.slug);
-                if (!s) return null;
-                return (
-                  <article
-                    key={s.slug}
-                    className="scroll-mt-28 rounded-xl border-2 border-ocean/20 bg-white p-6 shadow-md transition duration-200 hover:shadow-lg"
-                  >
-                    <h2 className="text-xl font-bold text-navy">{s.name}</h2>
-                    <p className="mt-2 text-sm leading-relaxed text-charcoal/90">{core.tagline}</p>
-                    <div className="mt-6 flex flex-wrap gap-3">
-                      <Link
-                        href={`/services/${s.slug}`}
-                        className="btn-primary px-4 py-2 text-xs sm:text-sm"
-                      >
-                        Learn more
-                      </Link>
-                      <Link
-                        href={`${QUOTE_PATH}?service=${encodeURIComponent(s.name)}`}
-                        className="btn-secondary px-4 py-2 text-xs sm:text-sm"
-                      >
-                        Request pricing
-                      </Link>
-                    </div>
-                  </article>
-                );
-              })}
+      {ORDER.map((id, i) => {
+        const c = CATEGORIES.find((x) => x.id === id)!;
+        return (
+          <section key={id} id={id} aria-labelledby={`${id}-title`} className={`scroll-mt-24 py-20 sm:py-28 ${i % 2 ? "bg-cream-warm" : "bg-cream"}`}>
+            <div className="site-container">
+              <Reveal>
+                <SectionHeading id={`${id}-title`} eyebrow={c.eyebrow} title={c.title} lead={c.lead} />
+              </Reveal>
+              <div className="mt-14 grid gap-x-8 gap-y-14 sm:grid-cols-2 lg:grid-cols-3">
+                {servicesIn(id).map((s, k) => (
+                  <Reveal key={s.slug} delay={(k % 3) * 80}>
+                    <ServiceCard service={s} />
+                  </Reveal>
+                ))}
+              </div>
             </div>
-          </div>
-
-          <div className="mt-16 grid gap-6 sm:grid-cols-2">
-            {SERVICES.map((s) => (
-              <article
-                key={s.slug}
-                id={s.anchor}
-                className="scroll-mt-28 rounded-xl border border-navy/10 bg-white p-6 shadow-md transition duration-200 hover:shadow-lg"
-              >
-                <h2 className="text-xl font-bold text-navy">{s.name}</h2>
-                <p className="mt-2 text-sm leading-relaxed text-charcoal/90">{s.shortDescription}</p>
-                <p className="mt-3 text-sm font-medium text-ocean">Best for</p>
-                <p className="text-sm text-charcoal/85">{s.bestFor}</p>
-                <div className="mt-6 flex flex-wrap gap-3">
-                  <Link
-                    href={`/services/${s.slug}`}
-                    className="btn-primary px-4 py-2 text-xs sm:text-sm"
-                  >
-                    Learn more
-                  </Link>
-                  <Link
-                    href={`${QUOTE_PATH}?service=${encodeURIComponent(s.name)}`}
-                    className="btn-secondary px-4 py-2 text-xs sm:text-sm"
-                  >
-                    Request pricing
-                  </Link>
-                </div>
-              </article>
-            ))}
-          </div>
-        </div>
-      </section>
-    </div>
+          </section>
+        );
+      })}
+      <HowItWorksSection />
+      <ClosingCta />
+    </>
   );
 }

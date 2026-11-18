@@ -2,8 +2,10 @@ export const SITE_URL =
   process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ||
   "https://www.palmbeachpropertypros.com";
 export const SITE_NAME = "Palm Beach Property Pros";
-export const TAGLINE =
-  "One reliable local team for everything your property needs.";
+export const TAGLINE = "Palm Beach homes, impeccably kept.";
+
+export const SITE_DESCRIPTION =
+  "Premium estate cleaning, landscape and exterior care, pressure washing, auto detailing, property maintenance, and private home watch across the Palm Beaches. Licensed, insured, and discreet. Private quotes by phone or request.";
 
 export const PHONE_DISPLAY = "561-629-2617";
 export const PHONE_TEL = "tel:15616292617";

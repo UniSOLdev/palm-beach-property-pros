@@ -1,55 +1,61 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { QUOTE_PATH, SERVICE_CITIES, SITE_NAME } from "@/lib/site";
+import { BreadcrumbJsonLd } from "@/components/json-ld";
+import { PageHero } from "@/components/site/page-hero";
+import { Reveal } from "@/components/site/reveal";
+import { ClosingCta, SectionHeading } from "@/components/site/sections";
+import { SERVICE_AREAS } from "@/lib/site/content";
+import { PHONE_DISPLAY, PHONE_TEL, SERVICE_CITIES } from "@/lib/site";
 
 export const metadata: Metadata = {
-  title: "Service Area – Palm Beach County",
-  description: `${SITE_NAME} serves West Palm Beach, Palm Beach Gardens, Jupiter, Delray Beach, and communities countywide. Request scheduling via our quote form.`,
+  title: "Service Area: Palm Beach, Palm Beach Gardens, Jupiter & Palm Beach County",
+  description:
+    "Luxury property care across Palm Beach County: Palm Beach, Palm Beach Gardens, Jupiter, North Palm Beach, West Palm Beach, Juno Beach, and nearby communities. Cleaning, exterior care, detailing, and home watch.",
+  alternates: { canonical: "/service-area" },
 };
 
-const bullets = SERVICE_CITIES.filter((c) => !c.toLowerCase().startsWith("and nearby"));
-
 export default function ServiceAreaPage() {
+  const county = SERVICE_CITIES.filter((c) => !c.startsWith("and ") && !SERVICE_AREAS.some((a) => a.name === c));
   return (
-    <div className="bg-cream">
-      <section className="mx-auto max-w-6xl px-6 py-16">
-        <p className="text-sm font-semibold uppercase tracking-wide text-ocean">Service area</p>
-        <h1 className="mt-2 text-3xl font-bold tracking-tight text-navy sm:text-4xl">
-          Service Area – Palm Beach County
-        </h1>
-        <p className="mt-4 text-lg text-charcoal/85">
-          {SITE_NAME} dispatches licensed crews across the county for homes, rentals, retail,
-          offices, dealerships, and HOA-supported properties.
-        </p>
-
-        <h2 className="mt-10 text-lg font-bold text-navy">Cities and communities</h2>
-        <ul className="mt-4 grid gap-2 sm:grid-cols-2">
-          {bullets.map((city) => (
-            <li
-              key={city}
-              className="rounded-xl border border-navy/10 bg-white px-4 py-3 text-sm font-medium text-navy shadow-md"
-            >
-              {city}
-            </li>
-          ))}
-        </ul>
-        <p className="mt-3 text-sm text-charcoal/75">
-          {SERVICE_CITIES[SERVICE_CITIES.length - 1]}
-        </p>
-
-        <h2 className="mt-10 text-lg font-bold text-navy">Scheduling</h2>
-        <p className="mt-3 text-charcoal/90">
-          We coordinate arrival windows around traffic patterns, HOA access rules, and your onsite
-          contacts. Same-week service is offered when capacity allows; photo-based requests receive
-          faster turnaround on pricing.
-        </p>
-
-        <div className="mt-10">
-          <Link href={QUOTE_PATH} className="btn-primary w-full sm:w-auto">
-            Request service or a quote
-          </Link>
+    <>
+      <BreadcrumbJsonLd items={[{ name: "Home", path: "/" }, { name: "Service area", path: "/service-area" }]} />
+      <PageHero
+        eyebrow="Service area"
+        title="Local to the Palm Beaches."
+        lead="Close enough to be at your door quickly, before a storm, after one, or whenever something needs attention."
+        image="/photos/palms-sky.jpg"
+        imageAlt="Palm trees against a coastal sky"
+      />
+      <section className="bg-cream py-20 sm:py-28">
+        <div className="site-container">
+          <Reveal>
+            <SectionHeading eyebrow="Signature communities" title="All services, including private client care." />
+          </Reveal>
+          <div className="mt-14 grid gap-6 md:grid-cols-2">
+            {SERVICE_AREAS.map((a) => (
+              <Reveal key={a.slug}>
+                <section id={a.slug} aria-labelledby={`${a.slug}-t`} className="scroll-mt-24 h-full rounded-[24px] bg-white p-8 sm:p-10">
+                  <h2 id={`${a.slug}-t`} className="font-display text-4xl text-navy">{a.name}</h2>
+                  <p className="mt-3 text-lg leading-relaxed text-charcoal/80">{a.blurb}</p>
+                  <p className="mt-4 text-base text-charcoal/70">Estate cleaning · exterior care · detailing · home watch · concierge</p>
+                </section>
+              </Reveal>
+            ))}
+          </div>
+          <Reveal>
+            <h2 className="mt-20 text-xs font-semibold uppercase tracking-[0.3em] text-brass-dark">Across Palm Beach County</h2>
+            <p className="font-display mt-4 max-w-3xl text-3xl leading-snug text-navy">
+              Cleaning, exterior, maintenance, and detailing services also serve {county.join(", ")}, and nearby communities.
+            </p>
+            <p className="mt-6 text-lg text-charcoal/80">
+              Not sure we cover your address?{" "}
+              <a href={PHONE_TEL} className="font-semibold text-navy underline underline-offset-4">Call {PHONE_DISPLAY}</a> or{" "}
+              <Link href="/quote" className="font-semibold text-navy underline underline-offset-4">send a request</Link>.
+            </p>
+          </Reveal>
         </div>
       </section>
-    </div>
+      <ClosingCta />
+    </>
   );
 }

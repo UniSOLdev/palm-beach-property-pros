@@ -1,99 +1,38 @@
 import type { Metadata } from "next";
-import Link from "next/link";
-import { CORE_SERVICES } from "@/lib/marketing/core-services";
-import { SERVICES } from "@/lib/services";
-import { QUOTE_PATH, SITE_NAME } from "@/lib/site";
+import { BreadcrumbJsonLd } from "@/components/json-ld";
+import { HowItWorksSection, QuoteSection, ServiceCard } from "@/components/site/sections";
+import { SERVICES } from "@/lib/site/content";
 
 export const metadata: Metadata = {
-  title: "Yard, Cleaning & Property Services",
-  description: `${SITE_NAME} — yard care, window cleaning, move-out cleans, debris removal, detailing, and property services in Palm Beach County. Licensed & insured.`,
+  title: "Services: Home Watch, Seasonal Prep, Hurricane Prep & More",
+  description:
+    "Home watch, arrival and departure prep, hurricane preparation, handyman help, vendor coordination, and concierge services for homes in Palm Beach Gardens, Jupiter, North Palm Beach, and Palm Beach. Private quotes only.",
+  alternates: { canonical: "/services" },
 };
 
 export default function ServicesPage() {
   return (
-    <div className="bg-cream">
-      <section className="py-16">
-        <div className="mx-auto max-w-6xl px-6">
-          <p className="text-xs font-semibold uppercase tracking-widest text-ocean">Services</p>
-          <h1 className="mt-3 max-w-3xl text-3xl font-bold tracking-tight text-navy md:text-4xl">
-            Yard care, cleaning, detailing & property support
+    <>
+      <BreadcrumbJsonLd items={[{ name: "Home", path: "/" }, { name: "Services", path: "/services" }]} />
+      <section className="bg-cream py-16 sm:py-20">
+        <div className="site-container">
+          <p className="eyebrow">Services</p>
+          <h1 className="font-display mt-3 text-5xl font-medium leading-tight text-navy sm:text-6xl">
+            Care for your home, whether you&apos;re here or away.
           </h1>
-          <p className="mt-4 max-w-2xl text-lg leading-relaxed text-charcoal/85">
-            Five core service lines plus expanded property care — request pricing, book work, and
-            manage invoices through Palm Beach Property Pros.
+          <p className="lead-text mt-6 max-w-3xl">
+            Choose one service or combine several into a single plan. Every plan is built around
+            your home and your calendar, and every plan is quoted privately — by phone or by request.
           </p>
-          <div className="mt-8 flex flex-wrap gap-3">
-            <Link href={QUOTE_PATH} className="btn-primary">
-              Get a free quote
-            </Link>
-            <Link href={QUOTE_PATH} className="btn-secondary border-ocean/40">
-              Book service
-            </Link>
-          </div>
-
-          <div className="mt-14">
-            <p className="text-xs font-semibold uppercase tracking-widest text-ocean">Core services</p>
-            <div className="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-              {CORE_SERVICES.map((core) => {
-                const s = SERVICES.find((item) => item.slug === core.slug);
-                if (!s) return null;
-                return (
-                  <article
-                    key={s.slug}
-                    className="scroll-mt-28 rounded-xl border-2 border-ocean/20 bg-white p-6 shadow-md transition duration-200 hover:shadow-lg"
-                  >
-                    <h2 className="text-xl font-bold text-navy">{s.name}</h2>
-                    <p className="mt-2 text-sm leading-relaxed text-charcoal/90">{core.tagline}</p>
-                    <div className="mt-6 flex flex-wrap gap-3">
-                      <Link
-                        href={`/services/${s.slug}`}
-                        className="btn-primary px-4 py-2 text-xs sm:text-sm"
-                      >
-                        Learn more
-                      </Link>
-                      <Link
-                        href={`${QUOTE_PATH}?service=${encodeURIComponent(s.name)}`}
-                        className="btn-secondary px-4 py-2 text-xs sm:text-sm"
-                      >
-                        Request pricing
-                      </Link>
-                    </div>
-                  </article>
-                );
-              })}
-            </div>
-          </div>
-
-          <div className="mt-16 grid gap-6 sm:grid-cols-2">
+          <div className="mt-12 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {SERVICES.map((s) => (
-              <article
-                key={s.slug}
-                id={s.anchor}
-                className="scroll-mt-28 rounded-xl border border-navy/10 bg-white p-6 shadow-md transition duration-200 hover:shadow-lg"
-              >
-                <h2 className="text-xl font-bold text-navy">{s.name}</h2>
-                <p className="mt-2 text-sm leading-relaxed text-charcoal/90">{s.shortDescription}</p>
-                <p className="mt-3 text-sm font-medium text-ocean">Best for</p>
-                <p className="text-sm text-charcoal/85">{s.bestFor}</p>
-                <div className="mt-6 flex flex-wrap gap-3">
-                  <Link
-                    href={`/services/${s.slug}`}
-                    className="btn-primary px-4 py-2 text-xs sm:text-sm"
-                  >
-                    Learn more
-                  </Link>
-                  <Link
-                    href={`${QUOTE_PATH}?service=${encodeURIComponent(s.name)}`}
-                    className="btn-secondary px-4 py-2 text-xs sm:text-sm"
-                  >
-                    Request pricing
-                  </Link>
-                </div>
-              </article>
+              <ServiceCard key={s.slug} service={s} />
             ))}
           </div>
         </div>
       </section>
-    </div>
+      <HowItWorksSection />
+      <QuoteSection />
+    </>
   );
 }

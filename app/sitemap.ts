@@ -1,35 +1,24 @@
 import type { MetadataRoute } from "next";
-import { createServiceClient } from "@/lib/supabase/service";
+import { SERVICES } from "@/lib/site/content";
 import { SITE_URL } from "@/lib/site";
 
-export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+/** Bump when public copy changes meaningfully (helps Google recrawl). */
+const LAST_UPDATED = new Date("2026-11-18");
+
+export default function sitemap(): MetadataRoute.Sitemap {
   const base = SITE_URL.replace(/\/$/, "");
-  const staticRoutes: MetadataRoute.Sitemap = [
-    { url: base, lastModified: new Date(), changeFrequency: "weekly", priority: 1 },
-    { url: `${base}/services`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.9 },
-    { url: `${base}/pricing`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.8 },
-    { url: `${base}/quote`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.9 },
-    { url: `${base}/service-area`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.7 },
+  const page = (path: string, priority: number): MetadataRoute.Sitemap[number] => ({
+    url: `${base}${path}`,
+    lastModified: LAST_UPDATED,
+    changeFrequency: "monthly",
+    priority,
+  });
+  return [
+    page("/", 1),
+    page("/services", 0.9),
+    ...SERVICES.map((s) => page(`/services/${s.slug}`, 0.8)),
+    page("/service-area", 0.8),
+    page("/quote", 0.7),
+    page("/privacy", 0.2),
   ];
-
-  try {
-    const supabase = createServiceClient();
-    const { data: pages } = await supabase
-      .from("website_pages")
-      .select("slug, updated_at, status")
-      .eq("status", "published");
-
-    const cmsRoutes: MetadataRoute.Sitemap = (pages ?? [])
-      .filter((p) => p.slug !== "home")
-      .map((p) => ({
-        url: `${base}/${p.slug}`,
-        lastModified: p.updated_at ? new Date(p.updated_at) : new Date(),
-        changeFrequency: "weekly" as const,
-        priority: 0.6,
-      }));
-
-    return [...staticRoutes, ...cmsRoutes];
-  } catch {
-    return staticRoutes;
-  }
 }

@@ -3,109 +3,105 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
-import { PHONE_TEL } from "@/lib/site";
+import { PHONE_DISPLAY, PHONE_TEL } from "@/lib/site";
 
 const nav = [
   { href: "/services", label: "Services" },
-  { href: "/pricing", label: "Pricing" },
-  { href: "/service-area", label: "Service Area" },
-  { href: "/quote", label: "Quote" },
+  { href: "/#how-it-works", label: "How it works" },
+  { href: "/service-area", label: "Service area" },
+  { href: "/#faq", label: "FAQ" },
 ] as const;
 
 export function SiteHeader() {
   const [open, setOpen] = useState(false);
 
   return (
-    <header className="sticky top-0 z-40 overflow-x-hidden border-b border-white/[0.08] bg-navy-deep/80 shadow-[0_8px_40px_rgba(8,26,46,0.35)] backdrop-blur-xl backdrop-saturate-150">
+    <header className="sticky top-0 z-40 border-b border-white/10 bg-navy-deep/95 backdrop-blur-md">
+      <a
+        href="#main"
+        className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-3 focus:z-50 focus:rounded-lg focus:bg-cream focus:px-4 focus:py-2 focus:text-navy"
+      >
+        Skip to content
+      </a>
       <nav
-        className="mx-auto flex w-full min-w-0 max-w-6xl items-center justify-between gap-2 px-4 py-3 sm:gap-3 sm:px-5 sm:py-4 md:gap-4 md:px-6 md:py-4"
+        className="site-container flex items-center justify-between gap-3 py-3 md:py-4"
         aria-label="Primary"
       >
-        <Link
-          href="/"
-          className="min-w-0 shrink-0 no-underline pr-2"
-          aria-label="Palm Beach Property Pros home"
-        >
+        <Link href="/" className="shrink-0" aria-label="Palm Beach Property Pros — home">
           <Image
             src="/brand/pbpp-wordmark-light.svg"
             alt="Palm Beach Property Pros"
             width={280}
             height={42}
             priority
-            className="h-8 w-auto max-w-[10.75rem] sm:h-9 sm:max-w-[13rem] md:h-10 md:max-w-[16rem]"
+            className="h-8 w-auto max-w-[11rem] sm:h-9 sm:max-w-[14rem]"
           />
         </Link>
 
-        <div className="hidden items-center gap-6 text-sm font-medium text-cream/90 md:flex">
+        <div className="hidden items-center gap-7 md:flex">
           {nav.map((item) => (
             <Link
               key={item.href}
               href={item.href}
-              className="text-cream/85 no-underline transition-colors duration-300 hover:text-aqua"
+              className="text-base font-medium text-cream/90 no-underline transition-colors hover:text-brass-light"
             >
               {item.label}
             </Link>
           ))}
-          <a href={PHONE_TEL} className="btn-primary hidden sm:inline-flex">
-            Call Now
+          <a
+            href={PHONE_TEL}
+            className="text-base font-semibold text-cream no-underline hover:text-brass-light"
+          >
+            {PHONE_DISPLAY}
           </a>
+          <Link
+            href="/quote"
+            className="inline-flex min-h-[44px] items-center rounded-full bg-brass px-5 text-base font-semibold text-navy-deep no-underline transition hover:bg-brass-light"
+          >
+            Request a quote
+          </Link>
         </div>
 
-        <div className="flex shrink-0 items-center md:hidden">
-          <button
-            type="button"
-            className="inline-flex h-11 w-11 min-h-[44px] min-w-[44px] items-center justify-center rounded-xl border border-white/15 text-cream transition duration-200 active:scale-95 active:bg-white/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-aqua"
-            aria-expanded={open}
-            aria-controls="mobile-nav"
-            onClick={() => setOpen((v) => !v)}
-          >
-            <span className="sr-only">Menu</span>
-            {open ? (
-              <span className="text-lg leading-none" aria-hidden>
-                ×
-              </span>
-            ) : (
-              <span className="flex flex-col gap-1.5" aria-hidden>
-                <span className="block h-0.5 w-5 bg-cream" />
-                <span className="block h-0.5 w-5 bg-cream" />
-                <span className="block h-0.5 w-5 bg-cream" />
-              </span>
-            )}
-          </button>
-        </div>
+        <button
+          type="button"
+          className="inline-flex h-12 w-12 items-center justify-center rounded-xl border border-white/20 text-cream md:hidden"
+          aria-expanded={open}
+          aria-controls="mobile-nav"
+          onClick={() => setOpen((v) => !v)}
+        >
+          <span className="sr-only">{open ? "Close menu" : "Open menu"}</span>
+          {open ? (
+            <span className="text-3xl leading-none" aria-hidden>
+              ×
+            </span>
+          ) : (
+            <span className="flex flex-col gap-1.5" aria-hidden>
+              <span className="block h-0.5 w-6 bg-cream" />
+              <span className="block h-0.5 w-6 bg-cream" />
+              <span className="block h-0.5 w-6 bg-cream" />
+            </span>
+          )}
+        </button>
       </nav>
 
       {open ? (
-        <div
-          id="mobile-nav"
-          className="border-t border-white/10 bg-navy-deep/95 px-4 pb-4 pt-2 transition-[opacity,transform] duration-200 ease-out sm:px-5 md:hidden"
-        >
-          <div className="mx-auto flex max-w-6xl flex-col gap-1">
+        <div id="mobile-nav" className="border-t border-white/10 bg-navy-deep px-5 pb-6 pt-2 md:hidden">
+          <ul className="flex flex-col">
             {nav.map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                className="rounded-lg px-3 py-3 text-base font-medium text-cream no-underline hover:bg-white/10"
-                onClick={() => setOpen(false)}
-              >
-                {item.label}
-              </Link>
+              <li key={item.href}>
+                <Link
+                  href={item.href}
+                  className="block rounded-lg px-2 py-4 text-xl font-medium text-cream no-underline hover:bg-white/10"
+                  onClick={() => setOpen(false)}
+                >
+                  {item.label}
+                </Link>
+              </li>
             ))}
-            <a
-              href={PHONE_TEL}
-              className="btn-primary mt-2 text-center"
-              onClick={() => setOpen(false)}
-            >
-              Call Now
-            </a>
-            <Link
-              href="/quote"
-              className="btn-secondary-lg mt-2 border-white/20 bg-transparent text-center text-cream hover:bg-white/10"
-              onClick={() => setOpen(false)}
-            >
-              Get Free Quote
-            </Link>
-          </div>
+          </ul>
+          <Link href="/quote" className="btn-gold mt-4 w-full" onClick={() => setOpen(false)}>
+            Request a private quote
+          </Link>
         </div>
       ) : null}
     </header>

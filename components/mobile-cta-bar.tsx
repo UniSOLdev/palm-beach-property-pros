@@ -1,30 +1,25 @@
 import Link from "next/link";
-import { PHONE_TEL, QUOTE_PATH, SMS_TEL } from "@/lib/site";
+import { PHONE_DISPLAY, PHONE_TEL, QUOTE_PATH } from "@/lib/site";
 
+/** Always-visible tap-to-call bar on phones. */
 export function MobileCtaBar() {
   return (
-    <div className="fixed inset-x-0 bottom-0 z-50 border-t border-white/25 bg-cream/90 pb-[env(safe-area-inset-bottom)] shadow-[0_-10px_40px_rgba(10,37,64,0.14)] backdrop-blur-xl md:hidden">
-      <nav
-        className="mx-auto grid max-w-6xl grid-cols-[1fr_1fr_1.35fr] gap-2 px-4 py-3 pb-safe"
-        aria-label="Quick contact"
-      >
+    <div className="fixed inset-x-0 bottom-0 z-50 border-t border-navy/10 bg-cream/95 pb-[env(safe-area-inset-bottom)] shadow-[0_-8px_30px_rgba(8,26,46,0.15)] backdrop-blur-md md:hidden">
+      <nav className="grid grid-cols-[1.6fr_1fr] gap-2 px-3 py-2.5" aria-label="Quick contact">
         <a
           href={PHONE_TEL}
-          className="flex min-h-[56px] flex-col items-center justify-center rounded-2xl border border-navy/10 bg-white text-xs font-semibold text-navy no-underline transition duration-200 active:scale-[0.98] active:bg-sky/50 hover:bg-sky/40 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ocean"
+          className="flex min-h-[56px] items-center justify-center gap-2 rounded-full bg-navy text-[1.05rem] font-semibold text-cream no-underline active:bg-navy-deep"
         >
-          Call
-        </a>
-        <a
-          href={SMS_TEL}
-          className="flex min-h-[56px] flex-col items-center justify-center rounded-2xl border border-navy/10 bg-white text-xs font-semibold text-ocean no-underline transition duration-200 active:scale-[0.98] active:bg-sky/50 hover:bg-sky/40 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ocean"
-        >
-          Text
+          <svg aria-hidden="true" viewBox="0 0 24 24" className="h-5 w-5 fill-current">
+            <path d="M6.6 10.8a15.1 15.1 0 0 0 6.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.1.4 2.3.6 3.6.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1A17 17 0 0 1 3 4c0-.6.4-1 1-1h3.5c.6 0 1 .4 1 1 0 1.3.2 2.5.6 3.6.1.3 0 .7-.2 1l-2.3 2.2z" />
+          </svg>
+          <span>Call {PHONE_DISPLAY}</span>
         </a>
         <Link
           href={QUOTE_PATH}
-          className="flex min-h-[56px] flex-col items-center justify-center rounded-2xl bg-gradient-to-br from-aqua via-ocean to-navy text-xs font-bold text-white no-underline shadow-lg shadow-ocean/30 ring-2 ring-aqua/40 transition duration-200 active:scale-[0.98] hover:shadow-xl focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cream"
+          className="flex min-h-[56px] items-center justify-center rounded-full bg-brass text-lg font-semibold text-navy-deep no-underline active:bg-brass-light"
         >
-          Get Quote
+          Get a quote
         </Link>
       </nav>
     </div>

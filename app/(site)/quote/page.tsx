@@ -1,47 +1,34 @@
 import type { Metadata } from "next";
-import Link from "next/link";
-import { QuoteForm } from "./quote-form";
-import { PHONE_DISPLAY, PHONE_TEL, SITE_NAME } from "@/lib/site";
+import { QuoteForm } from "@/components/site/quote-form";
+import { PHONE_DISPLAY, PHONE_TEL } from "@/lib/site";
 
 export const metadata: Metadata = {
-  title: "Request Your Free Quote",
-  description: `Request a free quote from ${SITE_NAME}. Send photos, receive pricing quickly, and book through our secure online quote form—no obligation.`,
+  title: "Request a Private Quote",
+  description:
+    "Request a private, no-obligation quote for home watch and household services in Palm Beach Gardens, Jupiter, North Palm Beach, and Palm Beach. We'll call you at the time you prefer.",
+  alternates: { canonical: "/quote" },
 };
 
-type Props = {
-  searchParams: Promise<{ service?: string }>;
-};
-
-export default async function QuotePage({ searchParams }: Props) {
-  const { service } = await searchParams;
-
+export default function QuotePage() {
   return (
-    <div className="bg-cream">
-      <section className="mx-auto max-w-6xl px-6 py-16">
-        <p className="text-sm font-semibold uppercase tracking-wide text-ocean">Quote</p>
-        <h1 className="mt-2 text-3xl font-bold tracking-tight text-navy sm:text-4xl">
-          Request Your Free Quote
-        </h1>
-        <p className="mt-4 text-lg text-charcoal/85">
-          Send photos of the areas you want serviced, note your city and timing, and we return
-          scope-based pricing quickly. There is no obligation to book.
-        </p>
-        <p className="mt-3 text-sm text-charcoal/75">
-          We do not share your information. It is used only to estimate and schedule work you
-          approve in writing.
-        </p>
-        <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <Link href="/services" className="text-sm font-semibold text-ocean hover:underline">
-            View services
-          </Link>
-          <a href={PHONE_TEL} className="btn-primary px-5 py-2.5 text-sm sm:inline-flex">
+    <section className="bg-cream py-16 sm:py-20">
+      <div className="site-container grid gap-12 lg:grid-cols-[1fr_1.3fr]">
+        <div>
+          <p className="eyebrow">Private quote</p>
+          <h1 className="font-display mt-3 text-5xl font-medium leading-tight text-navy sm:text-6xl">
+            Request a private quote.
+          </h1>
+          <p className="lead-text mt-6">
+            Tell us a little about your home and when to call. Clayton will call you personally,
+            usually within one business day. There is no obligation.
+          </p>
+          <p className="mt-8 text-lg text-charcoal/90">Prefer to talk now?</p>
+          <a href={PHONE_TEL} className="btn-navy mt-3">
             Call {PHONE_DISPLAY}
           </a>
         </div>
-        <div className="mt-10">
-          <QuoteForm defaultService={service} />
-        </div>
-      </section>
-    </div>
+        <QuoteForm idPrefix="quote" />
+      </div>
+    </section>
   );
 }

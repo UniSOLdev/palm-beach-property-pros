@@ -3,12 +3,14 @@
 @tailwind utilities;
 
 @layer base {
+  /* overflow-x: clip (not hidden) so position: sticky keeps working (scroll hero). */
   html {
     scroll-behavior: smooth;
-    overflow-x: hidden;
+    overflow-x: clip;
   }
   body {
-    @apply overflow-x-hidden bg-cream font-sans text-charcoal antialiased;
+    overflow-x: clip;
+    @apply bg-cream font-sans text-charcoal antialiased;
     background-image: linear-gradient(180deg, #faf8f4 0%, #f5f1ea 45%, #faf8f4 100%);
   }
   ::selection {
@@ -413,5 +415,43 @@
 
   .cmd-palette-panel {
     @apply mx-auto mt-[15vh] w-full max-w-lg overflow-hidden rounded-2xl border border-navy/10 bg-white shadow-lift;
+  }
+}
+
+/* ---------- Public site (redesign) ---------- */
+@layer components {
+  .font-display {
+    font-family: var(--font-display), Georgia, "Times New Roman", serif;
+    letter-spacing: -0.01em;
+  }
+  .btn-gold {
+    @apply inline-flex min-h-[56px] items-center justify-center rounded-full bg-brass px-8 py-3.5 text-lg font-semibold text-navy-deep no-underline shadow-lg shadow-navy-deep/20 transition hover:bg-brass-light focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-cream;
+  }
+  .btn-navy {
+    @apply inline-flex min-h-[56px] items-center justify-center rounded-full bg-navy px-8 py-3.5 text-lg font-semibold text-cream no-underline transition hover:bg-navy-deep focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-brass-dark;
+  }
+  .btn-ghost-light {
+    @apply inline-flex min-h-[56px] items-center justify-center rounded-full border border-cream/70 bg-navy-deep/20 px-8 py-3.5 text-lg font-semibold text-white no-underline backdrop-blur-sm transition hover:bg-white/10 focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-cream;
+  }
+  .btn-ghost-dark {
+    @apply inline-flex min-h-[56px] items-center justify-center rounded-full border-2 border-navy/80 px-8 py-3.5 text-lg font-semibold text-navy no-underline transition hover:bg-navy hover:text-cream focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-brass-dark;
+  }
+  .eyebrow {
+    @apply text-sm font-semibold uppercase tracking-[0.2em] text-brass-dark;
+  }
+  .h2-display {
+    @apply font-display text-4xl font-medium leading-tight text-navy sm:text-5xl;
+  }
+  .lead-text {
+    @apply text-lg leading-relaxed text-charcoal/90 sm:text-xl;
+  }
+  .site-container {
+    @apply mx-auto w-full max-w-6xl px-5 sm:px-8;
+  }
+  .field-label {
+    @apply mb-2 block text-base font-semibold text-navy;
+  }
+  .field-input {
+    @apply block min-h-[52px] w-full rounded-xl border border-navy/25 bg-white px-4 py-3 text-lg text-charcoal shadow-sm placeholder:text-charcoal/50 focus:border-navy focus:outline-none focus:ring-2 focus:ring-brass;
   }
 }

@@ -1,15 +1,7 @@
 {
-  "version": "c3085c02",
-  "frames": 120,
-  "base": "/hero/c3085c02",
-  "desktop": {
-    "width": 1600,
-    "height": 900
-  },
-  "mobile": {
-    "width": 608,
-    "height": 1080
-  },
-  "placeholder": true,
-  "builtAt": "2026-11-18T06:35:34.078Z"
+  "mode": "photo",
+  "frames": 0,
+  "base": "",
+  "desktop": { "width": 1600, "height": 900 },
+  "mobile": { "width": 608, "height": 1080 }
 }

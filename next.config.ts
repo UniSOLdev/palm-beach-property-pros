@@ -1,20 +1,5 @@
 import type { NextConfig } from "next";
 
-/** Old service URLs (pre-redesign) → closest current page, so existing links don't 404. */
-const OLD_SERVICE_SLUGS = [
-  "yard-landscape",
-  "move-out-cleaning",
-  "trash-debris-removal",
-  "window-cleaning",
-  "residential-cleaning",
-  "commercial-cleaning",
-  "pressure-washing",
-  "auto-detailing",
-  "carpet-steam-cleaning",
-  "trash-can-cleaning",
-  "airbnb-services",
-];
-
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
@@ -23,7 +8,7 @@ const nextConfig: NextConfig = {
     localPatterns: [
       { pathname: "/media/**" },
       { pathname: "/brand/**" },
-      { pathname: "/site/**" },
+      { pathname: "/photos/**" },
       { pathname: "/logo.png" },
     ],
     remotePatterns: [
@@ -46,13 +31,6 @@ const nextConfig: NextConfig = {
   async redirects() {
     return [
       { source: "/contact", destination: "/quote", permanent: true },
-      { source: "/pricing", destination: "/quote", permanent: true },
-      { source: "/services/property-maintenance", destination: "/services/handyman", permanent: true },
-      ...OLD_SERVICE_SLUGS.map((slug) => ({
-        source: `/services/${slug}`,
-        destination: "/services/vendor-coordination",
-        permanent: true,
-      })),
     ];
   },
   async headers() {
@@ -63,8 +41,8 @@ const nextConfig: NextConfig = {
         headers: [{ key: "Cache-Control", value: "public, max-age=31536000, immutable" }],
       },
       {
-        source: "/site/:path*",
-        headers: [{ key: "Cache-Control", value: "public, max-age=604800, stale-while-revalidate=86400" }],
+        source: "/photos/:path*",
+        headers: [{ key: "Cache-Control", value: "public, max-age=2592000, stale-while-revalidate=86400" }],
       },
       {
         // Keep *.vercel.app copies (production alias + previews) out of Google:

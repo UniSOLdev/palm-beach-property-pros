@@ -455,3 +455,36 @@
     @apply block min-h-[52px] w-full rounded-xl border border-navy/25 bg-white px-4 py-3 text-lg text-charcoal shadow-sm placeholder:text-charcoal/50 focus:border-navy focus:outline-none focus:ring-2 focus:ring-brass;
   }
 }
+
+/* ---------- Redesign v2: motion & form details ---------- */
+.reveal {
+  opacity: 0;
+  transform: translate3d(0, 18px, 0);
+  transition: opacity 0.9s cubic-bezier(0.22, 1, 0.36, 1), transform 0.9s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.reveal.is-in {
+  opacity: 1;
+  transform: none;
+}
+html:not(.js) .reveal {
+  opacity: 1;
+  transform: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .reveal {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+  }
+}
+@layer components {
+  .form-step {
+    @apply font-display text-2xl text-navy;
+  }
+  .img-zoom img {
+    transition: transform 1.2s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .img-zoom:hover img {
+    transform: scale(1.035);
+  }
+}

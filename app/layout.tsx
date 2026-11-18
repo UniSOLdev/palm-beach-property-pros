@@ -4,7 +4,6 @@ import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
 import localFont from "next/font/local";
 import { Plus_Jakarta_Sans } from "next/font/google";
-import heroManifest from "@/lib/site/hero-manifest.json";
 import { SITE_DESCRIPTION, SITE_NAME, SITE_URL } from "@/lib/site";
 
 const sans = Plus_Jakarta_Sans({
@@ -32,19 +31,19 @@ export const metadata: Metadata = {
   },
   description: SITE_DESCRIPTION,
   openGraph: {
-    title: `${SITE_NAME} | Your home, quietly cared for`,
+    title: `${SITE_NAME} | Palm Beach homes, impeccably kept`,
     description: SITE_DESCRIPTION,
     url: SITE_URL,
     siteName: SITE_NAME,
     locale: "en_US",
     type: "website",
-    images: [{ url: `${heroManifest.base}/og.jpg`, width: 1200, height: 630, alt: SITE_NAME }],
+    images: [{ url: "/photos/og.jpg", width: 1200, height: 630, alt: SITE_NAME }],
   },
   twitter: {
     card: "summary_large_image",
     title: SITE_NAME,
     description: SITE_DESCRIPTION,
-    images: [`${heroManifest.base}/og.jpg`],
+    images: ["/photos/og.jpg"],
   },
   formatDetection: { telephone: true },
 };
@@ -57,7 +56,11 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="en" className={`${sans.variable} ${display.variable}`}>
+    <html lang="en" className={`${sans.variable} ${display.variable}`} suppressHydrationWarning>
+      <head>
+        {/* Enables reveal-on-scroll only when JS runs; content stays visible otherwise. */}
+        <script dangerouslySetInnerHTML={{ __html: "document.documentElement.classList.add('js')" }} />
+      </head>
       <body className={`${sans.className} min-h-screen antialiased`}>{children}</body>
     </html>
   );

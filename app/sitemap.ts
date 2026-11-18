@@ -1,5 +1,5 @@
 import type { MetadataRoute } from "next";
-import { SERVICES } from "@/lib/site/content";
+import { CATALOG } from "@/lib/site/catalog";
 import { SITE_URL } from "@/lib/site";
 
 /** Bump when public copy changes meaningfully (helps Google recrawl). */
@@ -16,9 +16,10 @@ export default function sitemap(): MetadataRoute.Sitemap {
   return [
     page("/", 1),
     page("/services", 0.9),
-    ...SERVICES.map((s) => page(`/services/${s.slug}`, 0.8)),
+    ...CATALOG.map((s) => page(`/services/${s.slug}`, 0.8)),
     page("/service-area", 0.8),
     page("/quote", 0.7),
+    page("/pricing", 0.5),
     page("/privacy", 0.2),
   ];
 }

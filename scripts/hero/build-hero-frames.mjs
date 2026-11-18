@@ -2,7 +2,6 @@
 /**
  * Build the scroll-driven hero image sequence.
  *
- *   npm run hero:build                        # placeholder (stylized) sequence
  *   npm run hero:build -- path/to/clip.mp4    # your real footage
  *   npm run hero:build -- clip.mp4 --frames 140 --quality 60
  *
@@ -30,7 +29,7 @@ const flag = (name, fallback) => {
 const input = args.find((a, i) => !a.startsWith("--") && !args[i - 1]?.startsWith("--"));
 
 const FRAMES = flag("frames", 120);
-const QUALITY = flag("quality", input ? 58 : 66);
+const QUALITY = flag("quality", 58);
 const DESKTOP = { width: 1600, height: 900 };
 const MOBILE = { width: 608, height: 1080 };
 
@@ -38,14 +37,6 @@ const work = mkdtempSync(join(tmpdir(), "pbpp-hero-"));
 const srcDir = join(work, "src");
 mkdirSync(srcDir);
 
-async function sourceFromPlaceholder() {
-  const { renderFrameSvg } = await import("./placeholder-scene.mjs");
-  console.log(`Rendering ${FRAMES} placeholder frames…`);
-  for (let i = 0; i < FRAMES; i++) {
-    const svg = renderFrameSvg(i / (FRAMES - 1));
-    await sharp(Buffer.from(svg)).png({ compressionLevel: 1 }).toFile(join(srcDir, `${String(i + 1).padStart(3, "0")}.png`));
-  }
-}
 
 function sourceFromVideo(file) {
   const probe = execFileSync("ffprobe", [
@@ -63,12 +54,12 @@ function sourceFromVideo(file) {
   ], { stdio: "inherit" });
 }
 
-if (input) {
-  if (!existsSync(input)) throw new Error(`File not found: ${input}`);
-  sourceFromVideo(input);
-} else {
-  await sourceFromPlaceholder();
+if (!input) {
+  console.error("Usage: npm run hero:build -- path/to/clip.mp4  (see README → Hero footage)");
+  process.exit(1);
 }
+if (!existsSync(input)) throw new Error(`File not found: ${input}`);
+sourceFromVideo(input);
 
 const files = readdirSync(srcDir).filter((f) => f.endsWith(".png")).sort();
 const hash = createHash("sha1");
@@ -119,12 +110,12 @@ const ogSrc = join(srcDir, files[Math.floor(files.length * 0.4)]);
 await sharp(ogSrc).resize(1200, 630, { fit: "cover" }).jpeg({ quality: 78, mozjpeg: true }).toFile(join(heroRoot, version, "og.jpg"));
 
 const manifest = {
+  mode: "sequence",
   version,
   frames: files.length,
   base: `/hero/${version}`,
   desktop: DESKTOP,
   mobile: MOBILE,
-  placeholder: !input,
   builtAt: new Date().toISOString(),
 };
 writeFileSync(join(root, "lib", "site", "hero-manifest.json"), JSON.stringify(manifest, null, 2) + "\n");

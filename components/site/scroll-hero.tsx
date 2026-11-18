@@ -1,330 +1,169 @@
 "use client";
 
 /**
- * Scroll-driven cinematic hero.
+ * Cinematic, scroll-driven hero built from photography.
  *
- * - Server-renders a static poster <picture> + the H1 (good for LCP + SEO).
- * - On capable devices, expands into a tall scroll track with a sticky canvas;
- *   GSAP ScrollTrigger maps scroll progress → frame index of a WebP sequence.
- * - Stays static (poster only, normal height) when the user prefers reduced
- *   motion, has Save-Data on, or is on a slow (2g/3g) connection.
- * - Frames load lazily after first interaction / idle, coarse-to-fine, so the
- *   sequence is scrubbable almost immediately and never blocks first paint.
+ * Arrival → golden-hour estate (slow push-in) → dissolve to the interior
+ * ("the door opens") → soft fade into the page.
  *
- * Swap footage: `npm run hero:build -- path/to/clip.mp4` (see README).
+ * - Server-renders the first photograph (priority, LCP) and the H1.
+ * - GSAP ScrollTrigger (loaded on demand) scrubs transforms/opacity only,
+ *   on a CSS-sticky stage, so it stays smooth on iPhone Safari.
+ * - Reduced motion, Save-Data, or 2G/3G: a calm static hero, no scroll track.
+ *
+ * Real drone footage later? See README → "Hero footage" (sequence mode).
  */
+import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import manifest from "@/lib/site/hero-manifest.json";
 import { PHONE_DISPLAY, PHONE_TEL } from "@/lib/site";
 
-type Mode = "static" | "cinematic";
+export const HERO_EXTERIOR = {
+  src: "/photos/hero-estate-golden-hour.jpg",
+  alt: "Mediterranean-style Palm Beach estate and pool terrace at golden hour",
+};
+const HERO_INTERIOR = {
+  src: "/photos/hero-interior-arched.jpg",
+  alt: "Light-filled living room with arched windows",
+};
 
-const pad = (n: number) => String(n).padStart(3, "0");
-
-function shouldAnimate(): boolean {
-  if (typeof window === "undefined") return false;
+function canAnimate() {
   if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return false;
-  const conn = (navigator as Navigator & {
-    connection?: { saveData?: boolean; effectiveType?: string };
-  }).connection;
-  if (conn?.saveData) return false;
-  if (conn?.effectiveType && /(^|-)2g|3g/.test(conn.effectiveType)) return false;
+  const c = (navigator as Navigator & { connection?: { saveData?: boolean; effectiveType?: string } }).connection;
+  if (c?.saveData) return false;
+  if (c?.effectiveType && /2g|3g/.test(c.effectiveType)) return false;
   return true;
 }
 
-/** Coarse-to-fine load order: every 16th frame, then 8th, 4th, 2nd, rest. */
-function loadOrder(count: number): number[] {
-  const seen = new Set<number>();
-  const order: number[] = [];
-  for (const step of [16, 8, 4, 2, 1]) {
-    for (let i = 0; i < count; i += step) {
-      if (!seen.has(i)) {
-        seen.add(i);
-        order.push(i);
-      }
-    }
-  }
-  if (!seen.has(count - 1)) order.push(count - 1);
-  return order;
-}
-
 export function ScrollHero() {
-  const sectionRef = useRef<HTMLElement>(null);
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const introRef = useRef<HTMLDivElement>(null);
-  const outroRef = useRef<HTMLDivElement>(null);
-  const cueRef = useRef<HTMLDivElement>(null);
-  const shadeRef = useRef<HTMLDivElement>(null);
-  const [mode, setMode] = useState<Mode>("static");
-  const [canvasReady, setCanvasReady] = useState(false);
+  const section = useRef<HTMLElement>(null);
+  const exterior = useRef<HTMLDivElement>(null);
+  const interior = useRef<HTMLDivElement>(null);
+  const shade = useRef<HTMLDivElement>(null);
+  const intro = useRef<HTMLDivElement>(null);
+  const reveal = useRef<HTMLDivElement>(null);
+  const veil = useRef<HTMLDivElement>(null);
+  const cue = useRef<HTMLDivElement>(null);
+  const [cinematic, setCinematic] = useState(false);
 
   useEffect(() => {
-    if (shouldAnimate()) setMode("cinematic");
+    if (canAnimate()) setCinematic(true);
   }, []);
 
   useEffect(() => {
-    if (mode !== "cinematic") return;
-    const section = sectionRef.current;
-    const canvas = canvasRef.current;
-    if (!section || !canvas) return;
-    const ctx = canvas.getContext("2d", { alpha: false });
-    if (!ctx) return;
-
-    let disposed = false;
-    let cleanupGsap: (() => void) | undefined;
-    const count = manifest.frames;
-    const images: (HTMLImageElement | null)[] = new Array(count).fill(null);
-    let portrait = window.innerWidth / window.innerHeight < 1;
-    let current = 0;
-    let drawn = -1;
-
-    const frameUrl = (i: number) =>
-      `${manifest.base}/${portrait ? "m" : "d"}/${pad(i + 1)}.webp`;
-
-    const resize = () => {
-      const dpr = Math.min(window.devicePixelRatio || 1, 2);
-      const w = canvas.clientWidth;
-      const h = canvas.clientHeight;
-      canvas.width = Math.round(w * dpr);
-      canvas.height = Math.round(h * dpr);
-      drawn = -1;
-      draw();
+    if (!cinematic) return;
+    let kill: (() => void) | undefined;
+    let cancelled = false;
+    let started = false;
+    // Defer GSAP until the visitor engages (or the page is idle): keeps first load light.
+    const events = ["scroll", "wheel", "touchstart", "pointerdown", "keydown"] as const;
+    const start = () => {
+      if (started) return;
+      started = true;
+      events.forEach((e) => window.removeEventListener(e, start));
+      void init();
     };
+    events.forEach((e) => window.addEventListener(e, start, { passive: true, once: true }));
+    const idle = window.setTimeout(start, 4000);
 
-    const nearestLoaded = (i: number) => {
-      if (images[i]) return i;
-      for (let d = 1; d < count; d++) {
-        if (i - d >= 0 && images[i - d]) return i - d;
-        if (i + d < count && images[i + d]) return i + d;
-      }
-      return -1;
-    };
-
-    function draw() {
-      const idx = nearestLoaded(current);
-      if (idx < 0 || idx === drawn) return;
-      const img = images[idx]!;
-      const cw = canvas!.width;
-      const ch = canvas!.height;
-      // object-fit: cover
-      const scale = Math.max(cw / img.naturalWidth, ch / img.naturalHeight);
-      const w = img.naturalWidth * scale;
-      const h = img.naturalHeight * scale;
-      ctx!.drawImage(img, (cw - w) / 2, (ch - h) / 2, w, h);
-      drawn = idx;
-      if (!canvasReady) setCanvasReady(true);
-    }
-
-    // Overlay copy: intro fades out early, outro ("Welcome home") fades in at the door.
-    const setOverlay = (p: number) => {
-      const intro = introRef.current;
-      const outro = outroRef.current;
-      const cue = cueRef.current;
-      if (intro) {
-        const o = Math.max(0, 1 - p / 0.18);
-        intro.style.opacity = String(o);
-        intro.style.transform = `translate3d(0, ${-p * 120}px, 0)`;
-        intro.style.visibility = o === 0 ? "hidden" : "visible";
-      }
-      if (shadeRef.current) shadeRef.current.style.opacity = String(Math.max(0, 1 - p / 0.3));
-      if (cue) cue.style.opacity = String(Math.max(0, 1 - p / 0.05));
-      if (outro) {
-        const o = Math.min(1, Math.max(0, (p - 0.9) / 0.08));
-        outro.style.opacity = String(o);
-        outro.style.visibility = o === 0 ? "hidden" : "visible";
-      }
-    };
-
-    // ---- lazy, coarse-to-fine preloading ----
-    let loadingStarted = false;
-    const startLoading = () => {
-      if (loadingStarted || disposed) return;
-      loadingStarted = true;
-      const order = loadOrder(count);
-      let cursor = 0;
-      const CONCURRENCY = 4;
-      const next = () => {
-        if (disposed || cursor >= order.length) return;
-        const i = order[cursor++];
-        const img = new Image();
-        img.decoding = "async";
-        img.src = frameUrl(i);
-        img
-          .decode()
-          .then(() => {
-            if (disposed) return;
-            images[i] = img;
-            if (Math.abs(i - current) < 20 || drawn < 0) {
-              drawn = -1;
-              draw();
-            }
-          })
-          .catch(() => {})
-          .finally(next);
-      };
-      for (let k = 0; k < CONCURRENCY; k++) next();
-    };
-
-    // First frame immediately (it is the same image as the poster: already cached).
-    const first = new Image();
-    first.src = frameUrl(0);
-    first.decode().then(() => {
-      if (disposed) return;
-      images[0] = first;
-      resize();
-    }).catch(() => {});
-
-    const kick = () => startLoading();
-    const interactionEvents = ["scroll", "touchstart", "pointerdown", "keydown", "wheel"] as const;
-    interactionEvents.forEach((e) => window.addEventListener(e, kick, { once: true, passive: true }));
-    const idleTimer = window.setTimeout(kick, 3500);
-
-    const onResize = () => {
-      const nowPortrait = window.innerWidth / window.innerHeight < 1;
-      if (nowPortrait !== portrait) {
-        // orientation changed: switch frame set
-        portrait = nowPortrait;
-        images.fill(null);
-        loadingStarted = false;
-        startLoading();
-      }
-      resize();
-    };
-    window.addEventListener("resize", onResize);
-    resize();
-
-    // ---- GSAP (loaded on demand so it never touches initial JS) ----
-    (async () => {
-      const [{ gsap }, { ScrollTrigger }] = await Promise.all([
-        import("gsap"),
-        import("gsap/ScrollTrigger"),
-      ]);
-      if (disposed) return;
+    const init = async () => {
+      const [{ gsap }, { ScrollTrigger }] = await Promise.all([import("gsap"), import("gsap/ScrollTrigger")]);
+      if (cancelled || !section.current) return;
       gsap.registerPlugin(ScrollTrigger);
-      // iOS Safari: don't recompute on address-bar show/hide.
       ScrollTrigger.config({ ignoreMobileResize: true });
-      const state = { frame: 0 };
-      const tween = gsap.to(state, {
-        frame: count - 1,
-        ease: "none",
-        scrollTrigger: {
-          trigger: section,
-          start: "top top",
-          end: "bottom bottom",
-          scrub: 0.4,
-          onUpdate: (self) => setOverlay(self.progress),
-        },
-        onUpdate: () => {
-          const f = Math.round(state.frame);
-          if (f !== current) {
-            current = f;
-            draw();
-          }
-        },
+
+      const tl = gsap.timeline({
+        defaults: { ease: "none" },
+        scrollTrigger: { trigger: section.current, start: "top top", end: "bottom bottom", scrub: 0.8 },
       });
-      cleanupGsap = () => {
-        tween.scrollTrigger?.kill();
-        tween.kill();
+      // Positions are fractions of the scroll track (total duration = 1).
+      tl.to(exterior.current, { scale: 1.2, yPercent: -3, duration: 0.5 }, 0)
+        .to(cue.current, { autoAlpha: 0, duration: 0.05 }, 0)
+        .to(intro.current, { autoAlpha: 0, y: -48, duration: 0.22 }, 0.02)
+        .to(shade.current, { opacity: 0.3, duration: 0.25 }, 0.05)
+        // "The door opens": a quick, clean dissolve, then a slow settle.
+        .fromTo(interior.current, { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.14, ease: "power1.inOut" }, 0.4)
+        .fromTo(interior.current, { scale: 1.16 }, { scale: 1, duration: 0.6 }, 0.4)
+        .to(shade.current, { opacity: 0.75, duration: 0.12 }, 0.5)
+        .fromTo(reveal.current, { autoAlpha: 0, y: 28 }, { autoAlpha: 1, y: 0, duration: 0.12 }, 0.58)
+        .to(reveal.current, { autoAlpha: 0, y: -20, duration: 0.1 }, 0.84)
+        .to(veil.current, { opacity: 1, duration: 0.1 }, 0.9);
+      kill = () => {
+        tl.scrollTrigger?.kill();
+        tl.kill();
       };
-    })();
-
-    return () => {
-      disposed = true;
-      window.clearTimeout(idleTimer);
-      interactionEvents.forEach((e) => window.removeEventListener(e, kick));
-      window.removeEventListener("resize", onResize);
-      cleanupGsap?.();
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [mode]);
-
-  const cinematic = mode === "cinematic";
+    if (window.scrollY > 0) start();
+    return () => {
+      cancelled = true;
+      window.clearTimeout(idle);
+      events.forEach((e) => window.removeEventListener(e, start));
+      kill?.();
+    };
+  }, [cinematic]);
 
   return (
     <section
-      ref={sectionRef}
+      ref={section}
       aria-labelledby="hero-title"
-      className={`relative bg-navy-deep ${cinematic ? "h-[340svh]" : "h-[88svh] min-h-[560px]"}`}
+      className={`relative -mt-[72px] bg-navy-deep ${cinematic ? "h-[280svh]" : "h-[100svh] min-h-[600px]"}`}
     >
-      <div className="sticky top-0 h-[100svh] min-h-[560px] w-full overflow-hidden">
-        <picture>
-          <source
-            media="(max-aspect-ratio: 1/1)"
-            srcSet={`${manifest.base}/poster-m.webp`}
-            width={manifest.mobile.width}
-            height={manifest.mobile.height}
+      <div className="sticky top-0 h-[100svh] min-h-[600px] w-full overflow-hidden">
+        <div ref={exterior} className="absolute inset-0 will-change-transform">
+          <Image
+            src={HERO_EXTERIOR.src}
+            alt={HERO_EXTERIOR.alt}
+            fill
+            priority
+            quality={72}
+            sizes="100vw"
+            className="object-cover object-[38%_50%]"
           />
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={`${manifest.base}/poster-d.webp`}
-            width={manifest.desktop.width}
-            height={manifest.desktop.height}
-            alt=""
-            fetchPriority="high"
-            decoding="async"
-            className="absolute inset-0 h-full w-full object-cover"
-          />
-        </picture>
-        <canvas
-          ref={canvasRef}
-          aria-hidden="true"
-          className={`absolute inset-0 h-full w-full transition-opacity duration-500 ${
-            cinematic && canvasReady ? "opacity-100" : "opacity-0"
-          }`}
-        />
-        {/* legibility gradient */}
-        <div
-          ref={shadeRef}
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-0 bg-gradient-to-b from-navy-deep/70 via-navy-deep/30 to-navy-deep/10"
-        />
+        </div>
+
+        {cinematic ? (
+          <div ref={interior} className="invisible absolute inset-0 opacity-0 will-change-transform">
+            <Image src={HERO_INTERIOR.src} alt={HERO_INTERIOR.alt} fill quality={70} sizes="100vw" fetchPriority="low" className="object-cover object-[50%_55%]" />
+          </div>
+        ) : null}
 
         <div
-          ref={introRef}
-          className="relative z-10 mx-auto flex h-full max-w-5xl flex-col justify-center px-5 pb-28 pt-10 md:pb-24 md:pt-28 text-center will-change-transform sm:px-8"
-        >
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-cream/90 sm:text-sm">
-            Palm Beach Gardens · Jupiter · North Palm Beach · Palm Beach
-          </p>
-          <h1
-            id="hero-title"
-            className="font-display mt-5 text-[2.6rem] font-medium leading-[1.05] text-white drop-shadow-[0_2px_18px_rgba(8,26,46,0.55)] sm:text-6xl md:text-7xl"
-          >
-            Your home, quietly cared for.
-          </h1>
-          <p className="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-cream sm:text-xl">
-            Discreet home watch and household services for families who live here part of the
-            year — so your home is exactly as it should be, whether you are here or away.
-          </p>
-          <div className="mt-9 flex flex-col items-center justify-center gap-3 sm:flex-row">
-            <a href={PHONE_TEL} className="btn-gold w-full sm:w-auto">
-              Call {PHONE_DISPLAY}
-            </a>
-            <Link href="/quote" className="btn-ghost-light w-full sm:w-auto">
-              Request a private quote
-            </Link>
+          ref={shade}
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(8,26,46,0.72)_0%,rgba(8,26,46,0.35)_38%,rgba(8,26,46,0.55)_100%)]"
+        />
+
+        <div ref={intro} className="relative z-10 flex h-full items-end pb-[22svh] pt-28 md:items-center md:pb-0">
+          <div className="site-container">
+            <p className="text-xs font-medium uppercase tracking-[0.32em] text-cream/85 sm:text-sm">The Palm Beaches · Private property care</p>
+            <h1 id="hero-title" className="font-display mt-5 max-w-4xl text-[2.9rem] font-medium leading-[1.02] text-white sm:text-7xl lg:text-[5.5rem]">
+              Palm Beach homes, impeccably kept.
+            </h1>
+            <p className="mt-6 max-w-xl text-lg leading-relaxed text-cream/90 sm:text-xl">
+              Estate cleaning, grounds and exterior care, detailing, and private home watch. One discreet team for every detail of your property.
+            </p>
+            <div className="mt-9 flex flex-col gap-3 sm:flex-row">
+              <Link href="/quote" className="btn-gold">
+                Request a private quote
+              </Link>
+              <a href={PHONE_TEL} className="btn-ghost-light">
+                Call {PHONE_DISPLAY}
+              </a>
+            </div>
           </div>
         </div>
 
         {cinematic ? (
           <>
-            <div
-              ref={cueRef}
-              aria-hidden="true"
-              className="absolute inset-x-0 bottom-10 z-10 hidden flex-col items-center gap-2 text-sm text-cream/90 md:flex"
-            >
-              <span>Scroll</span>
-              <span className="block h-10 w-px animate-pulse bg-cream/80" />
+            <div ref={reveal} aria-hidden="true" className="invisible absolute inset-0 z-10 flex items-center justify-center px-6 text-center opacity-0">
+              <p className="font-display max-w-3xl text-4xl font-medium leading-tight text-white drop-shadow-[0_2px_24px_rgba(8,26,46,0.6)] sm:text-6xl">
+                Inside, everything exactly as it should be.
+              </p>
             </div>
-            <div
-              ref={outroRef}
-              aria-hidden="true"
-              style={{ opacity: 0, visibility: "hidden" }}
-              className="absolute inset-0 z-10 flex items-center justify-center px-6 text-center"
-            >
-              <p className="font-display text-5xl font-medium text-navy sm:text-7xl">Welcome home.</p>
+            <div ref={cue} aria-hidden="true" className="absolute inset-x-0 bottom-8 z-10 hidden justify-center md:flex">
+              <span className="block h-12 w-px bg-gradient-to-b from-cream/0 via-cream/80 to-cream/0" />
             </div>
+            <div ref={veil} aria-hidden="true" className="pointer-events-none absolute inset-0 z-20 bg-cream opacity-0" />
           </>
         ) : null}
       </div>

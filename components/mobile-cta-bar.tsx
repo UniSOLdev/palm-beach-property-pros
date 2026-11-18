@@ -4,7 +4,7 @@ import { PHONE_DISPLAY, PHONE_TEL, QUOTE_PATH } from "@/lib/site";
 /** Always-visible tap-to-call bar on phones. */
 export function MobileCtaBar() {
   return (
-    <div className="fixed inset-x-0 bottom-0 z-50 border-t border-navy/10 bg-cream/95 pb-[env(safe-area-inset-bottom)] shadow-[0_-8px_30px_rgba(8,26,46,0.15)] backdrop-blur-md md:hidden">
+    <div className="fixed inset-x-0 bottom-0 z-50 border-t border-navy/10 bg-cream/95 pb-[env(safe-area-inset-bottom)] shadow-[0_-8px_30px_rgba(8,26,46,0.15)] backdrop-blur-md lg:hidden">
       <nav className="grid grid-cols-[1.6fr_1fr] gap-2 px-3 py-2.5" aria-label="Quick contact">
         <a
           href={PHONE_TEL}

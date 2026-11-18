@@ -1,5 +1,5 @@
-import heroManifest from "@/lib/site/hero-manifest.json";
-import { FAQS, SERVICE_AREAS, SERVICES, type FaqItem, type Service } from "@/lib/site/content";
+import { CATALOG, type CatalogService } from "@/lib/site/catalog";
+import { FAQS, SERVICE_AREAS, type FaqItem } from "@/lib/site/content";
 import { PHONE_DISPLAY, SITE_DESCRIPTION, SITE_NAME, SITE_URL } from "@/lib/site";
 
 function JsonLd({ data }: { data: object }) {
@@ -12,10 +12,11 @@ function JsonLd({ data }: { data: object }) {
   );
 }
 
-const areaServed = SERVICE_AREAS.map((a) => ({
-  "@type": "City",
-  name: `${a.name}, FL`,
-}));
+const areaServed = [
+  ...SERVICE_AREAS.map((a) => ({ "@type": "City", name: `${a.name}, FL` })),
+  ...["West Palm Beach", "Juno Beach", "Riviera Beach", "Lake Worth Beach", "Boynton Beach", "Delray Beach"].map((n) => ({ "@type": "City", name: `${n}, FL` })),
+  { "@type": "AdministrativeArea", name: "Palm Beach County, FL" },
+];
 
 /** Site-wide LocalBusiness. Service-area business: no street address published (discretion). */
 export function LocalBusinessJsonLd() {
@@ -28,7 +29,7 @@ export function LocalBusinessJsonLd() {
         name: SITE_NAME,
         legalName: "Palm Beach Property Pros LLC",
         url: SITE_URL,
-        image: `${SITE_URL}${heroManifest.base}/og.jpg`,
+        image: `${SITE_URL}/photos/og.jpg`,
         logo: `${SITE_URL}/brand/pbpp-monogram.png`,
         telephone: `+1-${PHONE_DISPLAY}`,
         description: SITE_DESCRIPTION,
@@ -39,11 +40,11 @@ export function LocalBusinessJsonLd() {
           addressCountry: "US",
         },
         areaServed,
-        knowsAbout: SERVICES.map((s) => s.name),
+        knowsAbout: CATALOG.map((s) => s.name),
         hasOfferCatalog: {
           "@type": "OfferCatalog",
-          name: "Home watch and household services",
-          itemListElement: SERVICES.map((s) => ({
+          name: "Property care services",
+          itemListElement: CATALOG.map((s) => ({
             "@type": "Offer",
             itemOffered: { "@type": "Service", name: s.name, url: `${SITE_URL}/services/${s.slug}` },
           })),
@@ -69,7 +70,7 @@ export function FaqJsonLd({ items = FAQS }: { items?: FaqItem[] }) {
   );
 }
 
-export function ServiceJsonLd({ service }: { service: Service }) {
+export function ServiceJsonLd({ service }: { service: CatalogService }) {
   return (
     <JsonLd
       data={{

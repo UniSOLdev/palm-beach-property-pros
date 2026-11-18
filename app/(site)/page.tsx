@@ -3,7 +3,7 @@ import { PremiumHomePage } from "@/components/marketing/premium-home-page";
 import { SITE_DESCRIPTION } from "@/lib/site";
 
 export const metadata: Metadata = {
-  title: { absolute: "Home Watch & Household Services | Palm Beach Gardens, Jupiter & Palm Beach" },
+  title: { absolute: "Palm Beach Property Pros | Luxury Property Care, Cleaning & Home Watch" },
   description: SITE_DESCRIPTION,
   alternates: { canonical: "/" },
 };

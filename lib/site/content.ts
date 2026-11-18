@@ -197,15 +197,15 @@ export function getService(slug: string): Service | undefined {
 export const HOW_IT_WORKS = [
   {
     title: "A private consultation",
-    body: "We talk by phone, then walk your home with you or your representative. We learn how you live, what matters most, and how you like to be kept informed.",
+    body: "A short call, then a walk-through of your property, with you or your representative. We learn the home, its systems, and your standards.",
   },
   {
-    title: "A plan for your home",
-    body: "You receive a written plan — visit schedule, checklist, access, and contacts — tailored to your home and your calendar. No packages you don't need.",
+    title: "A written plan & quote",
+    body: "A clear scope and schedule for every service you choose, quoted privately. One-time projects or recurring care, with no packages you don't need.",
   },
   {
-    title: "Regular check-ins & photo reports",
-    body: "After every visit you receive a dated photo report. If something needs attention, you hear from us the same day, with options — never surprises.",
+    title: "Consistent care, documented",
+    body: "The same trained team, the same checklist, every visit. Dated photo documentation after each service, and a same-day call if anything needs attention.",
   },
 ] as const;
 
@@ -224,14 +224,14 @@ export const TESTIMONIALS = [
   },
   {
     quote:
-      "The house is cool, the refrigerator is stocked, and the cushions are out when we walk in. It's the first thing that feels like home after the flight.",
+      "The pavers, the pool deck, the windows. Everything looked better than the day we bought the house. Punctual, careful, and they leave nothing behind but a clean property.",
     name: "Richard",
     area: "Jupiter",
     placeholder: true,
   },
   {
     quote:
-      "One phone call and everything is handled — the pool company, the A/C service, the window cleaners. Quiet, punctual, and completely trustworthy.",
+      "They detail both cars in our garage every other week and keep the house guest-ready between visits. One call and it's handled. Completely trustworthy.",
     name: "Susan",
     area: "North Palm Beach",
     placeholder: true,
@@ -268,8 +268,13 @@ export const FAQS: FaqItem[] = [
       "Your home is visited on the schedule we agree on, with a report after each visit. If something comes up — a leak, a power outage, a delivery, a vendor who needs to be let in — you have one person to call, and we handle it and let you know when it's done.",
   },
   {
+    question: "Which areas do you serve?",
+    answer:
+      "We serve Palm Beach Gardens, Jupiter, North Palm Beach, and Palm Beach, plus nearby communities across Palm Beach County for cleaning, exterior, and detailing work. Not sure? Call us and ask.",
+  },
+  {
     question: "Why don't you list prices?",
     answer:
-      "Every home and every owner's needs are different, so we quote privately after a short conversation. Call us or send a request and you'll receive a clear, written quote with no obligation.",
+      "Every property and every scope is different, so we quote privately after a short conversation or walk-through. Call us or send a request and you'll receive a clear, written quote with no obligation.",
   },
 ];

@@ -43,6 +43,7 @@ export default function TheDivePage() {
         title="The Pool"
         body="Golden hour on the terrace. Fallen leaves drift to the skimmer and the water clears itself, then we dive in."
         quoteHref={quote("Property Maintenance")}
+        priority
       />
 
       <ScrollChapter

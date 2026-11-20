@@ -16,8 +16,10 @@ caption and a "Request a private quote" link for that service.
 | 3 | **The Glass**: streaked floor-to-ceiling glass wipes crystal clear onto the ocean view | Window cleaning | `glass.py` | sun flare |
 | 4 | **The Grounds**: out over travertine and pavers as dark, weathered stone washes bright; manicured hedges and royal palms | Pressure washing, landscape, maintenance | `grounds.py` | spray mist |
 | 5 | **The Motor Court**: foam cannon blankets an unbranded sedan; rinse reveals mirror paint | Auto detailing | `foam_cannon.py` + `car_spin.py` | foam |
-| 6 | **The Marina**: golden-hour orbit of an 80-ft motor yacht | Marine detailing *(confirm offered)* | `yacht_orbit.py` | dive below the waterline |
-| 7 | **Beneath**: the diver works along the hull; growth gives way to gleaming gelcoat; camera tilts up to the light | Hull cleaning *(confirm offered)* | `hull_clean.py` | bright surface → page footer |
+| 6 | **The Marina**: golden-hour orbit of an 80-ft motor yacht | **Not offered: chapter cut (Nov 2026)** | `yacht_orbit.py` | dive below the waterline |
+| 7 | **Beneath**: the diver works along the hull; growth gives way to gleaming gelcoat; camera tilts up to the light | **Not offered: chapter cut (Nov 2026)** | `hull_clean.py` | bright surface → page footer |
+
+The live story ends at Chapter 5 (The Motor Court), followed by a closing "Request a private quote".
 
 ## Art direction: Palm Beach luxury
 - **Light:** golden hour (sun 7–15° elevation, warm 3200–4000 K), long soft shadows, gentle haze. Interiors bright and airy, as if late-morning light came through linen.

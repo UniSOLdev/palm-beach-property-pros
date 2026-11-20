@@ -799,8 +799,8 @@ def mat_striped_lawn(stripe_m=1.6):
     noise.inputs["Scale"].default_value = 2.5
     L.new(geo.outputs["Position"], noise.inputs["Vector"])
     ramp = N.new("ShaderNodeValToRGB")
-    ramp.color_ramp.elements[0].color = (0.045, 0.095, 0.022, 1)
-    ramp.color_ramp.elements[1].color = (0.085, 0.15, 0.035, 1)
+    ramp.color_ramp.elements[0].color = (0.030, 0.075, 0.014, 1)
+    ramp.color_ramp.elements[1].color = (0.065, 0.13, 0.025, 1)
     mixf = N.new("ShaderNodeMath")
     mixf.operation = "MULTIPLY_ADD"
     mixf.inputs[1].default_value = 0.75

@@ -122,7 +122,7 @@ glass, steel = see_through_glass(), mat_steel()
 _gn = glass.node_tree.nodes
 for node in _gn:
     if node.bl_idname == "ShaderNodeBsdfTransparent":
-        node.inputs["Color"].default_value = (0.90, 0.93, 0.93, 1)
+        node.inputs["Color"].default_value = (0.95, 0.95, 0.94, 1)
     if node.bl_idname == "ShaderNodeMath" and node.operation == "MULTIPLY_ADD":
         node.inputs[1].default_value = 0.45
         node.inputs[2].default_value = 0.01

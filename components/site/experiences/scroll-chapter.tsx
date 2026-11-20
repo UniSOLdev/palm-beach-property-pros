@@ -28,9 +28,13 @@ type Props = {
   quoteHref?: string;
   /** scroll length in viewport heights */
   length?: number;
+  /** first chapter on the page: its poster is the LCP image, so load it eagerly */
+  priority?: boolean;
 };
 
-export function ScrollChapter({ id, manifest, number, title, body, service, quoteHref = "/quote", length = 360 }: Props) {
+export function ScrollChapter({
+  id, manifest, number, title, body, service, quoteHref = "/quote", length = 360, priority = false,
+}: Props) {
   const sectionRef = useRef<HTMLElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const captionRef = useRef<HTMLDivElement>(null);
@@ -178,7 +182,8 @@ export function ScrollChapter({ id, manifest, number, title, body, service, quot
             width={manifest.desktop.width}
             height={manifest.desktop.height}
             alt=""
-            loading="lazy"
+            loading={priority ? "eager" : "lazy"}
+            fetchPriority={priority ? "high" : "auto"}
             decoding="async"
             className="absolute inset-0 h-full w-full object-cover"
           />

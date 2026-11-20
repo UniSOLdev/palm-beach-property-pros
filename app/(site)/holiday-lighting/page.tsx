@@ -15,7 +15,15 @@ export const metadata: Metadata = {
   },
 };
 
-const QUOTE = `/quote?service=${encodeURIComponent("Holiday Lighting")}`;
+/** Carry ad / referral tags (utm_*) through to the quote form so paid leads stay attributed. */
+function quoteHref(sp: Record<string, string | string[] | undefined>) {
+  const q = new URLSearchParams({ service: "Holiday Lighting" });
+  for (const k of ["utm_source", "utm_medium", "utm_campaign", "utm_content"]) {
+    const v = sp[k];
+    if (typeof v === "string" && v) q.set(k, v.slice(0, 80));
+  }
+  return `/quote?${q.toString()}`;
+}
 
 const LIGHT = [
   { title: "Rooflines & facade", body: "Clean, continuous warm-white lines along the eaves and the string course, measured to your architecture." },
@@ -31,7 +39,12 @@ const STEPS = [
   { n: "04", title: "Take-down", body: "After the holidays everything comes down at a time that suits you." },
 ];
 
-export default function HolidayLightingPage() {
+export default async function HolidayLightingPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
+  const QUOTE = quoteHref(await searchParams);
   return (
     <>
       <section className="relative -mt-[72px] overflow-hidden bg-navy-deep md:flex md:min-h-[92svh] md:items-end">

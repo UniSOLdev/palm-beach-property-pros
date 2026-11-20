@@ -37,7 +37,12 @@ export default function HolidayLightingPage() {
     <>
       <section className="relative -mt-[72px] overflow-hidden bg-navy-deep md:flex md:min-h-[92svh] md:items-end">
         <picture>
+          {/* Phones get a 4:5 crop; AVIF (~26 KB on a phone) with WebP and JPEG fallbacks. */}
+          <source media="(max-aspect-ratio: 1/1)" type="image/avif" sizes="100vw" srcSet="/photos/holiday-lighting-portrait-540.avif 540w, /photos/holiday-lighting-portrait-828.avif 828w, /photos/holiday-lighting-portrait-1080.avif 1080w" />
+          <source media="(max-aspect-ratio: 1/1)" type="image/webp" sizes="100vw" srcSet="/photos/holiday-lighting-portrait-540.webp 540w, /photos/holiday-lighting-portrait-828.webp 828w, /photos/holiday-lighting-portrait-1080.webp 1080w" />
           <source media="(max-aspect-ratio: 1/1)" srcSet="/photos/holiday-lighting-portrait.jpg" />
+          <source type="image/avif" sizes="100vw" srcSet="/photos/holiday-lighting-estate-960.avif 960w, /photos/holiday-lighting-estate-1600.avif 1600w" />
+          <source type="image/webp" sizes="100vw" srcSet="/photos/holiday-lighting-estate-960.webp 960w, /photos/holiday-lighting-estate-1600.webp 1600w" />
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src="/photos/holiday-lighting-estate.jpg"
@@ -45,6 +50,7 @@ export default function HolidayLightingPage() {
             width={1600}
             height={900}
             fetchPriority="high"
+            decoding="async"
             className="block h-auto w-full md:absolute md:inset-0 md:h-full md:object-cover"
           />
         </picture>

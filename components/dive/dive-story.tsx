@@ -98,10 +98,14 @@ export function DiveStory({ chapters, hero, theme, skipHref, skipLabel = "Skip t
     if (window.scrollY > 0) engage();
     const onResize = () => stores.forEach((s) => s.setPortrait(portrait()));
     window.addEventListener("resize", onResize);
-    const io = new IntersectionObserver(([e]) => {
-      inView.current = e.isIntersecting;
-      syncRail();
-    });
+    // the rail shows only while the story covers the middle of the screen
+    const io = new IntersectionObserver(
+      ([e]) => {
+        inView.current = e.isIntersecting;
+        syncRail();
+      },
+      { rootMargin: "-50% 0px -50% 0px" },
+    );
     if (wrapRef.current) io.observe(wrapRef.current);
     return () => {
       window.clearTimeout(idle);

@@ -1,9 +1,7 @@
 import { FaqJsonLd } from "@/components/json-ld";
-import { ScrollHero } from "@/components/site/scroll-hero";
-import { SequenceHero, heroMode } from "@/components/site/sequence-hero";
+import { HomeStory } from "@/components/site/home-story";
 import {
   ClosingCta,
-  DetailingFeature,
   FaqSection,
   HowItWorksSection,
   Intro,
@@ -18,10 +16,10 @@ export function PremiumHomePage() {
   return (
     <>
       <FaqJsonLd />
-      {heroMode === "sequence" ? <SequenceHero /> : <ScrollHero />}
+      {/* The Dive: five-chapter scroll story (holds the H1), then the drag-to-spin car */}
+      <HomeStory />
       <Intro />
       <ServicesShowcase />
-      <DetailingFeature />
       <PrivateClientSection />
       <HowItWorksSection />
       <TrustSection />

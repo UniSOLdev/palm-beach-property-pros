@@ -31,6 +31,8 @@ const nextConfig: NextConfig = {
   async redirects() {
     return [
       { source: "/contact", destination: "/quote", permanent: true },
+      // The Dive moved to the homepage (Nov 2026).
+      { source: "/the-dive", destination: "/", permanent: true },
     ];
   },
   async headers() {

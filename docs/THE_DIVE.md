@@ -25,7 +25,8 @@ caption and a "Request a private quote" link for that service.
 - **Landscape:** royal and coconut palms, clipped ficus and podocarpus hedges, bougainvillea accents, striped manicured turf. No clutter.
 - **Water:** clear turquoise with visible caustics. Pool mosaic in pale aqua and white.
 - **Interiors:** white oak and marble, linen upholstery, brass hardware, fresh white hydrangeas. Minimal and immaculate.
-- **Vehicles and yachts:** unbranded; deep navy, black, or pearl white paint; no plates, hull names, or logos.
+- **Vehicles:** Rolls-Royce / Ferrari-class presence: a long-hood grand saloon in two-tone or deep navy, or a V12 GT in rosso or pearl white. **No badges, hood ornaments, wordmarks, or plates**, to avoid implying a manufacturer endorsement. Best of all: real client cars, filmed with written permission.
+- **Yachts:** no hull names, logos, or registration numbers.
 - **Palette:** cream `#FAF8F4`, navy `#081A2E`, brass `#C2A06A`, aqua.
 - **Camera:** slow, steady, constant-speed gimbal moves; 24–35 mm for spaces, 50–85 mm for the car; no shake, no motion blur.
 - **Never:** recognizable real homes or communities, people's faces (the diver's face stays behind the mask), text or numbers in frame, cartoon looks.
@@ -36,7 +37,7 @@ caption and a "Request a private quote" link for that service.
 | Estate exterior + pool | "Mediterranean villa", "Spanish revival mansion", "luxury villa pool" | $60–150 |
 | Royal palms pack | "royal palm", "Roystonea", "palm tree pack Cycles" | $20–60 |
 | Luxury interior | "luxury living room interior Blender", "Evermotion Archinteriors" (one scene) | $30–80 |
-| Car | "generic sports sedan", "unbranded luxury car" (remove badges) | $40–120 |
+| Car (hero) | Rolls-Royce-class grand saloon or Ferrari-class V12 GT look: "luxury grand saloon", "Italian GT coupe". **Commercial license required** (skip "editorial use only"). Remove all badges, hood ornaments, and wordmarks | $60–200 |
 | Motor yacht ~80 ft | "motor yacht 80ft", "superyacht" | $40–120 |
 | Scuba diver, rigged | "scuba diver rigged", "diver with tank" (mask on) | $30–80 |
 | HDRIs and textures | polyhaven.com (free, CC0) | $0 |

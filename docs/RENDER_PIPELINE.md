@@ -11,7 +11,7 @@ website consumes compressed WebP frame sequences.
 
 ## Brand rules (non-negotiable)
 - Photoreal only. No stylized or cartoon looks.
-- **Unbranded** vehicles and yachts: no manufacturer badges or logos, and **no license plates or hull names**.
+- Rolls-Royce / Ferrari-class vehicles are welcome, but **badges, hood ornaments, and wordmarks are removed**, and models must have a commercial license (no "editorial use only"). No license plates, no hull names.
 - Homes must be **fictional**: never a recognizable real property or community, and no house numbers or gates.
 - No people.
 - Palette: golden hour, warm whites, deep navy, brass accents. Calm, slow, premium camera moves.

@@ -22,7 +22,7 @@ from mathutils import Vector  # noqa: E402
 
 from common import (  # noqa: E402
     ASSETS, camera, import_model, normalize, parse_args, pbr_textures, render_frames,
-    reset_scene, setup_render, sun_light, world_hdri,
+    reset_scene, setup_render, sun_light, world_hdri, golden_hour, dof,
 )
 from procedural import (  # noqa: E402
     _arch_cutter, _arch_panel, _box, hydrangea, leafy_hedge, mat_canvas, mat_steel, royal_palm,
@@ -39,8 +39,9 @@ n = args.frames
 scene.frame_start, scene.frame_end = 1, n
 
 # late-morning light pouring in through the windows on the +Y wall
-world_hdri(scene, args.hdri or (str(HDRI) if HDRI.exists() else None), strength=1.1, rotation_deg=60)
-sun = sun_light("Sun", (58, 0, 168), strength=5.5, color=(1.0, 0.93, 0.82), angle_deg=1.0)
+# late-afternoon sun low through the arched windows: long warm shafts across the marble
+sun = golden_hour(scene, azimuth_deg=58, elevation_deg=17.0, sky_strength=0.3, sun_strength=7.0,
+                  color=(1.0, 0.78, 0.55), angle_deg=0.7)
 
 W, D, H = 12.0, 8.0, 4.4          # room: x width, y depth, height
 coll = bpy.context.scene.collection
@@ -191,10 +192,13 @@ _box("Terrace", (40, 30, 0.1), (0, D / 2 + 15.4, -0.3), lawn, coll)
 for k, x in enumerate((-9.0, -4.2, 4.6, 9.5)):
     p = royal_palm(f"GardenPalm{k}", height=12.5 + k % 2, seed=30 + k)
     p.location = (x, D / 2 + 11.0 + (k % 2) * 3.0, -0.3)
-# clipped ficus hedge closing the garden (no bare horizon through the windows)
+# low clipped hedge at the end of the lawn, the sea beyond
 hedge_m = mat("HedgeBase", (0.02, 0.05, 0.015), 0.8)
-gh = _box("GardenHedge", (34, 1.4, 3.4), (0, D / 2 + 17.5, 1.4), hedge_m, coll)
+gh = _box("GardenHedge", (34, 1.2, 1.0), (0, D / 2 + 22.0, 0.25), hedge_m, coll)
 leafy_hedge(gh, density=500.0, seed=7)
+# the sea beyond the garden, catching the low sun (same coast as Chapter 3)
+sea_m = mat("SeaFar", (0.012, 0.05, 0.075), 0.12)
+_box("SeaFar", (2000, 1500, 0.1), (0, D / 2 + 30.5 + 750, -0.6), sea_m, coll)
 
 # ---- furniture
 linen = mat("Linen", (0.80, 0.76, 0.68), 0.95, Sheen_Weight=0.4)
@@ -243,27 +247,44 @@ hydrangea("Hydrangea0", (-1.45, 0.25, 0.80), 0.13, coll, seed=1)
 hydrangea("Hydrangea1", (-2.9, 2.35, 0.98), 0.12, coll, seed=2)
 hydrangea("Hydrangea2", (-1.30, 0.40, 0.76), 0.10, coll, seed=3)
 
-# ---- camera: surface into light, glide toward the centre window
+# ---- light shafts: a thin volume filling the room (only inside, so the garden stays crisp)
+haze = bpy.data.materials.new("RoomHaze")
+haze.use_nodes = True
+hn = haze.node_tree.nodes
+hn.remove(hn["Principled BSDF"])
+vol = hn.new("ShaderNodeVolumePrincipled")
+vol.inputs["Density"].default_value = 0.008
+vol.inputs["Anisotropy"].default_value = 0.3
+vol.inputs["Color"].default_value = (1.0, 0.95, 0.88, 1)
+haze.node_tree.links.new(vol.outputs[0], hn["Material Output"].inputs["Volume"])
+bpy.ops.mesh.primitive_cube_add(size=1, location=(0, 0.0, 2.2))
+hz = bpy.context.active_object
+hz.name = "RoomHaze"
+hz.scale = (12.5, 7.6, 4.4)
+hz.data.materials.append(haze)
+hz.visible_shadow = False
+scene.cycles.volume_bounces = 1
+
+# ---- camera: a slow lateral glide across the salon, racking focus from the flowers to the light
 cam = camera(lens=26, location=(0.6, -3.6, 1.15), target=(0.0, 4.0, 1.6))
 cam.data.clip_start = 0.02
 target = bpy.data.objects.new("CamTarget", None)
 coll.objects.link(target)
 tc = cam.constraints.new("TRACK_TO")
 tc.target, tc.track_axis, tc.up_axis = target, "TRACK_NEGATIVE_Z", "UP_Y"
-for frac, loc, look in ((0.0, (0.6, -3.6, 1.15), (0.0, 4.0, 1.5)),
-                        (0.55, (0.25, -0.2, 1.45), (0.0, 4.0, 1.9)),
-                        (1.0, (0.0, 2.95, 1.95), (0.0, 4.5, 2.0))):
+for frac, loc, look in ((0.0, (-3.6, -3.2, 1.05), (-0.6, 3.0, 1.2)),
+                        (0.5, (-0.6, -2.6, 1.3), (0.6, 4.0, 1.7)),
+                        (1.0, (2.4, -1.4, 1.55), (0.4, 4.5, 2.0))):
     f = 1 + round(frac * (n - 1))
     cam.location = loc
     cam.keyframe_insert("location", frame=f)
     target.location = look
     target.keyframe_insert("location", frame=f)
 
-# opening flash: exposure falls from +4 to 0 over the first ~12% ("surfacing into light")
-vs = scene.view_settings
-vs.exposure = 4.0
-vs.keyframe_insert("exposure", frame=1)
-vs.exposure = 0.0
-vs.keyframe_insert("exposure", frame=1 + round(0.12 * (n - 1)))
+dof(cam, 3.6, fstop=2.8)
+for frac, d in ((0.0, 3.6), (0.35, 4.2), (1.0, 6.5)):
+    cam.data.dof.focus_distance = d
+    cam.data.dof.keyframe_insert("focus_distance", frame=1 + round(frac * (n - 1)))
+scene.view_settings.exposure = -1.1
 
 render_frames(scene, args)

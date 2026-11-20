@@ -39,6 +39,10 @@ const loop = has("loop");
 // Optional portrait renders for phones (same frame numbers); otherwise phones get a 9:16 centre crop.
 // Poster (static fallback + first paint): "first" (default) or "last" frame.
 const posterPick = opt("poster", "first");
+// Film finish: soft highlight bloom + gentle vignette (pass --no-grade to skip).
+const doGrade = !has("no-grade");
+const bloom = Number(opt("bloom", 0.42));
+const vig = Number(opt("vignette", 0.28));
 const msrc = opt("msrc", "") ? resolve(root, opt("msrc", "")) : "";
 if (!name || !existsSync(src)) {
   console.error("Usage: --src <frames dir> --name <package> [--variant v] [--start --end --step] [--loop]");
@@ -71,7 +75,25 @@ async function encode(file, out, w, h, q, mobile) {
     const cw = Math.round((meta.height * 9) / 16);
     img = img.extract({ left: Math.round((meta.width - cw) / 2), top: 0, width: cw, height: meta.height });
   }
-  return img.resize(w, h, { fit: "cover" }).toColourspace("srgb").webp({ quality: q, effort: 5 }).toFile(out);
+  const base = await img.resize(w, h, { fit: "cover" }).removeAlpha().toColourspace("srgb").png().toBuffer();
+  if (!doGrade) return sharp(base).webp({ quality: q, effort: 5 }).toFile(out);
+  return sharp(base).composite(await finish(base, w, h)).webp({ quality: q, effort: 5 }).toFile(out);
+}
+
+/** Bloom from the brightest third of the image, screened back on; radial vignette multiplied. */
+async function finish(base, w, h) {
+  const glow = await sharp(base)
+    .linear(3.0, -2.0 * 255)
+    .blur(Math.max(1, Math.max(w, h) / 70))
+    .linear(bloom, 0)
+    .png()
+    .toBuffer();
+  const edge = Math.round(255 * (1 - vig));
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}"><defs><radialGradient id="v" cx="50%" cy="48%" r="75%"><stop offset="55%" stop-color="#fff"/><stop offset="100%" stop-color="rgb(${edge},${edge},${edge})"/></radialGradient></defs><rect width="100%" height="100%" fill="url(#v)"/></svg>`;
+  return [
+    { input: glow, blend: "screen" },
+    { input: Buffer.from(svg), blend: "multiply" },
+  ];
 }
 
 let bytesD = 0;

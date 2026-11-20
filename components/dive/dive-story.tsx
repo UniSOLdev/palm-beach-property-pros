@@ -19,6 +19,7 @@ import Link from "next/link";
 import { type CSSProperties, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { drawBlend, FrameStore, isCoarsePointer, shouldAnimate, sizeCanvas } from "./frames";
 import type { DiveChapter, DiveHero, DiveTheme } from "./types";
+import "./dive.css";
 
 type Props = {
   chapters: DiveChapter[];
@@ -33,6 +34,27 @@ type Props = {
 };
 
 const pad2 = (n: number) => String(n).padStart(2, "0");
+const clamp01 = (x: number) => Math.max(0, Math.min(1, x));
+
+/** Headline split into masked words that rise in one after another (driven by scroll or CSS). */
+function Words({ text, className = "" }: { text: string; className?: string }) {
+  return (
+    <>
+      {text.split(" ").map((w, i) => (
+        <span key={i} className={`inline-block overflow-hidden pb-[0.12em] align-bottom ${className}`}>
+          <span data-w={i} className="dive-word inline-block will-change-transform" style={{ ["--i" as string]: i } as CSSProperties}>
+            {w}
+            {" "}
+          </span>
+        </span>
+      ))}
+    </>
+  );
+}
+
+/** Static film grain (SVG noise), blended over the frames: reads as film, costs one composited layer. */
+const GRAIN =
+  "url(\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.5 0 0 0 0 0.5 0 0 0 0 0.5 0 0 0 1.2 -0.1'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>\")";
 
 /** 0..1 opacity of a beat at progress p, with soft edges. A beat starting at 0 or ending at 1 holds there. */
 function ramp(p: number, from: number, to: number, edge = 0.05) {
@@ -340,14 +362,24 @@ function Stage({ chapter: c, index, total, hero, theme, animated, touch, store, 
     window.addEventListener("resize", resize);
     resize();
 
+    const words = layers.current.map((el) => (el ? Array.from(el.querySelectorAll<HTMLElement>("[data-w]")) : []));
     const overlay = (p: number) => {
+      // slow push-in: the camera keeps drifting even between rendered frames
+      cv.style.transform = `scale(${1.012 + 0.05 * p})`;
       windows.forEach(([from, to], k) => {
         const el = layers.current[k];
         if (!el) return;
         const o = ramp(p, from, to);
         el.style.opacity = String(o);
-        el.style.transform = `translate3d(0, ${(1 - o) * (p < from + 0.05 ? 18 : -12)}px, 0)`;
+        el.style.transform = `translate3d(0, ${(1 - o) * (p < from + 0.05 ? 14 : -10)}px, 0)`;
         el.style.visibility = o > 0.001 ? "visible" : "hidden";
+        // masked word reveal on the way in (the hero animates by CSS on load instead)
+        if (hero && k === 0) return;
+        const t = clamp01((p - from) / 0.09);
+        words[k].forEach((w, i) => {
+          const wt = clamp01(t * 1.7 - i * 0.14);
+          w.style.transform = `translate3d(0, ${(1 - wt) * 108}%, 0)`;
+        });
       });
       const v = veil.current;
       if (v) {
@@ -429,9 +461,15 @@ function Stage({ chapter: c, index, total, hero, theme, animated, touch, store, 
         <canvas
           ref={canvas}
           aria-hidden="true"
-          className={`absolute inset-0 h-full w-full transition-opacity duration-700 ${animated && ready ? "opacity-100" : "opacity-0"}`}
+          className={`absolute inset-0 h-full w-full origin-[50%_45%] transition-opacity duration-700 ${animated && ready ? "opacity-100" : "opacity-0"}`}
         />
         <div aria-hidden="true" className="pointer-events-none absolute inset-0" style={{ background: shade }} />
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0"
+          style={{ background: "radial-gradient(120% 90% at 50% 45%, transparent 55%, rgb(0 0 0 / 0.38) 100%)" }}
+        />
+        <div aria-hidden="true" className="pointer-events-none absolute inset-0 opacity-[0.07] mix-blend-overlay" style={{ backgroundImage: GRAIN }} />
 
         {hero ? (
           <div ref={setLayer(k++)} className="absolute inset-0 z-10 will-change-transform">
@@ -443,7 +481,9 @@ function Stage({ chapter: c, index, total, hero, theme, animated, touch, store, 
             <div className="relative flex h-full items-end pb-[22svh] pt-28 md:items-center md:pb-0">
               <div className="mx-auto w-full max-w-6xl px-5 sm:px-8">
                 <p className="text-xs font-medium uppercase tracking-[0.32em] opacity-85 sm:text-sm">{hero.kicker}</p>
-                <h1 className={`${display} mt-5 max-w-4xl text-[2.9rem] font-medium leading-[1.02] sm:text-7xl lg:text-[5.5rem]`}>{hero.title}</h1>
+                <h1 className={`${display} dive-hero-title mt-5 max-w-4xl text-[2.9rem] font-medium leading-[1.02] sm:text-7xl lg:text-[5.5rem]`}>
+                  <Words text={hero.title} />
+                </h1>
                 <p className="mt-6 max-w-xl text-lg leading-relaxed opacity-90 sm:text-xl">{hero.lead}</p>
                 <div className="mt-9 flex flex-col gap-3 sm:flex-row">{hero.actions}</div>
                 {animated ? (
@@ -469,10 +509,16 @@ function Stage({ chapter: c, index, total, hero, theme, animated, touch, store, 
             <span className="mx-2 opacity-60">·</span>
             {c.service}
           </p>
-          <h2 id={`${c.id}-title`} className={`${display} mt-3 text-4xl font-medium leading-tight sm:text-6xl`}>
-            {c.title}
+          <span
+            aria-hidden="true"
+            className={`${display} pointer-events-none absolute -top-[0.62em] left-3 select-none text-[9rem] font-medium leading-none opacity-[0.16] sm:left-6 sm:text-[15rem]`}
+          >
+            {pad2(index + 1)}
+          </span>
+          <h2 id={`${c.id}-title`} className={`${display} relative mt-3 text-5xl font-medium leading-[1.02] sm:text-7xl lg:text-8xl`}>
+            {animated ? <Words text={c.title} /> : c.title}
           </h2>
-          <p className="mt-4 max-w-xl text-base leading-relaxed opacity-90 sm:text-lg">{c.body}</p>
+          <p className="relative mt-5 max-w-xl text-base leading-relaxed opacity-90 sm:text-lg">{c.body}</p>
           {!animated ? (
             <Link href={c.cta.href} className={`${cta} mt-7 inline-flex`}>
               {c.cta.label}
@@ -491,7 +537,9 @@ function Stage({ chapter: c, index, total, hero, theme, animated, touch, store, 
                 <div className="max-w-3xl">
                   {b.kicker ? <p className="text-xs font-semibold uppercase tracking-[0.28em] opacity-80">{b.kicker}</p> : null}
                   {b.title ? (
-                    <p className={`${display} mt-3 text-4xl font-medium leading-tight drop-shadow-[0_2px_24px_rgba(0,0,0,0.45)] sm:text-6xl`}>{b.title}</p>
+                    <p className={`${display} mt-3 text-4xl font-medium leading-tight drop-shadow-[0_2px_24px_rgba(0,0,0,0.45)] sm:text-6xl lg:text-7xl`}>
+                      <Words text={b.title} />
+                    </p>
                   ) : null}
                   {b.body ? <p className="mx-auto mt-4 max-w-xl text-base leading-relaxed opacity-90 sm:text-lg">{b.body}</p> : null}
                 </div>

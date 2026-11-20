@@ -17,7 +17,7 @@ import bpy  # noqa: E402
 
 from common import (  # noqa: E402
     ASSETS, camera, parse_args, pbr_textures, render_frames, reset_scene, setup_render,
-    sun_light, world_hdri,
+    sun_light, world_hdri, golden_hour, dof,
 )
 from procedural import _box, estate, leafy_hedge, mat_striped_lawn, royal_palm  # noqa: E402
 
@@ -32,8 +32,9 @@ scene.frame_start, scene.frame_end = 1, n
 coll = scene.collection
 
 # golden hour, sun behind-left of camera so the facade and wet stone catch it
-world_hdri(scene, args.hdri or (str(HDRI) if HDRI.exists() else None), strength=0.9, rotation_deg=-100.5)
-sun_light("Sun", (74, 0, -35), strength=4.5, color=(1.0, 0.82, 0.6), angle_deg=0.6)
+# golden hour from camera-left: the facade glows warm, palm shadows rake across the court
+golden_hour(scene, azimuth_deg=-96, elevation_deg=6.5, sky_strength=0.4, sun_strength=5.5,
+            color=(1.0, 0.74, 0.5), angle_deg=0.6)
 
 COURT_W, COURT_D = 16.0, 26.0          # x width, y depth (court runs away from camera)
 f_start, f_end = round(0.08 * n), round(0.85 * n)
@@ -201,17 +202,17 @@ coll.objects.link(tgt)
 tcn = cam.constraints.new("TRACK_TO")
 tcn.target, tcn.track_axis, tcn.up_axis = tgt, "TRACK_NEGATIVE_Z", "UP_Y"
 for frac, loc, look in ((0.0, (0.0, -7.0, 0.55), (0.0, 8.0, 0.9)),
-                        (0.6, (0.3, 2.0, 0.9), (0.0, 16.0, 1.6)),
-                        (1.0, (0.4, FRONT_Y1 - 1.5, 1.4), (0.0, FRONT_Y1 + 6, 1.2))):
+                        (0.6, (0.3, 1.5, 0.75), (0.0, 16.0, 1.5)),
+                        (1.0, (2.2, 6.5, 1.25), (-0.6, 24.0, 2.9))):
     f = 1 + round(frac * (n - 1))
     cam.location = loc
     cam.keyframe_insert("location", frame=f)
     tgt.location = look
     tgt.keyframe_insert("location", frame=f)
-vs = scene.view_settings
-vs.exposure = 0.0
-vs.keyframe_insert("exposure", frame=round(0.9 * n))
-vs.exposure = 3.5
-vs.keyframe_insert("exposure", frame=n)
+dof(cam, 9.0, fstop=4.0)
+for frac, d in ((0.0, 9.0), (0.6, 12.0), (1.0, 16.0)):
+    cam.data.dof.focus_distance = d
+    cam.data.dof.keyframe_insert("focus_distance", frame=1 + round(frac * (n - 1)))
+scene.view_settings.exposure = -0.4
 
 render_frames(scene, args)

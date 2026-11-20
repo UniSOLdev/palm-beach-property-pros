@@ -231,6 +231,30 @@ def sun_light(name, rotation_deg, strength=3.0, color=(1.0, 0.86, 0.68), angle_d
     return obj
 
 
+def golden_hour(scene, azimuth_deg, elevation_deg, sky_strength=0.45, sun_strength=4.0,
+                color=(1.0, 0.76, 0.52), angle_deg=0.8, name="Sun"):
+    """Physical sky + matching sun lamp, so the visible sun, sky glow and shadows agree.
+    azimuth is a compass bearing in the scene: 0 = sun towards +Y, 90 = towards +X."""
+    world_sky(scene, sun_elevation_deg=elevation_deg, sun_rotation_deg=azimuth_deg, strength=sky_strength)
+    el, az = math.radians(elevation_deg), math.radians(azimuth_deg)
+    d = Vector((math.cos(el) * math.sin(az), math.cos(el) * math.cos(az), math.sin(el)))
+    sun = sun_light(name, (0, 0, 0), strength=sun_strength, color=color, angle_deg=angle_deg)
+    sun.rotation_euler = (-d).to_track_quat("-Z", "Y").to_euler()
+    return sun
+
+
+def dof(cam, focus, fstop=2.8):
+    """Depth of field: focus is a distance in metres or an object to track."""
+    cam.data.dof.use_dof = True
+    if isinstance(focus, (int, float)):
+        cam.data.dof.focus_distance = float(focus)
+    else:
+        cam.data.dof.focus_object = focus
+    cam.data.dof.aperture_fstop = fstop
+    cam.data.dof.aperture_blades = 7
+    return cam
+
+
 # --------------------------------------------------------------------------- materials
 ASSETS = REPO / "renders" / "_work" / "assets"
 

@@ -15,8 +15,8 @@ sys.path.insert(0, str(Path(__file__).parent))
 import bpy  # noqa: E402
 
 from common import (  # noqa: E402
-    ASSETS, camera, parse_args, pbr_textures, render_frames, reset_scene, setup_render,
-    sun_light, world_hdri,
+    ASSETS, camera, dof, golden_hour, import_model, normalize, parse_args, pbr_textures,
+    render_frames, reset_scene, setup_render,
 )
 from procedural import _box, mat_steel, royal_palm  # noqa: E402
 
@@ -30,11 +30,11 @@ n = args.frames
 scene.frame_start, scene.frame_end = 1, n
 coll = scene.collection
 
-# golden sun low over the sea, straight ahead (+Y)
-world_hdri(scene, args.hdri or (str(HDRI) if HDRI.exists() else None), strength=1.0, rotation_deg=49.5)
-sun_light("Sun", (80, 0, 180), strength=4.5, color=(1.0, 0.82, 0.6), angle_deg=0.6)
+# sunset over the sea, just right of centre: the sun is in shot and lays a glitter path on the water
+golden_hour(scene, azimuth_deg=14, elevation_deg=4.0, sky_strength=0.3, sun_strength=3.0,
+            color=(1.0, 0.70, 0.45), angle_deg=0.55)
 
-GW, GH = 6.4, 3.3          # glass wall
+GW, GH = 9.0, 3.4          # glass wall: three tall panes
 
 
 def mat(name, color, rough=0.5):
@@ -59,7 +59,50 @@ _box("RevealR", (1.8, 0.4, GH), (GW / 2 + 0.9, 0.0, GH / 2), plaster, coll)
 steel = mat_steel()
 _box("FrameTop", (GW, 0.08, 0.06), (0, 0, GH - 0.03), steel, coll)
 _box("FrameBot", (GW, 0.08, 0.05), (0, 0, 0.025), steel, coll)
-_box("FrameMid", (0.05, 0.08, GH), (0, 0, GH / 2), steel, coll)
+for mx_ in (-GW / 6, GW / 6):
+    _box(f"Mullion{mx_:+.1f}", (0.045, 0.08, GH), (mx_, 0, GH / 2), steel, coll)
+
+# ---- the room: furniture silhouetted against the sunset (Poly Haven CC0 models), rug, sheer curtain
+rug = mat("Rug", (0.72, 0.66, 0.58), 1.0)
+_box("Rug", (4.6, 3.0, 0.02), (0.4, -2.6, 0.01), rug, coll, bevel=0.005)
+
+
+def place(model, length, loc, yaw=0.0):
+    g = PH / "models" / model / f"{model}_1k.gltf"
+    if not g.exists():
+        print(f"[pbpp] missing {model}")
+        return None
+    root = normalize(import_model(str(g)), length, model)
+    root.location = loc
+    root.rotation_euler[2] = math.radians(yaw)
+    return root
+
+
+place("modern_arm_chair_01", 0.85, (-1.0, -1.9, 0.0), 200)
+place("modern_arm_chair_01", 0.85, (1.6, -1.7, 0.0), 160)
+place("coffee_table_round_01", 1.0, (0.3, -2.4, 0.0))
+place("ceramic_vase_04", 0.34, (0.3, -2.4, 0.42))
+place("potted_plant_02", 1.4, (-4.0, -0.8, 0.0), 30)
+place("brass_vase_03", 0.5, (3.9, -0.6, 0.0))
+sheer = bpy.data.materials.new("Sheer")
+sheer.use_nodes = True
+sh = sheer.node_tree.nodes["Principled BSDF"]
+sh.inputs["Base Color"].default_value = (0.95, 0.93, 0.88, 1)
+sh.inputs["Roughness"].default_value = 0.6
+for k_, v_ in (("Transmission Weight", 0.85), ("Alpha", 0.75)):
+    if k_ in sh.inputs:
+        sh.inputs[k_].default_value = v_
+bpy.ops.mesh.primitive_plane_add(size=1, location=(-GW / 2 + 0.55, -0.35, GH / 2), rotation=(math.radians(90), 0, 0))
+cur = bpy.context.active_object
+cur.name = "Sheer"
+cur.scale = (1.1, GH - 0.05, 1)
+bpy.ops.object.transform_apply(scale=True)
+wv = cur.modifiers.new("Folds", "WAVE")
+wv.use_normal = True
+wv.height, wv.width, wv.narrowness, wv.speed = 0.06, 0.18, 1.0, 0.0
+sub_ = cur.modifiers.new("Sub", "SUBSURF")
+sub_.levels = sub_.render_levels = 3
+cur.data.materials.append(sheer)
 
 # ---- outside: travertine terrace, low parapet, palms, ocean
 trav = bpy.data.materials.new("Terrace")
@@ -68,7 +111,7 @@ if (PH / "tex" / "floor_tiles_08").exists():
     pbr_textures(trav, PH / "tex" / "floor_tiles_08", "floor_tiles_08", tile_m=2.4, tint=(1.0, 0.95, 0.86), bump=0.8)
 _box("Terrace", (30, 12, 0.1), (0, 6.2, -0.1), trav, coll)
 _box("Parapet", (30, 0.35, 0.55), (0, 12.0, 0.2), plaster, coll, bevel=0.03)
-for k, (x, y) in enumerate(((-9.5, 7.0), (10.0, 8.5))):
+for k, (x, y) in enumerate(((-6.8, 9.0), (7.6, 10.5), (-11.5, 8.0))):
     p = royal_palm(f"SeaPalm{k}", height=12.0 + k, seed=50 + k)
     p.location = (x, y, -0.1)
 
@@ -76,7 +119,7 @@ sea_m = bpy.data.materials.new("Sea")
 sea_m.use_nodes = True
 sb = sea_m.node_tree.nodes["Principled BSDF"]
 sb.inputs["Base Color"].default_value = (0.01, 0.06, 0.09, 1)
-sb.inputs["Roughness"].default_value = 0.04
+sb.inputs["Roughness"].default_value = 0.1  # broad glitter path under the low sun
 if "Specular IOR Level" in sb.inputs:
     sb.inputs["Specular IOR Level"].default_value = 0.6
 bpy.ops.mesh.primitive_grid_add(x_subdivisions=220, y_subdivisions=220, size=1, location=(0, 200, -4.0))
@@ -89,7 +132,8 @@ oc = sea.modifiers.new("Waves", "OCEAN")
 oc.geometry_mode = "DISPLACE"
 oc.spatial_size = 60
 oc.resolution = 12
-oc.wave_scale = 0.6
+oc.wave_scale = 1.1
+oc.choppiness = 1.2
 oc.wind_velocity = 7
 oc.time = 0.0
 oc.keyframe_insert("time", frame=1)
@@ -235,16 +279,28 @@ pane.scale = (GW, GH, 1)
 bpy.ops.object.transform_apply(scale=True)
 pane.data.materials.append(gm)
 
-# ---- camera: slow push toward the glass; sun blooms to white at the end
-cam = camera(lens=30, location=(0.0, -4.2, 1.45), target=(0.0, 10.0, 1.7))
+# ---- camera: starts close on the hazy glass (shallow focus on the film), then pulls back into the
+# room as the squeegee clears it, focus racking out to the sunset
+from mathutils import Vector  # noqa: E402
+
+cam = camera(lens=32, location=(-0.6, -1.0, 1.45), target=(1.2, 8.0, 1.35))
 cam.data.clip_start = 0.02
-for f, y in ((1, -4.2), (n, -1.6)):
-    cam.location.y = y
-    cam.keyframe_insert("location", index=1, frame=f)
-vs = scene.view_settings
-vs.exposure = 0.0
-vs.keyframe_insert("exposure", frame=round(0.86 * n))
-vs.exposure = 4.0
-vs.keyframe_insert("exposure", frame=n)
+aim = bpy.data.objects.new("Aim", None)
+coll.objects.link(aim)
+track = cam.constraints.new("TRACK_TO")
+track.target = aim
+track.track_axis, track.up_axis = "TRACK_NEGATIVE_Z", "UP_Y"
+for f, loc, at in ((1, (-0.6, -1.0, 1.45), (1.2, 8.0, 1.35)),
+                   (round(0.45 * n), (0.2, -3.0, 1.38), (0.9, 9.0, 1.3)),
+                   (n, (1.0, -5.6, 1.3), (0.3, 10.0, 1.25))):
+    cam.location = loc
+    cam.keyframe_insert("location", frame=f)
+    aim.location = at
+    aim.keyframe_insert("location", frame=f)
+dof(cam, 1.1, fstop=2.2)
+scene.view_settings.exposure = -1.7  # hold the sunset's colour; the room falls to silhouette
+for f, d in ((1, 1.1), (round(0.2 * n), 1.4), (round(0.7 * n), 30.0), (n, 60.0)):
+    cam.data.dof.focus_distance = d
+    cam.data.dof.keyframe_insert("focus_distance", frame=f)
 
 render_frames(scene, args)

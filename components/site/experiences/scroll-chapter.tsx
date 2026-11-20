@@ -13,9 +13,11 @@ import { useEffect, useRef, useState } from "react";
 import {
   drawCover,
   type ExperienceManifest,
+  isCoarsePointer,
   loadFrames,
   nearestLoaded,
   shouldAnimate,
+  sizeCanvas,
 } from "./frame-loader";
 
 type Props = {
@@ -41,9 +43,11 @@ export function ScrollChapter({
   const ctaRef = useRef<HTMLDivElement>(null);
   const [animated, setAnimated] = useState(false);
   const [ready, setReady] = useState(false);
+  const [touch, setTouch] = useState(false);
 
   useEffect(() => {
     if (shouldAnimate()) setAnimated(true);
+    setTouch(isCoarsePointer());
   }, []);
 
   useEffect(() => {
@@ -61,18 +65,22 @@ export function ScrollChapter({
     let images: (HTMLImageElement | null)[] = new Array(count).fill(null);
     let current = 0;
     let drawn = -1;
+    let shown = false;
+    const coarse = isCoarsePointer();
 
     const draw = () => {
       const idx = nearestLoaded(images, current);
       if (idx < 0 || idx === drawn) return;
       drawCover(ctx, images[idx]!);
       drawn = idx;
-      setReady(true);
+      if (!shown) {
+        shown = true;
+        setReady(true); // once: no React work per frame
+      }
     };
     const resize = () => {
-      const dpr = Math.min(window.devicePixelRatio || 1, 2);
-      canvas.width = Math.round(canvas.clientWidth * dpr);
-      canvas.height = Math.round(canvas.clientHeight * dpr);
+      const src = portrait ? manifest.mobile : manifest.desktop;
+      sizeCanvas(canvas, src.width, src.height);
       drawn = -1;
       draw();
     };
@@ -96,7 +104,7 @@ export function ScrollChapter({
           start();
         }
       },
-      { rootMargin: "100% 0px" },
+      { rootMargin: coarse ? "150% 0px" : "100% 0px" },
     );
     io.observe(section);
 
@@ -139,7 +147,8 @@ export function ScrollChapter({
           trigger: section,
           start: "top top",
           end: "bottom bottom",
-          scrub: 0.35,
+          // touch scrolling already has momentum: barely smooth on phones so frames track the finger
+          scrub: coarse ? 0.1 : 0.3,
           onUpdate: (self) => setOverlay(self.progress),
         },
         onUpdate: () => {
@@ -171,7 +180,7 @@ export function ScrollChapter({
       id={id}
       aria-labelledby={`${id}-title`}
       className="relative bg-navy-deep"
-      style={{ height: animated ? `${length}svh` : undefined }}
+      style={{ height: animated ? `${touch ? Math.round(length * 0.72) : length}svh` : undefined }}
     >
       <div className="sticky top-0 h-[100svh] min-h-[560px] w-full overflow-hidden">
         <picture>

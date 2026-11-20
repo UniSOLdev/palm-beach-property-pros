@@ -27,6 +27,27 @@ export function shouldAnimate(): boolean {
   return true;
 }
 
+/** Touch-first device (phones, tablets): tighter scrubbing, shorter tracks. */
+export function isCoarsePointer(): boolean {
+  return typeof window !== "undefined" && window.matchMedia("(pointer: coarse)").matches;
+}
+
+/**
+ * Canvas backing size: device pixels, but never more than the frame's own resolution
+ * (upscaling a 608x1080 frame into a 780x1690 retina canvas costs fill-rate for nothing).
+ */
+export function sizeCanvas(canvas: HTMLCanvasElement, srcW: number, srcH: number) {
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  const cw = canvas.clientWidth;
+  const ch = canvas.clientHeight;
+  // scale at which the frame would exactly cover the canvas in CSS pixels
+  const cover = Math.max(cw / srcW, ch / srcH);
+  const maxScale = cover > 0 ? 1 / cover : dpr;
+  const scale = Math.max(1, Math.min(dpr, maxScale));
+  canvas.width = Math.round(cw * scale);
+  canvas.height = Math.round(ch * scale);
+}
+
 /** Coarse-to-fine load order: every 16th frame, then 8th, 4th, 2nd, rest. */
 export function loadOrder(count: number): number[] {
   const seen = new Set<number>();

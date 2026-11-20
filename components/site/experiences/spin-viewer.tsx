@@ -15,6 +15,7 @@ import {
   loadFrames,
   nearestLoaded,
   shouldAnimate,
+  sizeCanvas,
 } from "./frame-loader";
 
 type Props = {
@@ -35,6 +36,7 @@ export function SpinViewer({ manifest, labels = {}, initial }: Props) {
   const frameRef = useRef(0);
   const imagesRef = useRef<(HTMLImageElement | null)[]>([]);
   const drawnRef = useRef(-1);
+  const readyRef = useRef(false);
   const set: FrameSet = manifest.variants![variant];
 
   useEffect(() => {
@@ -54,7 +56,10 @@ export function SpinViewer({ manifest, labels = {}, initial }: Props) {
     if (idx < 0 || idx === drawnRef.current) return;
     drawCover(ctx, imagesRef.current[idx]!);
     drawnRef.current = idx;
-    setReady(true);
+    if (!readyRef.current) {
+      readyRef.current = true;
+      setReady(true);
+    }
   }, []);
 
   // (re)load frames for the active variant
@@ -65,9 +70,7 @@ export function SpinViewer({ manifest, labels = {}, initial }: Props) {
     // Always the full 16:9 frames: a 9:16 crop would cut the nose and tail off side views.
     const portrait = false;
     const resize = () => {
-      const dpr = Math.min(window.devicePixelRatio || 1, 2);
-      canvas.width = Math.round(canvas.clientWidth * dpr);
-      canvas.height = Math.round(canvas.clientHeight * dpr);
+      sizeCanvas(canvas, manifest.desktop.width, manifest.desktop.height);
       drawnRef.current = -1;
       draw();
     };
@@ -91,7 +94,7 @@ export function SpinViewer({ manifest, labels = {}, initial }: Props) {
       stop();
       window.removeEventListener("resize", resize);
     };
-  }, [animated, near, set, draw]);
+  }, [animated, near, set, draw, manifest.desktop.width, manifest.desktop.height]);
 
   // drag / keyboard rotation
   useEffect(() => {

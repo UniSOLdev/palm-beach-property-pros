@@ -76,8 +76,8 @@ def mat_palm_trunk():
     ring.inputs["From Max"].default_value = 1.0
     L.new(wave.outputs["Fac"], ring.inputs["Value"])
     ramp = N.new("ShaderNodeValToRGB")
-    ramp.color_ramp.elements[0].color = (0.36, 0.35, 0.33, 1)
-    ramp.color_ramp.elements[1].color = (0.50, 0.49, 0.46, 1)
+    ramp.color_ramp.elements[0].color = (0.27, 0.26, 0.245, 1)
+    ramp.color_ramp.elements[1].color = (0.40, 0.385, 0.36, 1)
     L.new(noise.outputs["Fac"], ramp.inputs["Fac"])
     dark = N.new("ShaderNodeMix")
     dark.data_type = "RGBA"
@@ -85,7 +85,22 @@ def mat_palm_trunk():
     dark.inputs[7].default_value = (0.88, 0.86, 0.83, 1)
     L.new(ring.outputs["Result"], dark.inputs["Factor"])
     L.new(ramp.outputs["Color"], dark.inputs[6])
-    L.new(dark.outputs[2], b.inputs["Base Color"])
+    # weathered, darker base (splash zone / soil) fading out over the first ~1.2 m
+    base_fade = N.new("ShaderNodeMapRange")
+    base_fade.inputs["From Min"].default_value = 0.0
+    base_fade.inputs["From Max"].default_value = 1.2
+    base_fade.inputs["To Min"].default_value = 0.55
+    L.new(sep.outputs["Z"], base_fade.inputs["Value"])
+    grime = N.new("ShaderNodeMix")
+    grime.data_type = "RGBA"
+    grime.blend_type = "MULTIPLY"
+    grime.inputs["Factor"].default_value = 1.0
+    L.new(dark.outputs[2], grime.inputs[6])
+    gcol = N.new("ShaderNodeCombineXYZ")
+    for ch in ("X", "Y", "Z"):
+        L.new(base_fade.outputs["Result"], gcol.inputs[ch])
+    L.new(gcol.outputs[0], grime.inputs[7])
+    L.new(grime.outputs[2], b.inputs["Base Color"])
     bump = N.new("ShaderNodeBump")
     bump.inputs["Strength"].default_value = 0.2
     add = N.new("ShaderNodeMath")
@@ -477,3 +492,336 @@ def estate(name="Estate", origin=(0, 0, 0), width=24.0, depth=12.0, floors=2, wi
             o.parent = root
     root.location = origin
     return root
+
+
+# --------------------------------------------------------------------------- hedges
+def _leaf_mesh():
+    me = bpy.data.meshes.get("HedgeLeaf")
+    if me:
+        return me
+    bm = bmesh.new()
+    pts = []
+    for k in range(10):
+        a = 2 * math.pi * k / 10
+        pts.append(bm.verts.new((0.032 * math.cos(a), 0.019 * math.sin(a), 0.004 * math.cos(a) ** 2)))
+    bm.faces.new(pts)
+    me = bpy.data.meshes.new("HedgeLeaf")
+    bm.to_mesh(me)
+    bm.free()
+    return me
+
+
+def mat_hedge_leaf():
+    m = _mat("HedgeLeafMat")
+    if m.get("_built"):
+        return m
+    N, L = m.node_tree.nodes, m.node_tree.links
+    out = N["Material Output"]
+    b = N["Principled BSDF"]
+    oi = N.new("ShaderNodeObjectInfo")
+    ramp = N.new("ShaderNodeValToRGB")
+    ramp.color_ramp.elements[0].color = (0.025, 0.06, 0.015, 1)
+    ramp.color_ramp.elements[1].color = (0.085, 0.15, 0.035, 1)
+    L.new(oi.outputs["Random"], ramp.inputs["Fac"])
+    L.new(ramp.outputs["Color"], b.inputs["Base Color"])
+    b.inputs["Roughness"].default_value = 0.42
+    tr = N.new("ShaderNodeBsdfTranslucent")
+    tr.inputs["Color"].default_value = (0.12, 0.22, 0.04, 1)
+    mix = N.new("ShaderNodeMixShader")
+    mix.inputs["Fac"].default_value = 0.2
+    L.new(b.outputs["BSDF"], mix.inputs[1])
+    L.new(tr.outputs["BSDF"], mix.inputs[2])
+    L.new(mix.outputs["Shader"], out.inputs["Surface"])
+    m["_built"] = True
+    return m
+
+
+def _rand_range(node, lo, hi):
+    """Set Min/Max on a FLOAT Random Value node (socket order differs across Blender versions)."""
+    for sock in node.inputs:
+        if sock.type == "VALUE" and sock.name in ("Min", "Max"):
+            sock.default_value = lo if sock.name == "Min" else hi
+
+
+def _rand_out(node):
+    return next(o for o in node.outputs if o.type == "VALUE")
+
+
+def _leaf_scatter_group(density=650.0):
+    ng = bpy.data.node_groups.get("PBPP_LeafScatter")
+    if ng is None:
+        ng = bpy.data.node_groups.new("PBPP_LeafScatter", "GeometryNodeTree")
+        ng.interface.new_socket("Geometry", in_out="INPUT", socket_type="NodeSocketGeometry")
+        d = ng.interface.new_socket("Density", in_out="INPUT", socket_type="NodeSocketFloat")
+        d.default_value = density
+        ng.interface.new_socket("Leaf", in_out="INPUT", socket_type="NodeSocketObject")
+        sd = ng.interface.new_socket("Seed", in_out="INPUT", socket_type="NodeSocketInt")
+        sd.default_value = 0
+        ng.interface.new_socket("Geometry", in_out="OUTPUT", socket_type="NodeSocketGeometry")
+        N, L = ng.nodes, ng.links
+        gi, go = N.new("NodeGroupInput"), N.new("NodeGroupOutput")
+        dist = N.new("GeometryNodeDistributePointsOnFaces")
+        L.new(gi.outputs["Geometry"], dist.inputs["Mesh"])
+        L.new(gi.outputs["Density"], dist.inputs["Density"])
+        L.new(gi.outputs["Seed"], dist.inputs["Seed"])
+        info = N.new("GeometryNodeObjectInfo")
+        L.new(gi.outputs["Leaf"], info.inputs["Object"])
+        rot = N.new("FunctionNodeRandomValue")
+        rot.data_type = "FLOAT_VECTOR"
+        rot.inputs["Max"].default_value = (6.283, 6.283, 6.283)
+        scl = N.new("FunctionNodeRandomValue")
+        scl.data_type = "FLOAT"
+        _rand_range(scl, 0.7, 1.35)
+        jit = N.new("FunctionNodeRandomValue")
+        jit.data_type = "FLOAT"
+        _rand_range(jit, -0.02, 0.035)
+        off = N.new("ShaderNodeVectorMath")
+        off.operation = "SCALE"
+        L.new(dist.outputs["Normal"], off.inputs[0])
+        L.new(_rand_out(jit), off.inputs["Scale"])
+        setp = N.new("GeometryNodeSetPosition")
+        L.new(dist.outputs["Points"], setp.inputs["Geometry"])
+        L.new(off.outputs[0], setp.inputs["Offset"])
+        inst = N.new("GeometryNodeInstanceOnPoints")
+        L.new(setp.outputs["Geometry"], inst.inputs["Points"])
+        L.new(info.outputs["Geometry"], inst.inputs["Instance"])
+        L.new(rot.outputs[0], inst.inputs["Rotation"])
+        L.new(_rand_out(scl), inst.inputs["Scale"])
+        join = N.new("GeometryNodeJoinGeometry")
+        L.new(gi.outputs["Geometry"], join.inputs["Geometry"])
+        L.new(inst.outputs["Instances"], join.inputs["Geometry"])
+        L.new(join.outputs["Geometry"], go.inputs["Geometry"])
+    return ng
+
+
+def leafy_hedge(obj, density=650.0, seed=0):
+    """Cover a clipped-hedge volume with instanced small leaves (ficus look). The box itself
+    becomes the dark, shadowed interior of the hedge."""
+    inner = _mat("HedgeInner")
+    ib = inner.node_tree.nodes["Principled BSDF"]
+    ib.inputs["Base Color"].default_value = (0.008, 0.02, 0.005, 1)
+    ib.inputs["Roughness"].default_value = 0.9
+    obj.data.materials.clear()
+    obj.data.materials.append(inner)
+    leaf_obj = bpy.data.objects.get("HedgeLeafProto")
+    if leaf_obj is None:
+        leaf_obj = bpy.data.objects.new("HedgeLeafProto", _leaf_mesh())
+        leaf_obj.data.materials.append(mat_hedge_leaf())
+        bpy.context.scene.collection.objects.link(leaf_obj)
+        leaf_obj.hide_render = True
+        leaf_obj.location.z = -500
+    ng = _leaf_scatter_group(density)
+    mod = obj.modifiers.new("Leaves", "NODES")
+    mod.node_group = ng
+    ids = {i.name: i.identifier for i in ng.interface.items_tree if getattr(i, "in_out", "") == "INPUT"}
+    from foam import _set_input
+    _set_input(mod, ids["Density"], density)
+    _set_input(mod, ids["Leaf"], leaf_obj)
+    _set_input(mod, ids["Seed"], seed)
+    return obj
+
+
+# --------------------------------------------------------------------------- terrace furniture
+def mat_teak():
+    m = _mat("Teak")
+    if not m.get("_built"):
+        N, L = m.node_tree.nodes, m.node_tree.links
+        b = N["Principled BSDF"]
+        wave = N.new("ShaderNodeTexWave")
+        wave.inputs["Scale"].default_value = 3.0
+        wave.inputs["Distortion"].default_value = 6.0
+        ramp = N.new("ShaderNodeValToRGB")
+        ramp.color_ramp.elements[0].color = (0.22, 0.13, 0.07, 1)
+        ramp.color_ramp.elements[1].color = (0.36, 0.23, 0.13, 1)
+        L.new(wave.outputs["Fac"], ramp.inputs["Fac"])
+        L.new(ramp.outputs["Color"], b.inputs["Base Color"])
+        b.inputs["Roughness"].default_value = 0.45
+        m["_built"] = True
+    return m
+
+
+def mat_canvas(color=(0.86, 0.82, 0.73)):
+    m = _mat("Canvas")
+    if not m.get("_built"):
+        b = m.node_tree.nodes["Principled BSDF"]
+        b.inputs["Base Color"].default_value = (*color, 1)
+        b.inputs["Roughness"].default_value = 0.92
+        if "Sheen Weight" in b.inputs:
+            b.inputs["Sheen Weight"].default_value = 0.3
+        m["_built"] = True
+    return m
+
+
+def chaise_lounger(name, loc, yaw_deg=0.0, coll=None):
+    """Teak chaise with a cream cushion; backrest at the -X end, raised 40 degrees."""
+    teak, canvas = mat_teak(), mat_canvas()
+    root = bpy.data.objects.new(name, None)
+    _link(root, coll)
+    parts = [
+        _box(f"{name}_RailL", (2.0, 0.05, 0.08), (0, 0.33, 0.30), teak, coll, bevel=0.01),
+        _box(f"{name}_RailR", (2.0, 0.05, 0.08), (0, -0.33, 0.30), teak, coll, bevel=0.01),
+    ]
+    for x in (-0.9, 0.9):
+        for y in (-0.33, 0.33):
+            parts.append(_box(f"{name}_Leg{x}{y}", (0.06, 0.06, 0.28), (x, y, 0.14), teak, coll, bevel=0.008))
+    seat = _box(f"{name}_Cushion", (1.3, 0.66, 0.09), (0.33, 0, 0.385), canvas, coll, bevel=0.03)
+    back = _box(f"{name}_Back", (0.72, 0.66, 0.09), (0, 0, 0), canvas, coll, bevel=0.03)
+    back.rotation_euler[1] = math.radians(-40)
+    back.location = (-0.58, 0, 0.58)
+    parts += [seat, back]
+    for o in parts:
+        o.parent = root
+    root.location = loc
+    root.rotation_euler[2] = math.radians(yaw_deg)
+    return root
+
+
+def market_umbrella(name, loc, radius=1.4, coll=None):
+    """Open octagonal market umbrella: teak pole, cream canvas canopy with a slight sag."""
+    teak, canvas = mat_teak(), mat_canvas()
+    root = bpy.data.objects.new(name, None)
+    _link(root, coll)
+    pole = _box(f"{name}_Pole", (0.045, 0.045, 2.5), (0, 0, 1.25), teak, coll, bevel=0.01)
+    base = _box(f"{name}_Base", (0.45, 0.45, 0.06), (0, 0, 0.03), mat_steel(), coll, bevel=0.01)
+    bm = bmesh.new()
+    apex = bm.verts.new((0, 0, 2.62))
+    ring = []
+    for k in range(8):
+        a = 2 * math.pi * k / 8
+        ring.append(bm.verts.new((radius * math.cos(a), radius * math.sin(a), 2.18)))
+    mids = []
+    for k in range(8):
+        a = 2 * math.pi * (k + 0.5) / 8
+        r = radius * math.cos(math.pi / 8) * 0.97
+        mids.append(bm.verts.new((r * math.cos(a), r * math.sin(a), 2.24)))
+    for k in range(8):
+        bm.faces.new((apex, ring[k], mids[k]))
+        bm.faces.new((apex, mids[k], ring[(k + 1) % 8]))
+    bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
+    me = bpy.data.meshes.new(f"{name}_Canopy")
+    bm.to_mesh(me)
+    bm.free()
+    me.materials.append(canvas)
+    canopy = _link(bpy.data.objects.new(f"{name}_Canopy", me), coll)
+    sol = canopy.modifiers.new("Thick", "SOLIDIFY")
+    sol.thickness = 0.01
+    for o in (pole, base, canopy):
+        o.parent = root
+    root.location = loc
+    return root
+
+
+
+def scatter_on(obj, proto, density, seed=0, name="Scatter"):
+    """Instance `proto` over obj's surface (random rotation/scale, slight normal jitter)."""
+    ng = _leaf_scatter_group(density)
+    mod = obj.modifiers.new(name, "NODES")
+    mod.node_group = ng
+    ids = {i.name: i.identifier for i in ng.interface.items_tree if getattr(i, "in_out", "") == "INPUT"}
+    from foam import _set_input
+    _set_input(mod, ids["Density"], density)
+    _set_input(mod, ids["Leaf"], proto)
+    _set_input(mod, ids["Seed"], seed)
+    return mod
+
+
+def hydrangea(name, loc, radius=0.14, coll=None, seed=0):
+    """White hydrangea head: a dome covered in small four-petal florets."""
+    petal = bpy.data.objects.get("HydrangeaFloret")
+    if petal is None:
+        bm = bmesh.new()
+        c = bm.verts.new((0, 0, 0.003))
+        ring = []
+        for k in range(16):
+            a = 2 * math.pi * k / 16
+            r = 0.012 * (0.55 + 0.45 * abs(math.cos(2 * a)))
+            ring.append(bm.verts.new((r * math.cos(a), r * math.sin(a), 0)))
+        for k in range(16):
+            bm.faces.new((c, ring[k], ring[(k + 1) % 16]))
+        me = bpy.data.meshes.new("HydrangeaFloret")
+        bm.to_mesh(me)
+        bm.free()
+        m = _mat("HydrangeaPetal")
+        N, L = m.node_tree.nodes, m.node_tree.links
+        b = N["Principled BSDF"]
+        oi = N.new("ShaderNodeObjectInfo")
+        ramp = N.new("ShaderNodeValToRGB")
+        ramp.color_ramp.elements[0].color = (0.80, 0.84, 0.80, 1)
+        ramp.color_ramp.elements[1].color = (0.95, 0.96, 0.94, 1)
+        L.new(oi.outputs["Random"], ramp.inputs["Fac"])
+        L.new(ramp.outputs["Color"], b.inputs["Base Color"])
+        b.inputs["Roughness"].default_value = 0.6
+        if "Subsurface Weight" in b.inputs:
+            b.inputs["Subsurface Weight"].default_value = 0.4
+        me.materials.append(m)
+        petal = bpy.data.objects.new("HydrangeaFloret", me)
+        bpy.context.scene.collection.objects.link(petal)
+        petal.hide_render = True
+        petal.location.z = -500
+    bm = bmesh.new()
+    bmesh.ops.create_icosphere(bm, subdivisions=3, radius=radius)
+    me = bpy.data.meshes.new(name)
+    bm.to_mesh(me)
+    bm.free()
+    leafm = _mat("HydrangeaCore")
+    leafm.node_tree.nodes["Principled BSDF"].inputs["Base Color"].default_value = (0.55, 0.60, 0.52, 1)
+    me.materials.append(leafm)
+    head = _link(bpy.data.objects.new(name, me), coll)
+    head.location = loc
+    head.scale = (1, 1, 0.8)
+    scatter_on(head, petal, density=2600.0, seed=seed, name="Florets")
+    return head
+
+
+
+def mat_striped_lawn(stripe_m=1.6):
+    """Manicured turf: alternating mower stripes, fine grass-blade bump, subtle colour noise."""
+    m = _mat("StripedLawn")
+    if m.get("_built"):
+        return m
+    N, L = m.node_tree.nodes, m.node_tree.links
+    b = N["Principled BSDF"]
+    geo = N.new("ShaderNodeNewGeometry")
+    sep = N.new("ShaderNodeSeparateXYZ")
+    L.new(geo.outputs["Position"], sep.inputs[0])
+    stripes = N.new("ShaderNodeMath")
+    stripes.operation = "SINE"
+    sc = N.new("ShaderNodeMath")
+    sc.operation = "MULTIPLY"
+    sc.inputs[1].default_value = math.pi / stripe_m
+    L.new(sep.outputs["X"], sc.inputs[0])
+    L.new(sc.outputs[0], stripes.inputs[0])
+    sharp = N.new("ShaderNodeMapRange")
+    sharp.inputs["From Min"].default_value = -0.15
+    sharp.inputs["From Max"].default_value = 0.15
+    L.new(stripes.outputs[0], sharp.inputs["Value"])
+    noise = N.new("ShaderNodeTexNoise")
+    noise.inputs["Scale"].default_value = 2.5
+    L.new(geo.outputs["Position"], noise.inputs["Vector"])
+    ramp = N.new("ShaderNodeValToRGB")
+    ramp.color_ramp.elements[0].color = (0.045, 0.095, 0.022, 1)
+    ramp.color_ramp.elements[1].color = (0.085, 0.15, 0.035, 1)
+    mixf = N.new("ShaderNodeMath")
+    mixf.operation = "MULTIPLY_ADD"
+    mixf.inputs[1].default_value = 0.75
+    L.new(sharp.outputs["Result"], mixf.inputs[0])
+    nz = N.new("ShaderNodeMath")
+    nz.operation = "MULTIPLY"
+    nz.inputs[1].default_value = 0.25
+    L.new(noise.outputs["Fac"], nz.inputs[0])
+    L.new(nz.outputs[0], mixf.inputs[2])
+    L.new(mixf.outputs[0], ramp.inputs["Fac"])
+    L.new(ramp.outputs["Color"], b.inputs["Base Color"])
+    blades = N.new("ShaderNodeTexNoise")
+    blades.inputs["Scale"].default_value = 320.0
+    blades.inputs["Detail"].default_value = 2.0
+    L.new(geo.outputs["Position"], blades.inputs["Vector"])
+    bump = N.new("ShaderNodeBump")
+    bump.inputs["Strength"].default_value = 0.6
+    L.new(blades.outputs["Fac"], bump.inputs["Height"])
+    L.new(bump.outputs["Normal"], b.inputs["Normal"])
+    b.inputs["Roughness"].default_value = 0.85
+    if "Sheen Weight" in b.inputs:
+        b.inputs["Sheen Weight"].default_value = 0.08
+    m["_built"] = True
+    return m

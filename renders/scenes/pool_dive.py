@@ -26,7 +26,7 @@ from common import (  # noqa: E402
     ASSETS, camera, import_model, normalize, parse_args, pbr_textures, render_frames,
     reset_scene, setup_render, sun_light, world_hdri, world_sky,
 )
-from procedural import estate, royal_palm  # noqa: E402
+from procedural import chaise_lounger, estate, leafy_hedge, market_umbrella, royal_palm  # noqa: E402
 
 PH = ASSETS / "polyhaven"
 DEFAULT_HDRI = PH / "hdri" / "kloppenheim_06_puresky_4k.exr"
@@ -135,7 +135,37 @@ def mat_mosaic():
     brick.inputs["Color1"].default_value = (0.12, 0.52, 0.68, 1)
     brick.inputs["Color2"].default_value = (0.66, 0.90, 0.96, 1)
     brick.inputs["Mortar"].default_value = (0.82, 0.84, 0.82, 1)
-    L.new(brick.outputs["Color"], b.inputs["Base Color"])
+    # waterline band: a deep-cobalt tile strip in the top ~18 cm of the walls
+    band = N.new("ShaderNodeTexBrick")
+    band.offset = 0.0
+    band.squash = 1.0
+    L.new(vec, band.inputs["Vector"])
+    band.inputs["Scale"].default_value = 20.0
+    band.inputs["Brick Width"].default_value = 0.5
+    band.inputs["Row Height"].default_value = 0.5
+    band.inputs["Mortar Size"].default_value = 0.035
+    band.inputs["Bias"].default_value = 0.0
+    band.inputs["Color1"].default_value = (0.015, 0.07, 0.20, 1)
+    band.inputs["Color2"].default_value = (0.03, 0.12, 0.30, 1)
+    band.inputs["Mortar"].default_value = (0.70, 0.72, 0.72, 1)
+    in_band = N.new("ShaderNodeMath")
+    in_band.operation = "GREATER_THAN"
+    in_band.inputs[1].default_value = -0.24
+    L.new(sp.outputs["Z"], in_band.inputs[0])
+    wall = N.new("ShaderNodeMath")
+    wall.operation = "SUBTRACT"
+    wall.inputs[0].default_value = 1.0
+    L.new(facing("Z"), wall.inputs[1])
+    band_mask = N.new("ShaderNodeMath")
+    band_mask.operation = "MULTIPLY"
+    L.new(in_band.outputs[0], band_mask.inputs[0])
+    L.new(wall.outputs[0], band_mask.inputs[1])
+    tile_mix = N.new("ShaderNodeMix")
+    tile_mix.data_type = "RGBA"
+    L.new(band_mask.outputs[0], tile_mix.inputs["Factor"])
+    L.new(brick.outputs["Color"], tile_mix.inputs[6])
+    L.new(band.outputs["Color"], tile_mix.inputs[7])
+    L.new(tile_mix.outputs[2], b.inputs["Base Color"])
     b.inputs["Roughness"].default_value = 0.07
     bump = N.new("ShaderNodeBump")
     bump.inputs["Strength"].default_value = 0.5
@@ -333,12 +363,12 @@ if not args.no_hedge:
         ("HedgeE", (HT, 2 * HY, HH), (HX, 0, HH / 2 - 0.3)),
         ("HedgeW", (HT, 2 * HY, HH), (-HX, 0, HH / 2 - 0.3)),
     ):
-        box(name, size, loc, hedge, bevel=0.12)
+        h = box(name, size, loc, hedge, bevel=0.12)
+        h.modifiers.remove(h.modifiers["Bevel"])
+        leafy_hedge(h, density=700.0, seed=len(name))
     # lawn ring OUTSIDE the deck only (a full plane would slice through the pool)
-    lm = new_mat("Lawn")
-    lb = lm.node_tree.nodes["Principled BSDF"]
-    lb.inputs["Base Color"].default_value = (0.05, 0.09, 0.025, 1)
-    lb.inputs["Roughness"].default_value = 0.85
+    from procedural import mat_striped_lawn
+    lm = mat_striped_lawn()
     OX, OY, R = POOL_L / 2 + DECK, POOL_W / 2 + DECK, 200.0
     for name, size, loc in (
         ("LawnN", (2 * R, R - OY, 0.02), (0, (R + OY) / 2, -0.31)),
@@ -382,6 +412,20 @@ if args.estate:
 else:
     # fictional Mediterranean Revival house closing the north side of the terrace
     estate("Estate", origin=(-1.5, POOL_W / 2 + DECK, -0.3), width=26.0, depth=13.0)
+
+# terrace life: teak chaises facing the pool, market umbrellas, terracotta planters
+for k, x in enumerate((-4.6, -2.6, 2.0, 4.0)):
+    chaise_lounger(f"Chaise{k}", (x, POOL_W / 2 + 2.3, 0.0), yaw_deg=-90)
+for k, x in enumerate((-3.6, 3.0)):
+    market_umbrella(f"Umbrella{k}", (x, POOL_W / 2 + 3.4, 0.0))
+_pots = ASSETS / "polyhaven" / "models"
+for k, (mname, x, y) in enumerate((("potted_plant_02", -9.8, 9.2), ("potted_plant_02", 6.8, 9.2),
+                                   ("potted_plant_01", -6.0, 9.4), ("potted_plant_01", 3.2, 9.4))):
+    g = _pots / mname / f"{mname}_1k.gltf"
+    if g.exists():
+        objs_ = import_model(str(g))
+        r_ = normalize(objs_, 0.9 if mname.endswith("01") else 0.7, f"Pot{k}")
+        r_.location = (x, y, 0.0)
 
 # royal palms lining both long sides of the deck (three instanced variants)
 palm_variants = [royal_palm(f"PalmV{i}", height=h, seed=s_)

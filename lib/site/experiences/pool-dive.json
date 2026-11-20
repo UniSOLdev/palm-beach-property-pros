@@ -1,5 +1,5 @@
 {
-  "version": "draft1",
+  "version": "draft2",
   "loop": false,
   "desktop": {
     "width": 1600,
@@ -10,9 +10,9 @@
     "height": 1080
   },
   "frames": 75,
-  "base": "/experiences/pool-dive/draft1",
+  "base": "/experiences/pool-dive/draft2",
   "bytes": {
-    "d": 4908584,
-    "m": 2056706
+    "d": 5938566,
+    "m": 2386660
   }
 }

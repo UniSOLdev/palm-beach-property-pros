@@ -1,0 +1,18 @@
+{
+  "version": "draft1",
+  "loop": false,
+  "desktop": {
+    "width": 1600,
+    "height": 900
+  },
+  "mobile": {
+    "width": 608,
+    "height": 1080
+  },
+  "frames": 50,
+  "base": "/experiences/glass/draft1",
+  "bytes": {
+    "d": 764408,
+    "m": 344610
+  }
+}

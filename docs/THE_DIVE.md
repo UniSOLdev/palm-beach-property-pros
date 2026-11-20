@@ -12,9 +12,9 @@ caption and a "Request a private quote" link for that service.
 | # | Chapter | Service it sells | Scene script | Transition out |
 |---|---|---|---|---|
 | 1 | **The Pool**: golden hour; fallen fronds drift away as the pool clears itself; dive through the surface | Pool and outdoor care, home watch | `pool_dive.py` | bubble curtain |
-| 2 | **The Residence**: surface into a bright, spotless interior (marble, linen, arched windows) | Estate and residential cleaning, carpet | `home_flythrough.py` (interior path) | glass reflection |
-| 3 | **The Glass**: streaked floor-to-ceiling glass wipes crystal clear onto the ocean view | Window cleaning | *(next script)* | sun flare |
-| 4 | **The Grounds**: out over travertine and pavers as dark, weathered stone washes bright; manicured hedges and royal palms | Pressure washing, landscape, maintenance | *(next script)* | spray mist |
+| 2 | **The Residence**: surface into a bright, spotless interior (marble, linen, arched windows) | Estate and residential cleaning, carpet | `residence.py` | glass reflection |
+| 3 | **The Glass**: streaked floor-to-ceiling glass wipes crystal clear onto the ocean view | Window cleaning | `glass.py` | sun flare |
+| 4 | **The Grounds**: out over travertine and pavers as dark, weathered stone washes bright; manicured hedges and royal palms | Pressure washing, landscape, maintenance | `grounds.py` | spray mist |
 | 5 | **The Motor Court**: foam cannon blankets an unbranded sedan; rinse reveals mirror paint | Auto detailing | `foam_cannon.py` + `car_spin.py` | foam |
 | 6 | **The Marina**: golden-hour orbit of an 80-ft motor yacht | Marine detailing *(confirm offered)* | `yacht_orbit.py` | dive below the waterline |
 | 7 | **Beneath**: the diver works along the hull; growth gives way to gleaming gelcoat; camera tilts up to the light | Hull cleaning *(confirm offered)* | `hull_clean.py` | bright surface → page footer |

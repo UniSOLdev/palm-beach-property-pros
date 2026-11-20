@@ -12,13 +12,13 @@ import residence from "@/lib/site/experiences/residence.json";
 
 /**
  * "The Dive": scroll-driven story of every service, following water.
- * DRAFT preview route: not linked from navigation and not indexed until approved.
+ * Live (approved Nov 2026). Frames are fictional renders: no real homes, people, plates or badges.
  */
 export const metadata: Metadata = {
   title: "The Dive",
   description:
     "A private look at how Palm Beach Property Pros cares for an estate: pool, residence, glass, grounds and motor court.",
-  robots: { index: false, follow: false },
+  alternates: { canonical: "/the-dive" },
 };
 
 const quote = (service: string) => `/quote?service=${encodeURIComponent(service)}`;

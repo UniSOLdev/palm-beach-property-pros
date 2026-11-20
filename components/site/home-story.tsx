@@ -113,7 +113,7 @@ export function HomeStory() {
             <Link href={quote("Auto Detailing")} className="btn-gold w-full sm:w-auto">
               {CTA}
             </Link>
-            <Link href="/services/auto-detailing" className="btn-ghost w-full sm:w-auto">
+            <Link href="/services/auto-detailing" className="btn-ghost-dark w-full sm:w-auto">
               Explore detailing
             </Link>
           </div>

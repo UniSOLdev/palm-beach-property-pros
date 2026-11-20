@@ -1,5 +1,8 @@
 import type { Metadata } from "next";
+import { ScrollChapter } from "@/components/site/experiences/scroll-chapter";
+import type { ExperienceManifest } from "@/components/site/experiences/frame-loader";
 import { QuoteForm } from "@/components/site/quote-form";
+import holidayInstall from "@/lib/site/experiences/holiday-install.json";
 import { PHONE_DISPLAY, PHONE_TEL } from "@/lib/site";
 
 export const metadata: Metadata = {
@@ -82,6 +85,19 @@ export default function HolidayLightingPage() {
           ))}
         </ul>
       </section>
+
+      {/* Scroll to watch the lights go up: roofline, palms, hedges, wreaths, windows. */}
+      <ScrollChapter
+        id="install"
+        manifest={holidayInstall as unknown as ExperienceManifest}
+        number=""
+        kicker="Scroll to light it up"
+        title="One visit. Every line, lit."
+        body="Rooflines first, then the palms, the hedges and the entry, finished before you arrive."
+        service="Holiday Lighting"
+        quoteHref="#quote"
+        length={320}
+      />
 
       <section className="bg-cream px-5 py-20 sm:px-8 md:py-28">
         <div className="mx-auto max-w-6xl">

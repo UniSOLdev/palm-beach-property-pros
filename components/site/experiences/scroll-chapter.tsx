@@ -30,12 +30,14 @@ type Props = {
   quoteHref?: string;
   /** scroll length in viewport heights */
   length?: number;
+  /** label above the title; defaults to "Chapter {number}" */
+  kicker?: string;
   /** first chapter on the page: its poster is the LCP image, so load it eagerly */
   priority?: boolean;
 };
 
 export function ScrollChapter({
-  id, manifest, number, title, body, service, quoteHref = "/quote", length = 360, priority = false,
+  id, manifest, number, title, body, service, quoteHref = "/quote", length = 360, priority = false, kicker,
 }: Props) {
   const sectionRef = useRef<HTMLElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -212,7 +214,7 @@ export function ScrollChapter({
           style={animated ? { opacity: 0 } : undefined}
         >
           <p className="text-xs font-semibold uppercase tracking-[0.22em] text-cream/85">
-            Chapter {number} · {service}
+            {kicker ?? `Chapter ${number}`} · {service}
           </p>
           <h2 id={`${id}-title`} className="font-display mt-3 text-4xl font-medium leading-tight text-white sm:text-6xl">
             {title}

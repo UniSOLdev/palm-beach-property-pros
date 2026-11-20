@@ -14,7 +14,7 @@
  * Budget (docs/RENDER_PIPELINE.md): <= 6 MB desktop and <= 3 MB mobile per package.
  */
 import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
-import { dirname, join, resolve } from "node:path";
+import { basename, dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import sharp from "sharp";
 
@@ -36,6 +36,10 @@ const step = Number(opt("step", 1));
 const qd = Number(opt("qd", 60));
 const qm = Number(opt("qm", 56));
 const loop = has("loop");
+// Optional portrait renders for phones (same frame numbers); otherwise phones get a 9:16 centre crop.
+// Poster (static fallback + first paint): "first" (default) or "last" frame.
+const posterPick = opt("poster", "first");
+const msrc = opt("msrc", "") ? resolve(root, opt("msrc", "")) : "";
 if (!name || !existsSync(src)) {
   console.error("Usage: --src <frames dir> --name <package> [--variant v] [--start --end --step] [--loop]");
   process.exit(1);
@@ -60,8 +64,9 @@ mkdirSync(join(outDir, "d"), { recursive: true });
 mkdirSync(join(outDir, "m"), { recursive: true });
 
 async function encode(file, out, w, h, q, mobile) {
+  if (mobile && msrc) file = join(msrc, basename(file));
   let img = sharp(file);
-  if (mobile) {
+  if (mobile && !msrc) {
     const meta = await img.metadata();
     const cw = Math.round((meta.height * 9) / 16);
     img = img.extract({ left: Math.round((meta.width - cw) / 2), top: 0, width: cw, height: meta.height });
@@ -77,8 +82,9 @@ for (const [i, file] of picks.entries()) {
   bytesM += (await encode(file, join(outDir, "m", n), MOBILE.width, MOBILE.height, qm, true)).size;
   if ((i + 1) % 10 === 0) process.stdout.write(`  ${i + 1}/${picks.length}\r`);
 }
-await encode(picks[0], join(outDir, "poster-d.webp"), DESKTOP.width, DESKTOP.height, 72, false);
-await encode(picks[0], join(outDir, "poster-m.webp"), MOBILE.width, MOBILE.height, 70, true);
+const posterSrc = posterPick === "last" ? picks[picks.length - 1] : picks[0];
+await encode(posterSrc, join(outDir, "poster-d.webp"), DESKTOP.width, DESKTOP.height, 72, false);
+await encode(posterSrc, join(outDir, "poster-m.webp"), MOBILE.width, MOBILE.height, 70, true);
 
 const manifestPath = join(root, "lib", "site", "experiences", `${name}.json`);
 mkdirSync(dirname(manifestPath), { recursive: true });

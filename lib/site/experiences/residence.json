@@ -1,5 +1,5 @@
 {
-  "version": "draft2",
+  "version": "v1",
   "loop": false,
   "desktop": {
     "width": 1600,
@@ -10,9 +10,9 @@
     "height": 1080
   },
   "frames": 50,
-  "base": "/experiences/residence/draft2",
+  "base": "/experiences/residence/v1",
   "bytes": {
-    "d": 1668964,
-    "m": 721036
+    "d": 1684192,
+    "m": 730296
   }
 }

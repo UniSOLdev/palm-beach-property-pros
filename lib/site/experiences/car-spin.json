@@ -1,0 +1,22 @@
+{
+  "version": "draft1",
+  "loop": true,
+  "desktop": {
+    "width": 1600,
+    "height": 900
+  },
+  "mobile": {
+    "width": 608,
+    "height": 1080
+  },
+  "variants": {
+    "clean": {
+      "frames": 36,
+      "base": "/experiences/car-spin/draft1/clean",
+      "bytes": {
+        "d": 670226,
+        "m": 481916
+      }
+    }
+  }
+}

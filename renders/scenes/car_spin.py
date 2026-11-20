@@ -76,7 +76,10 @@ cam = camera(lens=70, location=(0, -16.5, 1.45), target=(0, 0, 0.62))
 if args.variant == "foam":
     front = bpy.data.objects.new("FoamFront", None)
     scene.collection.objects.link(front)
-    front.location = (100, 0, 0)  # everything "behind" the front -> fully foamed
+    # Parent the front to the car so it turns with it: a world-fixed front would end up
+    # "behind" the car on some headings of the spin and strip the foam off those frames.
+    front.parent = root
+    front.location = (1000, 0, 0)  # far ahead along the car's axis -> fully foamed
     add_foam(objs, front, radius=0.05, coverage=1.0)
 
 # Turntable: rotate the car (camera and lights stay fixed so reflections sweep naturally).

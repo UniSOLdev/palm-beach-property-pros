@@ -17,6 +17,14 @@
         "d": 670226,
         "m": 481916
       }
+    },
+    "foam": {
+      "frames": 36,
+      "base": "/experiences/car-spin/draft1/foam",
+      "bytes": {
+        "d": 491164,
+        "m": 290108
+      }
     }
   }
 }

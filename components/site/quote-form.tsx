@@ -10,6 +10,7 @@ import { submitQuoteRequest } from "@/lib/site/actions/submit-quote-request";
 import { QUOTE_ERRORS } from "@/lib/site/quote-submit-types";
 import { QUOTE_SERVICE_OPTIONS } from "@/lib/site/catalog";
 import { PHONE_DISPLAY, PHONE_TEL, SERVICE_CITIES } from "@/lib/site";
+import { trackLead } from "@/components/site/ad-tags";
 
 const CITIES = [...SERVICE_CITIES.filter((c) => !c.startsWith("and ")), "Palm Beach", "Tequesta", "Other Palm Beach County"];
 const PROPERTY_TYPES = ["Single-family residence", "Estate", "Condominium / townhome", "Rental / Airbnb", "Commercial", "HOA / community"];
@@ -64,6 +65,7 @@ export function QuoteForm({ defaultService, idPrefix = "q" }: { defaultService?:
       const result = await submitQuoteRequest(fd);
       if (result.ok) {
         if (result.photoWarnings?.length) setPhotoNotice(QUOTE_ERRORS.photosSaved);
+        trackLead(String(fd.get("service") ?? "") || undefined); // Meta "Lead" / Google conversion (if configured)
         setStatus("success");
         form.reset();
       } else {

@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import { QuoteForm } from "@/components/site/quote-form";
 import { PHONE_DISPLAY, PHONE_TEL } from "@/lib/site";
 
 export const metadata: Metadata = {
@@ -15,16 +15,6 @@ export const metadata: Metadata = {
   },
 };
 
-/** Carry ad / referral tags (utm_*) through to the quote form so paid leads stay attributed. */
-function quoteHref(sp: Record<string, string | string[] | undefined>) {
-  const q = new URLSearchParams({ service: "Holiday Lighting" });
-  for (const k of ["utm_source", "utm_medium", "utm_campaign", "utm_content"]) {
-    const v = sp[k];
-    if (typeof v === "string" && v) q.set(k, v.slice(0, 80));
-  }
-  return `/quote?${q.toString()}`;
-}
-
 const LIGHT = [
   { title: "Rooflines & facade", body: "Clean, continuous warm-white lines along the eaves and the string course, measured to your architecture." },
   { title: "Palms", body: "Royal and coconut palm trunks wrapped in even spirals, with uplights to the crowns." },
@@ -39,12 +29,10 @@ const STEPS = [
   { n: "04", title: "Take-down", body: "After the holidays everything comes down at a time that suits you." },
 ];
 
-export default async function HolidayLightingPage({
-  searchParams,
-}: {
-  searchParams: Promise<Record<string, string | string[] | undefined>>;
-}) {
-  const QUOTE = quoteHref(await searchParams);
+const TRUST = ["Licensed & insured", "Local Palm Beach County crew", "Installed while you're away", "Take-down included"];
+
+export default function HolidayLightingPage() {
+  // The embedded form reads utm_* from this page's URL, so ad and referral leads stay attributed.
   return (
     <>
       <section className="relative -mt-[72px] overflow-hidden bg-navy-deep md:flex md:min-h-[92svh] md:items-end">
@@ -71,11 +59,22 @@ export default async function HolidayLightingPage({
             the holidays, and taken down, by one discreet team.
           </p>
           <div className="mt-9 flex flex-col gap-3 sm:flex-row">
-            <Link href={QUOTE} className="btn-gold w-full sm:w-auto">Request a holiday lighting quote</Link>
+            <a href="#quote" className="btn-gold w-full sm:w-auto">Request a holiday lighting quote</a>
             <a href={PHONE_TEL} className="btn-ghost-light w-full sm:w-auto">Call {PHONE_DISPLAY}</a>
           </div>
           <p className="mt-5 text-sm text-cream/80">Install dates fill quickly from late November. Book early for lights by mid-December.</p>
         </div>
+      </section>
+
+      <section aria-label="Why clients choose us" className="border-b border-navy/10 bg-cream px-5 py-6 sm:px-8">
+        <ul className="mx-auto flex max-w-6xl flex-wrap items-center justify-center gap-x-8 gap-y-2 text-sm font-medium text-navy/80">
+          {TRUST.map((t) => (
+            <li key={t} className="flex items-center gap-2">
+              <span aria-hidden="true" className="h-1.5 w-1.5 rounded-full bg-[#C2A06A]" />
+              {t}
+            </li>
+          ))}
+        </ul>
       </section>
 
       <section className="bg-cream px-5 py-20 sm:px-8 md:py-28">
@@ -109,12 +108,19 @@ export default async function HolidayLightingPage({
         </div>
       </section>
 
-      <section className="bg-navy-deep px-5 py-24 text-center sm:px-8">
-        <h2 className="font-display mx-auto max-w-3xl text-4xl font-medium text-white sm:text-6xl">Reserve your install date.</h2>
-        <p className="mx-auto mt-5 max-w-xl text-lg text-cream">Tell us about the property and when you&apos;d like it lit. We&apos;ll respond personally with a private quote.</p>
-        <div className="mt-9 flex flex-col items-center justify-center gap-3 sm:flex-row">
-          <Link href={QUOTE} className="btn-gold w-full sm:w-auto">Request a holiday lighting quote</Link>
-          <a href={PHONE_TEL} className="btn-ghost-light w-full sm:w-auto">Call {PHONE_DISPLAY}</a>
+      <section id="quote" className="scroll-mt-24 bg-cream-warm px-5 py-20 sm:px-8 md:py-28">
+        <div className="mx-auto grid max-w-6xl gap-12 lg:grid-cols-[1fr_1.3fr] lg:gap-16">
+          <div className="lg:sticky lg:top-28 lg:h-fit">
+            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-navy/70">Reserve your install date</p>
+            <h2 className="font-display mt-3 text-4xl font-medium text-navy sm:text-5xl">Tell us about the property.</h2>
+            <p className="mt-5 text-lg leading-relaxed text-charcoal/80">
+              A few details and your preferred dates. We respond personally, usually within one business day, with a private
+              quote. No obligation.
+            </p>
+            <p className="mt-8 text-base text-charcoal/70">Prefer to talk?</p>
+            <a href={PHONE_TEL} className="font-display mt-1 block text-4xl text-navy no-underline hover:text-brass-dark">{PHONE_DISPLAY}</a>
+          </div>
+          <QuoteForm defaultService="Holiday Lighting" idPrefix="holiday" />
         </div>
       </section>
     </>

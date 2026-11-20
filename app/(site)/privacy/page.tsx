@@ -32,6 +32,13 @@ export default function PrivacyPage() {
             We do not sell your personal information. We may share details with payment processors,
             scheduling tools, or insurers only as needed to complete services you request.
           </p>
+          <h2 className="mt-8 text-lg font-bold text-navy">Cookies &amp; advertising</h2>
+          <p>
+            We may use cookies and similar technologies from Meta (Facebook and Instagram) and Google to measure how
+            visitors find us and whether our ads lead to quote requests, and to show our ads to people who have visited
+            this site. These partners may collect information such as pages visited and actions taken. You can opt out of
+            personalized ads in your Meta and Google ad settings, or block cookies in your browser.
+          </p>
           <h2 className="mt-8 text-lg font-bold text-navy">Retention</h2>
           <p>
             We retain communications for a period necessary to deliver service, maintain business

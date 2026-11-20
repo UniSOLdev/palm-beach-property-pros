@@ -131,7 +131,53 @@ const premium: CatalogService[] = PREMIUM.filter((p) => p.slug in PREMIUM_META).
   seoDescription: p.seoDescription,
 }));
 
-export const CATALOG: CatalogService[] = [...CORE.map(fromCore), ...premium];
+/** Seasonal services (no prices, like everything else in the catalog). */
+const seasonal: CatalogService[] = [
+  {
+    slug: "holiday-lighting",
+    name: "Holiday Lighting",
+    category: "exteriors",
+    premium: true,
+    summary:
+      "Custom holiday lighting for estates: designed, installed, looked after through the season, then taken down after the holidays.",
+    intro:
+      "Warm-white rooflines, wrapped palms, softly lit hedges and wreaths at the door, installed by our crew on your schedule, including before you arrive for the season. One call, no ladders, nothing to untangle in January.",
+    includes: [
+      "Walkthrough and lighting plan for rooflines, palms, hedges, and the entry",
+      "Warm-white LED lighting sized to your property",
+      "Professional installation on your schedule, including while you're away",
+      "Timers set so the lights turn on and off by themselves",
+      "In-season checks and quick fixes if a strand or connection fails",
+      "Take-down after the holidays",
+    ],
+    idealFor: [
+      "Seasonal residents who want the house lit before they arrive",
+      "Families hosting over the holidays",
+      "Estates with tall palms and long rooflines that need a careful, insured crew",
+    ],
+    faq: [
+      {
+        q: "When should we book?",
+        a: "As early as you can. Installs book up quickly from late November, and most clients want their lights on by the second week of December.",
+      },
+      {
+        q: "Can you install while we're away?",
+        a: "Yes. We can finish the install before you arrive and send you photos once everything is lit.",
+      },
+      {
+        q: "Do you take everything down afterwards?",
+        a: "Yes. Take-down is scheduled after the holidays at a time that suits you.",
+      },
+    ],
+    image: "/photos/holiday-lighting-estate.jpg",
+    imageAlt: "Mediterranean-style estate at dusk with warm holiday lights on the roofline, palms, and hedges",
+    seoTitle: "Holiday & Christmas Light Installation in Palm Beach",
+    seoDescription:
+      "Christmas and holiday light installation for Palm Beach estates: rooflines, palm wraps, hedges and wreaths, installed, maintained and taken down. Request a private quote.",
+  },
+];
+
+export const CATALOG: CatalogService[] = [...CORE.map(fromCore), ...premium, ...seasonal];
 
 export function getCatalogService(slug: string) {
   return CATALOG.find((s) => s.slug === slug);

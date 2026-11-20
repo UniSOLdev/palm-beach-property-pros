@@ -50,6 +50,21 @@ website consumes compressed WebP frame sequences.
 - Fictional Mediterranean-Revival estate (cream stucco, terracotta roof).
 - Export as MP4 (H.264, high quality), then run `npm run hero:build -- path/to/home-flythrough.mp4`. The homepage switches to it automatically (see README → Hero footage).
 
+### 5. `pool-dive` and 6. `hull-clean`: chapters of "The Dive"
+See `docs/THE_DIVE.md` for the full seven-chapter scroll story and the Palm Beach art direction.
+
+## Scene scripts (`renders/scenes/`, tested headless in Blender 4.0)
+| Script | Test command |
+|---|---|
+| `car_spin.py` | `blender -b -P renders/scenes/car_spin.py -- --model car.glb --variant foam --preview --only 1,19,37,55` |
+| `foam_cannon.py` | `... foam_cannon.py -- --model car.glb --preview --only 1,45,65,110` |
+| `yacht_orbit.py` | `... yacht_orbit.py -- --model yacht.glb --preview --only 1,60,120` |
+| `home_flythrough.py` | `... home_flythrough.py -- --model estate.blend --door X,Y,Z --door-objects DoorL,DoorR --preview` |
+| `pool_dive.py` | `... pool_dive.py -- --estate estate.blend --preview --only 1,60,100,140` |
+| `hull_clean.py` | `... hull_clean.py -- --yacht yacht.glb --diver diver.glb --preview --only 1,70,140` |
+
+Every script also accepts `--standin`, which uses test geometry to check the pipeline. **Stand-in frames are never published.**
+
 ## Website integration
 - Frames go in `public/experiences/<package>/<version>/{d,m}/NNN.webp`:
   - `d` = desktop, 1600×900, WebP quality about 60

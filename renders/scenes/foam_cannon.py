@@ -7,41 +7,54 @@ mirror-finish paint, while the camera dollies slowly along the car.
     blender -b -P renders/scenes/foam_cannon.py -- --model car.glb
     blender -b -P renders/scenes/foam_cannon.py -- --standin --preview --only 1,40,70,110
 """
+import math
 import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
 import bpy  # noqa: E402
 
+from common import PAINTS, drop_ground_planes, recolor_paint, tag_interior, world_bbox  # noqa: E402
 from common import (  # noqa: E402
     area_light, camera, car_paint, floor_studio, import_model, linear_keys, normalize,
     parse_args, render_frames, reset_scene, setup_render, strip_branding, world_hdri,
 )
 from foam import add_foam  # noqa: E402
+from procedural_car import luxury_saloon  # noqa: E402
 from standins import standin_car  # noqa: E402
 
 
 def extra(p):
     p.add_argument("--model", default=None)
+    p.add_argument("--paint", default="navy", choices=["navy", "white", "rosso", "keep"],
+                   help="body colour for a purchased model (keep = as shipped)")
+    p.add_argument("--yaw", type=float, default=None, help="base heading in degrees (auto: long axis -> X)")
+    p.add_argument("--collection", default=None, help="collection to load from a .blend holding several cars")
     p.add_argument("--standin", action="store_true")
     p.add_argument("--repaint", action="store_true")
-    p.add_argument("--length", type=float, default=4.9)
+    p.add_argument("--length", type=float, default=None)
 
 
 args = parse_args("foam-cannon", 120, extra)
 scene = reset_scene()
 setup_render(scene, args)
-world_hdri(scene, args.hdri, strength=0.25)
+world_hdri(scene, args.hdri, strength=0.25, camera_bg=(0.012, 0.014, 0.018))
 
 if args.model:
-    objs = import_model(args.model)
+    objs = import_model(args.model, args.collection)
+    objs = drop_ground_planes(objs)
+    tag_interior(objs)
+    if args.paint != "keep":
+        recolor_paint(objs, PAINTS[args.paint])
     strip_branding(objs)
 elif args.standin:
     objs = standin_car()
 else:
-    raise SystemExit("Pass --model path/to/car.glb (or --standin for a pipeline test)")
+    objs = luxury_saloon()   # license-free procedural grand saloon
+args.length = args.length or (5.6 if not (args.model or args.standin) else 4.9)
 root = normalize(objs, args.length, "Car")
-root.rotation_euler[2] = 0.0
+lo, hi = world_bbox([o for o in objs if o.type == "MESH"])
+root.rotation_euler[2] = math.radians(args.yaw if args.yaw is not None else (90.0 if (hi.y - lo.y) > (hi.x - lo.x) else 0.0))
 if args.repaint:
     meshes = [o for o in objs if o.type == "MESH"]
     max(meshes, key=lambda o: len(o.data.polygons)).data.materials[:] = [car_paint()]
@@ -62,7 +75,7 @@ for frame, x in ((1, -half), (int(n * 0.5), half), (int(n * 0.62), half), (n, -h
     front.location = (x, 0, 0)
     front.keyframe_insert("location", index=0, frame=frame)
 linear_keys(front)
-add_foam(objs, front, density=1100, radius=0.032, voxel=0.011, coverage=0.5)
+add_foam(objs, front, radius=0.05, coverage=1.0)
 
 # Camera: close three-quarter view, slow lateral dolly front -> rear.
 cam = camera(lens=45, location=(-2.2, -6.4, 1.25), target=(-0.6, 0, 0.7))

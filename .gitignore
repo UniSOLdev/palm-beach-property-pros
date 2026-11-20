@@ -39,3 +39,5 @@ next-env.d.ts
 # Blender working files
 renders/_work/
 *.blend1
+__pycache__/
+*.pyc

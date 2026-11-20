@@ -26,7 +26,7 @@ from mathutils import Vector  # noqa: E402
 
 from common import (  # noqa: E402
     camera, import_model, normalize, parse_args, principled, render_frames, reset_scene,
-    setup_render, sun_light, world_bbox, world_sky,
+    setup_render, sun_light, world_bbox, world_sky, iter_fcurves,
 )
 
 
@@ -124,7 +124,7 @@ for frac, pos, look in waypoints:
     target.keyframe_insert("location", frame=f)
 # smooth, continuous move (Bezier auto-clamped = no stops between waypoints)
 for o in (cam, target):
-    for fc in o.animation_data.action.fcurves:
+    for fc in iter_fcurves(o):
         for kp in fc.keyframe_points:
             kp.interpolation = "BEZIER"
             kp.handle_left_type = kp.handle_right_type = "AUTO_CLAMPED"

@@ -1,5 +1,5 @@
 {
-  "version": "v1",
+  "version": "v2",
   "loop": true,
   "desktop": {
     "width": 1600,
@@ -12,7 +12,7 @@
   "variants": {
     "clean": {
       "frames": 36,
-      "base": "/experiences/car-spin/v1/clean",
+      "base": "/experiences/car-spin/v2/clean",
       "bytes": {
         "d": 672314,
         "m": 484218
@@ -20,7 +20,7 @@
     },
     "foam": {
       "frames": 36,
-      "base": "/experiences/car-spin/v1/foam",
+      "base": "/experiences/car-spin/v2/foam",
       "bytes": {
         "d": 496422,
         "m": 293626

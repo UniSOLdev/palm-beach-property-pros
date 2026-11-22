@@ -1,5 +1,5 @@
 {
-  "version": "v1",
+  "version": "v2",
   "loop": false,
   "desktop": {
     "width": 1600,
@@ -10,9 +10,9 @@
     "height": 1080
   },
   "frames": 60,
-  "base": "/experiences/foam-cannon/v1",
+  "base": "/experiences/foam-cannon/v2",
   "bytes": {
-    "d": 1882452,
-    "m": 794192
+    "d": 1638672,
+    "m": 701914
   }
 }

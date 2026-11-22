@@ -1,5 +1,5 @@
 {
-  "version": "v1",
+  "version": "v2",
   "loop": false,
   "desktop": {
     "width": 1600,
@@ -10,9 +10,9 @@
     "height": 1080
   },
   "frames": 50,
-  "base": "/experiences/glass/v1",
+  "base": "/experiences/glass/v2",
   "bytes": {
-    "d": 763416,
-    "m": 344592
+    "d": 1148886,
+    "m": 458452
   }
 }

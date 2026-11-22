@@ -1,5 +1,5 @@
 {
-  "version": "v1",
+  "version": "v2",
   "loop": false,
   "desktop": {
     "width": 1600,
@@ -10,9 +10,9 @@
     "height": 1080
   },
   "frames": 50,
-  "base": "/experiences/grounds/v1",
+  "base": "/experiences/grounds/v2",
   "bytes": {
-    "d": 2572176,
-    "m": 860804
+    "d": 2212402,
+    "m": 866510
   }
 }

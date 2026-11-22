@@ -488,3 +488,15 @@ html:not(.js) .reveal {
     transform: scale(1.035);
   }
 }
+
+/* The Dive engine (components/dive): hero headline rises word by word on load. Kept here, not in a separate stylesheet, so it adds no render-blocking request. */
+@media (prefers-reduced-motion: no-preference) {
+  .dive-hero-title .dive-word {
+    animation: dive-rise 1.15s cubic-bezier(0.2, 0.7, 0.1, 1) both;
+    animation-delay: calc(var(--i) * 75ms + 120ms);
+  }
+}
+@keyframes dive-rise {
+  from { transform: translate3d(0, 108%, 0); }
+  to { transform: none; }
+}

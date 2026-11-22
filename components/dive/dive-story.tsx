@@ -19,7 +19,6 @@ import Link from "next/link";
 import { type CSSProperties, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { drawBlend, FrameStore, isCoarsePointer, shouldAnimate, sizeCanvas } from "./frames";
 import type { DiveChapter, DiveHero, DiveTheme } from "./types";
-import "./dive.css";
 
 type Props = {
   chapters: DiveChapter[];
